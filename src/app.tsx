@@ -1,7 +1,10 @@
-import { Bitcoin, Calculator, DollarSign, FileText, TrendingUp, Upload } from 'lucide-react';
+import { Bitcoin, TrendingUp } from 'lucide-react';
 import Papa from 'papaparse';
 import { useEffect, useState } from 'react';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
+import DashboardOverview from './components/DashboardOverview';
+import TransactionHistory from './components/TransactionHistory';
+import UploadTransactions from './components/UploadTransactions';
 import { Stats } from './types/Stats';
 import { Transaction } from './types/Transaction';
 import { exchangeParsers } from './utils/exchangeParsers';
@@ -172,160 +175,23 @@ const BitcoinTracker: React.FC = () => {
 
         {/* Portfolio Stats */}
         {transactions.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <DollarSign className="text-blue-500" size={20} />
-                <span className="text-sm font-medium text-gray-600">Total Invested</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-800">
-                {formatCurrency(stats.totalInvested)}
-              </span>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <Bitcoin className="text-orange-500" size={20} />
-                <span className="text-sm font-medium text-gray-600">Total Bitcoin</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-800">
-                {formatBTC(stats.totalBitcoin)}
-              </span>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <Calculator className="text-purple-500" size={20} />
-                <span className="text-sm font-medium text-gray-600">Avg Cost Basis</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-800">
-                {formatCurrency(stats.avgCostBasis)}
-              </span>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp
-                  className={stats.unrealizedPnL >= 0 ? 'text-green-500' : 'text-red-500'}
-                  size={20}
-                />
-                <span className="text-sm font-medium text-gray-600">Unrealized P&L</span>
-              </div>
-              <span
-                className={`text-2xl font-bold ${stats.unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}
-              >
-                {formatCurrency(stats.unrealizedPnL)}
-              </span>
-            </div>
-          </div>
+          <DashboardOverview stats={stats} formatCurrency={formatCurrency} formatBTC={formatBTC} />
         )}
 
         {/* File Upload */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Upload size={20} />
-            Upload Transaction Files
-          </h2>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="file-upload"
-              disabled={loading}
-            />
-            <label
-              htmlFor="file-upload"
-              className="cursor-pointer flex flex-col items-center gap-2"
-            >
-              <FileText size={48} className="text-gray-400" />
-              <span className="text-lg font-medium text-gray-600">
-                {loading ? 'Processing...' : 'Upload CSV file'}
-              </span>
-              <span className="text-sm text-gray-500">
-                Supports Strike, Coinbase, and Kraken formats
-              </span>
-            </label>
-          </div>
-
-          {transactions.length > 0 && (
-            <div className="mt-4 flex justify-between items-center">
-              <span className="text-sm text-gray-600">
-                {transactions.length} transactions loaded
-              </span>
-              <button
-                onClick={clearData}
-                className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-              >
-                Clear Data
-              </button>
-            </div>
-          )}
-        </div>
+        <UploadTransactions
+          onUpload={handleFileUpload}
+          loading={loading}
+          transactionsCount={transactions.length}
+          clearData={clearData}
+        />
 
         {/* Transaction History */}
-        {transactions.length > 0 && (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Transaction History</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">Date</th>
-                    <th className="text-left py-2">Exchange</th>
-                    <th className="text-right py-2">USD Amount</th>
-                    <th className="text-right py-2">BTC Amount</th>
-                    <th className="text-right py-2">Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                    .slice(0, 50) // Show last 50 transactions
-                    .map((tx) => (
-                      <tr key={tx.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2">{tx.date.toLocaleDateString()}</td>
-                        <td className="py-2">
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              tx.exchange === 'Strike'
-                                ? 'bg-orange-100 text-orange-800'
-                                : tx.exchange === 'Coinbase'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : tx.exchange === 'Kraken'
-                                    ? 'bg-purple-100 text-purple-800'
-                                    : 'bg-gray-100 text-gray-800'
-                            }`}
-                          >
-                            {tx.exchange}
-                          </span>
-                        </td>
-                        <td className="text-right py-2">{formatCurrency(tx.usdAmount)}</td>
-                        <td className="text-right py-2">{formatBTC(tx.btcAmount)}</td>
-                        <td className="text-right py-2">{formatCurrency(tx.price)}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-              {transactions.length > 50 && (
-                <p className="text-center text-gray-500 mt-4">
-                  Showing last 50 transactions of {transactions.length} total
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {transactions.length === 0 && (
-          <div className="text-center py-12">
-            <Bitcoin size={64} className="text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-600 mb-2">No transactions yet</h3>
-            <p className="text-gray-500">
-              Upload your CSV files to start tracking your Bitcoin purchases
-            </p>
-          </div>
-        )}
+        <TransactionHistory
+          transactions={transactions}
+          formatCurrency={formatCurrency}
+          formatBTC={formatBTC}
+        />
       </div>
     </div>
   );
