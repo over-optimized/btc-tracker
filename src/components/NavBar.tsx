@@ -17,7 +17,9 @@ const NavBar: React.FC = () => (
               to={item.to}
               className={({ isActive }) =>
                 `text-lg font-medium px-2 py-1 rounded transition-colors ${
-                  isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700 hover:text-blue-500'
+                  isActive
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-700 hover:text-blue-500'
                 }`
               }
               end={item.to === '/'}

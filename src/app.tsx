@@ -1,13 +1,14 @@
-import { Bitcoin, TrendingUp } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import Papa from 'papaparse';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
 import DashboardOverview from './components/DashboardOverview';
 import ImportSummaryModal from './components/ImportSummaryModal';
 import NavBar from './components/NavBar';
 import TransactionHistory from './components/TransactionHistory';
 import UploadTransactions from './components/UploadTransactions';
+import PortfolioValueChart from './components/PortfolioValueChart';
 import { Stats } from './types/Stats';
 import { Transaction } from './types/Transaction';
 import { exchangeParsers } from './utils/exchangeParsers';
@@ -198,12 +199,16 @@ const BitcoinTracker: React.FC = () => {
                   </div>
                 )}
                 {transactions.length > 0 && (
-                  <DashboardOverview stats={stats} formatCurrency={formatCurrency} formatBTC={formatBTC} />
+                  <DashboardOverview
+                    stats={stats}
+                    formatCurrency={formatCurrency}
+                    formatBTC={formatBTC}
+                  />
                 )}
                 {/* Chart placeholder here */}
                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                   <h2 className="text-xl font-bold text-gray-800 mb-4">Portfolio Value Over Time</h2>
-                  <div className="h-72 flex items-center justify-center text-gray-400">[Chart Coming Soon]</div>
+                  <PortfolioValueChart transactions={transactions} currentPrice={currentPrice} />
                 </div>
               </div>
             </div>
@@ -244,7 +249,9 @@ const BitcoinTracker: React.FC = () => {
             <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
               <div className="max-w-6xl mx-auto">
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Charts (Coming Soon)</h2>
-                <div className="h-72 flex items-center justify-center text-gray-400">[Additional Charts Coming Soon]</div>
+                <div className="h-72 flex items-center justify-center text-gray-400">
+                  [Additional Charts Coming Soon]
+                </div>
               </div>
             </div>
           }
