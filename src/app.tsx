@@ -1,9 +1,11 @@
 import { Bitcoin, TrendingUp } from 'lucide-react';
 import Papa from 'papaparse';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
 import DashboardOverview from './components/DashboardOverview';
 import ImportSummaryModal from './components/ImportSummaryModal';
+import NavBar from './components/NavBar';
 import TransactionHistory from './components/TransactionHistory';
 import UploadTransactions from './components/UploadTransactions';
 import { Stats } from './types/Stats';
@@ -169,58 +171,86 @@ const BitcoinTracker: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
-      <ImportSummaryModal
-        open={importModalOpen}
-        onClose={() => setImportModalOpen(false)}
-        importedCount={importedCount}
-        ignoredCount={ignoredCount}
-        summary={importSummary}
-      />
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
-            <Bitcoin className="text-orange-500" size={40} />
-            Bitcoin DCA Tracker
-          </h1>
-          <p className="text-gray-600">
-            Track your dollar-cost averaging across multiple exchanges
-          </p>
-        </div>
-
-        {/* Current Price Display */}
-        {currentPrice && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <div className="flex items-center justify-center gap-4">
-              <TrendingUp className="text-green-500" size={24} />
-              <span className="text-2xl font-bold text-gray-800">
-                Bitcoin: {formatCurrency(currentPrice)}
-              </span>
+    <Router>
+      <NavBar />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+              <ImportSummaryModal
+                open={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                importedCount={importedCount}
+                ignoredCount={ignoredCount}
+                summary={importSummary}
+              />
+              <div className="max-w-6xl mx-auto">
+                {/* Current Price Display */}
+                {currentPrice && (
+                  <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                    <div className="flex items-center justify-center gap-4">
+                      <TrendingUp className="text-green-500" size={24} />
+                      <span className="text-2xl font-bold text-gray-800">
+                        Bitcoin: {formatCurrency(currentPrice)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {transactions.length > 0 && (
+                  <DashboardOverview stats={stats} formatCurrency={formatCurrency} formatBTC={formatBTC} />
+                )}
+                {/* Chart placeholder here */}
+                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">Portfolio Value Over Time</h2>
+                  <div className="h-72 flex items-center justify-center text-gray-400">[Chart Coming Soon]</div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* Portfolio Stats */}
-        {transactions.length > 0 && (
-          <DashboardOverview stats={stats} formatCurrency={formatCurrency} formatBTC={formatBTC} />
-        )}
-
-        {/* File Upload */}
-        <UploadTransactions
-          onUpload={handleFileUpload}
-          loading={loading}
-          transactionsCount={transactions.length}
-          clearData={clearData}
+          }
         />
-
-        {/* Transaction History */}
-        <TransactionHistory
-          transactions={transactions}
-          formatCurrency={formatCurrency}
-          formatBTC={formatBTC}
+        <Route
+          path="/transactions"
+          element={
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+              <div className="max-w-6xl mx-auto">
+                <TransactionHistory
+                  transactions={transactions}
+                  formatCurrency={formatCurrency}
+                  formatBTC={formatBTC}
+                />
+              </div>
+            </div>
+          }
         />
-      </div>
-    </div>
+        <Route
+          path="/upload"
+          element={
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+              <div className="max-w-6xl mx-auto">
+                <UploadTransactions
+                  onUpload={handleFileUpload}
+                  loading={loading}
+                  transactionsCount={transactions.length}
+                  clearData={clearData}
+                />
+              </div>
+            </div>
+          }
+        />
+        <Route
+          path="/charts"
+          element={
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+              <div className="max-w-6xl mx-auto">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Charts (Coming Soon)</h2>
+                <div className="h-72 flex items-center justify-center text-gray-400">[Additional Charts Coming Soon]</div>
+              </div>
+            </div>
+          }
+        />
+      </Routes>
+    </Router>
   );
 };
 
