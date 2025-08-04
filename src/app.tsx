@@ -2,6 +2,7 @@ import { TrendingUp } from 'lucide-react';
 import Papa from 'papaparse';
 import { useEffect, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { formatCurrency } from 'utils/formatCurrency';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
 import AdditionalCharts from './components/AdditionalCharts';
 import DashboardOverview from './components/DashboardOverview';
@@ -151,27 +152,6 @@ const BitcoinTracker: React.FC = () => {
     });
   };
 
-  // Helper functions
-
-  const detectExchange = (row: any): string => {
-    const rowStr = JSON.stringify(row).toLowerCase();
-    if (rowStr.includes('strike')) return 'Strike';
-    if (rowStr.includes('coinbase')) return 'Coinbase';
-    if (rowStr.includes('kraken')) return 'Kraken';
-    return 'Unknown';
-  };
-
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
-
-  const formatBTC = (amount: number): string => {
-    return `₿${amount.toFixed(8)}`;
-  };
-
   const clearData = () => {
     if (confirm('Are you sure you want to clear all transaction data?')) {
       setTransactions([]);
@@ -206,13 +186,7 @@ const BitcoinTracker: React.FC = () => {
                     </div>
                   </div>
                 )}
-                {transactions.length > 0 && (
-                  <DashboardOverview
-                    stats={stats}
-                    formatCurrency={formatCurrency}
-                    formatBTC={formatBTC}
-                  />
-                )}
+                {transactions.length > 0 && <DashboardOverview stats={stats} />}
                 {/* Chart placeholder here */}
                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                   <h2 className="text-xl font-bold text-gray-800 mb-4">
@@ -235,11 +209,7 @@ const BitcoinTracker: React.FC = () => {
           element={
             <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
               <div className="max-w-6xl mx-auto">
-                <TransactionHistory
-                  transactions={transactions}
-                  formatCurrency={formatCurrency}
-                  formatBTC={formatBTC}
-                />
+                <TransactionHistory transactions={transactions} />
               </div>
             </div>
           }

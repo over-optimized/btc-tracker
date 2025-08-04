@@ -1,17 +1,13 @@
 import { Bitcoin, Calculator, DollarSign, TrendingUp } from 'lucide-react';
 import { Stats } from '../types/Stats';
+import { formatBTC } from '../utils/formatBTC';
+import { formatCurrency } from '../utils/formatCurrency';
 
 interface DashboardOverviewProps {
   stats: Stats;
-  formatCurrency: (amount: number) => string;
-  formatBTC: (amount: number) => string;
 }
 
-const DashboardOverview: React.FC<DashboardOverviewProps> = ({
-  stats,
-  formatCurrency,
-  formatBTC,
-}) => (
+const DashboardOverview: React.FC<DashboardOverviewProps> = ({ stats }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center gap-3 mb-2">

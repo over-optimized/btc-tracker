@@ -1,20 +1,16 @@
 import { Bitcoin } from 'lucide-react';
 import React, { useState } from 'react';
+import { formatBTC } from 'utils/formatBTC';
+import { formatCurrency } from 'utils/formatCurrency';
 import { Transaction } from '../types/Transaction';
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
-  formatCurrency: (amount: number) => string;
-  formatBTC: (amount: number) => string;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
-const TransactionHistory: React.FC<TransactionHistoryProps> = ({
-  transactions,
-  formatCurrency,
-  formatBTC,
-}) => {
+const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions }) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[1]); // default 25
   const totalPages = Math.ceil(transactions.length / pageSize);
