@@ -1,7 +1,7 @@
 import { TrendingUp } from 'lucide-react';
 import Papa from 'papaparse';
 import { useEffect, useState } from 'react';
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
 import AdditionalCharts from './components/AdditionalCharts';
 import DashboardOverview from './components/DashboardOverview';
@@ -30,6 +30,8 @@ const BitcoinTracker: React.FC = () => {
   const [importedCount, setImportedCount] = useState(0);
   const [ignoredCount, setIgnoredCount] = useState(0);
   const [importSummary, setImportSummary] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     (async () => {
@@ -132,6 +134,10 @@ const BitcoinTracker: React.FC = () => {
           setIgnoredCount(ignored);
           setImportSummary(summary);
           setImportModalOpen(true);
+          // Navigate to dashboard if not already there
+          if (location.pathname !== '/') {
+            navigate('/');
+          }
         } catch (error) {
           alert('Error parsing file. Please check the format and try again.');
         }
@@ -173,7 +179,7 @@ const BitcoinTracker: React.FC = () => {
   };
 
   return (
-    <Router>
+    <>
       <NavBar />
       <Routes>
         <Route
@@ -257,7 +263,7 @@ const BitcoinTracker: React.FC = () => {
           }
         />
       </Routes>
-    </Router>
+    </>
   );
 };
 
