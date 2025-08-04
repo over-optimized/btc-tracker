@@ -6,6 +6,7 @@ import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
 import AdditionalCharts from './components/AdditionalCharts';
 import DashboardOverview from './components/DashboardOverview';
 import ImportSummaryModal from './components/ImportSummaryModal';
+import InvestedVsPnLChart from './components/InvestedVsPnLChart';
 import NavBar from './components/NavBar';
 import PortfolioValueChart from './components/PortfolioValueChart';
 import TransactionHistory from './components/TransactionHistory';
@@ -218,6 +219,12 @@ const BitcoinTracker: React.FC = () => {
                     Portfolio Value Over Time
                   </h2>
                   <PortfolioValueChart transactions={transactions} currentPrice={currentPrice} />
+                </div>
+                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">
+                    Invested vs. Unrealized P&L (Monthly)
+                  </h2>
+                  <InvestedVsPnLChart transactions={transactions} currentPrice={currentPrice} />
                 </div>
               </div>
             </div>
