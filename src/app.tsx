@@ -9,6 +9,7 @@ import NavBar from './components/NavBar';
 import TransactionHistory from './components/TransactionHistory';
 import UploadTransactions from './components/UploadTransactions';
 import PortfolioValueChart from './components/PortfolioValueChart';
+import AdditionalCharts from './components/AdditionalCharts';
 import { Stats } from './types/Stats';
 import { Transaction } from './types/Transaction';
 import { exchangeParsers } from './utils/exchangeParsers';
@@ -248,10 +249,7 @@ const BitcoinTracker: React.FC = () => {
           element={
             <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
               <div className="max-w-6xl mx-auto">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Charts (Coming Soon)</h2>
-                <div className="h-72 flex items-center justify-center text-gray-400">
-                  [Additional Charts Coming Soon]
-                </div>
+                <AdditionalCharts transactions={transactions} currentPrice={currentPrice} />
               </div>
             </div>
           }
