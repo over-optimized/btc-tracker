@@ -3,7 +3,7 @@ import { Transaction } from '../types/Transaction';
 const STORAGE_KEY = 'btc-tracker:transactions';
 
 export function getTransactions(): Transaction[] {
-  const data = localStorage.getItem('transactions');
+  const data = localStorage.getItem(STORAGE_KEY);
   if (!data) return [];
   return JSON.parse(data).map((tx: any) => ({
     ...tx,

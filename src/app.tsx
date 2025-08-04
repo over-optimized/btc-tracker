@@ -2,7 +2,6 @@ import { TrendingUp } from 'lucide-react';
 import Papa from 'papaparse';
 import { useEffect, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { formatCurrency } from 'utils/formatCurrency';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
 import AdditionalCharts from './components/AdditionalCharts';
 import DashboardOverview from './components/DashboardOverview';
@@ -15,6 +14,7 @@ import UploadTransactions from './components/UploadTransactions';
 import { Stats } from './types/Stats';
 import { Transaction } from './types/Transaction';
 import { exchangeParsers } from './utils/exchangeParsers';
+import { formatCurrency } from './utils/formatCurrency';
 import { clearTransactions, getTransactions, saveTransactions } from './utils/storage';
 
 const BitcoinTracker: React.FC = () => {

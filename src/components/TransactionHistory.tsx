@@ -1,8 +1,8 @@
 import { Bitcoin } from 'lucide-react';
 import React, { useState } from 'react';
-import { formatBTC } from 'utils/formatBTC';
-import { formatCurrency } from 'utils/formatCurrency';
 import { Transaction } from '../types/Transaction';
+import { formatBTC } from '../utils/formatBTC';
+import { formatCurrency } from '../utils/formatCurrency';
 
 interface TransactionHistoryProps {
   transactions: Transaction[];
