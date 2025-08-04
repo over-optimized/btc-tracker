@@ -1,5 +1,16 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, AreaChart, Area } from 'recharts';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { Transaction } from '../types/Transaction';
 
 interface AdditionalChartsProps {
@@ -28,7 +39,10 @@ function buildChartData(transactions: Transaction[], currentPrice: number | null
 
 const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ transactions, currentPrice }) => {
   const data = buildChartData(transactions, currentPrice);
-  if (data.length === 0) return <div className="h-72 flex items-center justify-center text-gray-400">No data to chart</div>;
+  if (data.length === 0)
+    return (
+      <div className="h-72 flex items-center justify-center text-gray-400">No data to chart</div>
+    );
   return (
     <div className="space-y-12">
       {/* Cumulative Bitcoin Acquired */}
@@ -51,11 +65,31 @@ const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ transactions, curre
           <LineChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" minTickGap={24} />
-            <YAxis tickFormatter={(v) => `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
-            <Tooltip formatter={(v: number) => `$${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}`} />
+            <YAxis
+              tickFormatter={(v) => `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+            />
+            <Tooltip
+              formatter={(v: number) =>
+                `$${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+              }
+            />
             <Legend />
-            <Line type="monotone" dataKey="costBasis" stroke="#a855f7" strokeWidth={2} dot={false} name="Cost Basis" />
-            <Line type="monotone" dataKey="price" stroke="#22c55e" strokeWidth={2} dot={false} name="BTC Price" />
+            <Line
+              type="monotone"
+              dataKey="costBasis"
+              stroke="#a855f7"
+              strokeWidth={2}
+              dot={false}
+              name="Cost Basis"
+            />
+            <Line
+              type="monotone"
+              dataKey="price"
+              stroke="#22c55e"
+              strokeWidth={2}
+              dot={false}
+              name="BTC Price"
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -66,9 +100,22 @@ const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ transactions, curre
           <LineChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" minTickGap={24} />
-            <YAxis tickFormatter={(v) => `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} />
-            <Tooltip formatter={(v: number) => `$${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}`} />
-            <Line type="monotone" dataKey="pnl" stroke="#ef4444" strokeWidth={2} dot={false} name="Unrealized P&L" />
+            <YAxis
+              tickFormatter={(v) => `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+            />
+            <Tooltip
+              formatter={(v: number) =>
+                `$${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+              }
+            />
+            <Line
+              type="monotone"
+              dataKey="pnl"
+              stroke="#ef4444"
+              strokeWidth={2}
+              dot={false}
+              name="Unrealized P&L"
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>

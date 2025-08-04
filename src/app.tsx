@@ -3,13 +3,13 @@ import Papa from 'papaparse';
 import { useEffect, useState } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
+import AdditionalCharts from './components/AdditionalCharts';
 import DashboardOverview from './components/DashboardOverview';
 import ImportSummaryModal from './components/ImportSummaryModal';
 import NavBar from './components/NavBar';
+import PortfolioValueChart from './components/PortfolioValueChart';
 import TransactionHistory from './components/TransactionHistory';
 import UploadTransactions from './components/UploadTransactions';
-import PortfolioValueChart from './components/PortfolioValueChart';
-import AdditionalCharts from './components/AdditionalCharts';
 import { Stats } from './types/Stats';
 import { Transaction } from './types/Transaction';
 import { exchangeParsers } from './utils/exchangeParsers';
@@ -208,7 +208,9 @@ const BitcoinTracker: React.FC = () => {
                 )}
                 {/* Chart placeholder here */}
                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                  <h2 className="text-xl font-bold text-gray-800 mb-4">Portfolio Value Over Time</h2>
+                  <h2 className="text-xl font-bold text-gray-800 mb-4">
+                    Portfolio Value Over Time
+                  </h2>
                   <PortfolioValueChart transactions={transactions} currentPrice={currentPrice} />
                 </div>
               </div>

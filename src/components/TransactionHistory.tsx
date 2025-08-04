@@ -1,5 +1,5 @@
 import { Bitcoin } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Transaction } from '../types/Transaction';
 
 interface TransactionHistoryProps {
@@ -8,11 +8,19 @@ interface TransactionHistoryProps {
   formatBTC: (amount: number) => string;
 }
 
+const PAGE_SIZE = 10;
+
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   transactions,
   formatCurrency,
   formatBTC,
 }) => {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(transactions.length / PAGE_SIZE);
+  const paginated = transactions
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   if (transactions.length === 0) {
     return (
       <div className="text-center py-12">
@@ -40,39 +48,52 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
             </tr>
           </thead>
           <tbody>
-            {transactions
-              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-              .slice(0, 50)
-              .map((tx) => (
-                <tr key={tx.id} className="border-b hover:bg-gray-50">
-                  <td className="py-2">{tx.date.toLocaleDateString()}</td>
-                  <td className="py-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        tx.exchange === 'Strike'
-                          ? 'bg-orange-100 text-orange-800'
-                          : tx.exchange === 'Coinbase'
-                            ? 'bg-blue-100 text-blue-800'
-                            : tx.exchange === 'Kraken'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {tx.exchange}
-                    </span>
-                  </td>
-                  <td className="text-right py-2">{formatCurrency(tx.usdAmount)}</td>
-                  <td className="text-right py-2">{formatBTC(tx.btcAmount)}</td>
-                  <td className="text-right py-2">{formatCurrency(tx.price)}</td>
-                </tr>
-              ))}
+            {paginated.map((tx) => (
+              <tr key={tx.id} className="border-b hover:bg-gray-50">
+                <td className="py-2">{tx.date.toLocaleDateString()}</td>
+                <td className="py-2">
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      tx.exchange === 'Strike'
+                        ? 'bg-orange-100 text-orange-800'
+                        : tx.exchange === 'Coinbase'
+                          ? 'bg-blue-100 text-blue-800'
+                          : tx.exchange === 'Kraken'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {tx.exchange}
+                  </span>
+                </td>
+                <td className="text-right py-2">{formatCurrency(tx.usdAmount)}</td>
+                <td className="text-right py-2">{formatBTC(tx.btcAmount)}</td>
+                <td className="text-right py-2">{formatCurrency(tx.price)}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
-        {transactions.length > 50 && (
-          <p className="text-center text-gray-500 mt-4">
-            Showing last 50 transactions of {transactions.length} total
-          </p>
-        )}
+        <div className="flex justify-between items-center mt-4">
+          <span className="text-sm text-gray-600">
+            Page {page} of {totalPages} ({transactions.length} total)
+          </span>
+          <div className="flex gap-2">
+            <button
+              className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+            <button
+              className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
