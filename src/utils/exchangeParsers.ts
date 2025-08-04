@@ -20,8 +20,10 @@ export const exchangeParsers = {
     const transactionType = row['Transaction Type'];
     if (transactionType !== 'Purchase') return null;
 
+    // Use Reference as unique id if available
+    const reference = row['Reference'] || `strike-unknown-${index}`;
     return {
-      id: `strike-${Date.now()}-${index}`,
+      id: `strike-${reference}`,
       date: parseDate(row['Date & Time (UTC)']),
       exchange: 'Strike',
       type: transactionType,

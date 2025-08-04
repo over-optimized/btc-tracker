@@ -3,14 +3,16 @@ import Papa from 'papaparse';
 import { useEffect, useState } from 'react';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
 import DashboardOverview from './components/DashboardOverview';
+import ImportSummaryModal from './components/ImportSummaryModal';
 import TransactionHistory from './components/TransactionHistory';
 import UploadTransactions from './components/UploadTransactions';
 import { Stats } from './types/Stats';
 import { Transaction } from './types/Transaction';
 import { exchangeParsers } from './utils/exchangeParsers';
+import { clearTransactions, getTransactions, saveTransactions } from './utils/storage';
 
 const BitcoinTracker: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>(() => getTransactions());
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<Stats>({
@@ -20,6 +22,10 @@ const BitcoinTracker: React.FC = () => {
     currentValue: 0,
     unrealizedPnL: 0,
   });
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importedCount, setImportedCount] = useState(0);
+  const [ignoredCount, setIgnoredCount] = useState(0);
+  const [importSummary, setImportSummary] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -89,7 +95,21 @@ const BitcoinTracker: React.FC = () => {
             .map((row, index) => parseTransactionRow(row, index))
             .filter((tx): tx is Transaction => !!tx && tx.usdAmount > 0 && tx.btcAmount > 0);
 
-          setTransactions((prev) => [...prev, ...newTransactions]);
+          // Deduplicate by transaction id (latest wins)
+          const txMap = new Map<string, Transaction>();
+          transactions.forEach((tx) => txMap.set(tx.id, tx));
+          let ignored = 0;
+          newTransactions.forEach((tx) => {
+            if (txMap.has(tx.id)) {
+              ignored++;
+            }
+            txMap.set(tx.id, tx);
+          });
+          const merged = Array.from(txMap.values());
+          const actuallyImported = newTransactions.length - ignored;
+
+          setTransactions(merged);
+          saveTransactions(merged);
 
           // Show parsing summary
           const exchangeCounts = newTransactions.reduce(
@@ -104,11 +124,10 @@ const BitcoinTracker: React.FC = () => {
             .map(([exchange, count]) => `${count} ${exchange}`)
             .join(', ');
 
-          if (newTransactions.length > 0) {
-            alert(`Successfully imported ${newTransactions.length} transactions: ${summary}`);
-          } else {
-            alert('No valid purchase transactions found in the file.');
-          }
+          setImportedCount(actuallyImported);
+          setIgnoredCount(ignored);
+          setImportSummary(summary);
+          setImportModalOpen(true);
         } catch (error) {
           alert('Error parsing file. Please check the format and try again.');
         }
@@ -145,11 +164,19 @@ const BitcoinTracker: React.FC = () => {
   const clearData = () => {
     if (confirm('Are you sure you want to clear all transaction data?')) {
       setTransactions([]);
+      clearTransactions();
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+      <ImportSummaryModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        importedCount={importedCount}
+        ignoredCount={ignoredCount}
+        summary={importSummary}
+      />
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
