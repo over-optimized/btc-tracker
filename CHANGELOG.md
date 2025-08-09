@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Data Freshness Monitoring System**: Comprehensive import reminder system for users with regular trading patterns
+  - **DataFreshnessCard**: Dashboard widget showing data staleness with color-coded indicators (fresh, aging, stale, very stale)
+  - **ImportReminderToast**: Smart notification system with snooze options and customizable reminder intervals
+  - **Transaction Gap Detection**: Analyzes transaction history to identify missing import periods
+  - **Quick Import Actions**: One-click navigation to import functionality from dashboard cards and reminders
+
+### Enhanced
+- **InvestedVsPnLChart**: Modified to show running totals (cumulative invested amount and unrealized P&L) instead of monthly discrete values for clearer portfolio growth visualization
+- **Dashboard Layout**: Added responsive grid layout for status cards (tax summary and data freshness)
+
+### Added
 - Future enhancements and features will be documented here
 
 ## [2.1.0] - 2025-01-09

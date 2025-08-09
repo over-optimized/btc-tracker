@@ -4,7 +4,9 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
 import AdditionalCharts from './components/AdditionalCharts';
 import DashboardOverview from './components/DashboardOverview';
+import DataFreshnessCard from './components/DataFreshnessCard';
 import ImportErrorModal from './components/ImportErrorModal';
+import ImportReminderToast from './components/ImportReminderToast';
 import ImportSummaryModal from './components/ImportSummaryModal';
 import InvestedVsPnLChart from './components/InvestedVsPnLChart';
 import NavBar from './components/NavBar';
@@ -304,9 +306,13 @@ const BitcoinTracker: React.FC = () => {
                 )}
                 {transactions.length > 0 && <DashboardOverview stats={stats} />}
                 
-                {/* Tax Summary Card */}
-                <div className="mb-6">
+                {/* Status Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                   <TaxSummaryCard transactions={transactions} />
+                  <DataFreshnessCard 
+                    transactions={transactions} 
+                    onImportClick={() => navigate('/upload')} 
+                  />
                 </div>
                 
                 {/* Chart placeholder here */}
@@ -366,6 +372,12 @@ const BitcoinTracker: React.FC = () => {
           element={<TaxDashboard transactions={transactions} currentPrice={currentPrice || undefined} />}
         />
       </Routes>
+      
+      {/* Global Import Reminder Toast */}
+      <ImportReminderToast 
+        transactions={transactions} 
+        onImportClick={() => navigate('/upload')} 
+      />
     </>
   );
 };
