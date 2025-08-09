@@ -9,6 +9,7 @@ import ImportErrorModal from './components/ImportErrorModal';
 import ImportReminderToast from './components/ImportReminderToast';
 import SelfCustodyCard from './components/SelfCustodyCard';
 import AddWithdrawalModal from './components/AddWithdrawalModal';
+import TransactionClassificationModal from './components/TransactionClassificationModal';
 import ImportSummaryModal from './components/ImportSummaryModal';
 import InvestedVsPnLChart from './components/InvestedVsPnLChart';
 import NavBar from './components/NavBar';
@@ -20,7 +21,8 @@ import UploadTransactions from './components/UploadTransactions';
 import { Stats } from './types/Stats';
 import { Transaction } from './types/Transaction';
 import { ImportError, ErrorRecoveryContext } from './types/ImportError';
-import { processCSVFile, ProcessOptions } from './utils/csvProcessor';
+import { EnhancedCSVProcessor, EnhancedProcessOptions } from './utils/enhancedCsvProcessor';
+import { ClassificationPrompt, ClassificationDecision } from './types/TransactionClassification';
 import { generateRecoveryOptions, exportProblematicRows, showHelpModal } from './utils/errorRecovery';
 import { formatCurrency } from './utils/formatCurrency';
 import { clearTransactions, getTransactions, saveTransactions } from './utils/storage';
@@ -48,6 +50,12 @@ const BitcoinTracker: React.FC = () => {
   const [importWarnings, setImportWarnings] = useState<ImportError[]>([]);
   const [recoveryContext, setRecoveryContext] = useState<ErrorRecoveryContext>();
   const [withdrawalModalOpen, setWithdrawalModalOpen] = useState(false);
+  
+  // Classification modal state
+  const [classificationModalOpen, setClassificationModalOpen] = useState(false);
+  const [classificationPrompts, setClassificationPrompts] = useState<ClassificationPrompt[]>([]);
+  const [pendingClassificationCallback, setPendingClassificationCallback] = useState<((decisions: ClassificationDecision[]) => void) | null>(null);
+  
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -86,7 +94,7 @@ const BitcoinTracker: React.FC = () => {
     setLoading(true);
     setUploadProgress(0);
 
-    const options: ProcessOptions = {
+    const options: EnhancedProcessOptions = {
       allowPartialImport: true,
       skipInvalidRows: true,
       maxErrors: 50,
@@ -94,10 +102,19 @@ const BitcoinTracker: React.FC = () => {
     };
 
     try {
-      const result = await processCSVFile(file, options);
+      const processor = new EnhancedCSVProcessor(options);
+      const result = await processor.processCSVFile(file);
       
       setLoading(false);
       setUploadProgress(100);
+
+      if (result.needsClassification && result.classificationPrompts) {
+        // Show classification modal for ambiguous transactions
+        setClassificationPrompts(result.classificationPrompts);
+        setPendingClassificationCallback(() => result.onClassificationComplete!);
+        setClassificationModalOpen(true);
+        return;
+      }
 
       if (result.success && result.importedCount > 0) {
         // Success - merge with existing transactions
@@ -136,28 +153,6 @@ const BitcoinTracker: React.FC = () => {
         // Failed or no transactions imported
         setImportErrors(result.errors);
         setImportWarnings(result.warnings);
-        
-        if (result.recoveryContext) {
-          // Generate recovery options
-          const contextData = {
-            fileName: file.name,
-            fileSize: file.size,
-            detectedFormat: result.recoveryContext.detectedFormat,
-            processedData: result.recoveryContext.processedData,
-          };
-          
-          const recoveryOptions = generateRecoveryOptions(
-            result.errors, 
-            result.warnings, 
-            contextData
-          );
-          
-          setRecoveryContext({
-            ...result.recoveryContext,
-            recoveryOptions,
-          });
-        }
-        
         setErrorModalOpen(true);
       }
     } catch (error) {
@@ -189,7 +184,7 @@ const BitcoinTracker: React.FC = () => {
     setLoading(true);
     setUploadProgress(0);
 
-    const options: ProcessOptions = {
+    const options: EnhancedProcessOptions = {
       allowPartialImport: true,
       skipInvalidRows: true,
       maxErrors: 50,
@@ -198,10 +193,19 @@ const BitcoinTracker: React.FC = () => {
     };
 
     try {
-      const result = await processCSVFile(file, options);
+      const processor = new EnhancedCSVProcessor(options);
+      const result = await processor.processCSVFile(file);
       
       setLoading(false);
       setUploadProgress(100);
+
+      if (result.needsClassification && result.classificationPrompts) {
+        // Show classification modal for ambiguous transactions
+        setClassificationPrompts(result.classificationPrompts);
+        setPendingClassificationCallback(() => result.onClassificationComplete!);
+        setClassificationModalOpen(true);
+        return;
+      }
 
       // Handle results same as main upload
       if (result.success && result.importedCount > 0) {
@@ -274,6 +278,68 @@ const BitcoinTracker: React.FC = () => {
     saveTransactions(updatedTransactions);
   };
 
+  // Handle transaction classification completion
+  const handleClassificationComplete = async (decisions: ClassificationDecision[]) => {
+    setClassificationModalOpen(false);
+    
+    if (!pendingClassificationCallback) return;
+    
+    try {
+      const result = pendingClassificationCallback(decisions) as any;
+      
+      if (result.success && result.transactions.length > 0) {
+        // Merge classified transactions with existing ones
+        const txMap = new Map<string, Transaction>();
+        
+        // Add existing transactions
+        transactions.forEach((tx) => txMap.set(tx.id, tx));
+        
+        // Add new transactions
+        let ignored = 0;
+        result.transactions.forEach((tx: Transaction) => {
+          if (txMap.has(tx.id)) {
+            ignored++;
+          }
+          txMap.set(tx.id, tx);
+        });
+        
+        const merged = Array.from(txMap.values());
+        setTransactions(merged);
+        saveTransactions(merged);
+
+        // Show success modal
+        setImportedCount(result.importedCount);
+        setIgnoredCount(ignored + result.ignoredCount);
+        setImportSummary(result.summary);
+        setImportErrors(result.errors);
+        setImportWarnings(result.warnings);
+        setImportModalOpen(true);
+
+        // Navigate to dashboard
+        if (location.pathname !== '/') {
+          navigate('/');
+        }
+      } else {
+        // Handle classification errors
+        setImportErrors(result.errors);
+        setImportWarnings(result.warnings);
+        setErrorModalOpen(true);
+      }
+    } catch (error) {
+      setImportErrors([{
+        type: 'CLASSIFICATION_ERROR' as any,
+        message: 'Error processing classified transactions',
+        details: String(error),
+        suggestions: ['Try importing the file again'],
+        recoverable: false,
+      }]);
+      setErrorModalOpen(true);
+    } finally {
+      setPendingClassificationCallback(null);
+      setClassificationPrompts([]);
+    }
+  };
+
   // Get unique exchanges for withdrawal modal
   const getExchangesList = (): string[] => {
     const exchanges = new Set(transactions.map(tx => tx.exchange));
@@ -312,6 +378,16 @@ const BitcoinTracker: React.FC = () => {
                 onClose={() => setWithdrawalModalOpen(false)}
                 onAdd={handleAddWithdrawal}
                 exchanges={getExchangesList()}
+              />
+              <TransactionClassificationModal
+                isOpen={classificationModalOpen}
+                onClose={() => {
+                  setClassificationModalOpen(false);
+                  setPendingClassificationCallback(null);
+                  setClassificationPrompts([]);
+                }}
+                prompts={classificationPrompts}
+                onClassify={handleClassificationComplete}
               />
               <div className="max-w-6xl mx-auto">
                 {/* Current Price Display */}

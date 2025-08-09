@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Intelligent Transaction Classification System**: Revolutionary CSV import enhancement that handles mixed transaction types
+  - **Enhanced CSV Parsing**: Detects ALL transaction types (purchases, withdrawals, sales, transfers) instead of filtering
+  - **Smart Auto-Classification**: Pattern recognition with confidence scoring for automatic transaction categorization
+  - **Interactive Classification Modal**: User-friendly interface for ambiguous transactions with bulk actions and visual indicators
+  - **Mixed Statement Support**: Seamlessly handles exchange CSV files containing both purchases and outgoing transfers
+  - **Tax-Aware Processing**: Properly categorizes withdrawals as non-taxable events and sales as taxable disposals
+
 - **Self-Custody Tracking & Milestone System**: Complete solution for tracking Bitcoin movements to self-custody
   - **Extended Transaction Model**: Support for withdrawal transactions with destination wallet, network fees, and tax flags
   - **Milestone Recommendations**: Smart alerts at 0.001, 0.01, 0.05, 0.1, and 1.0 BTC thresholds with educational content
