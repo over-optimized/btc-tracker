@@ -1,8 +1,7 @@
 import { TrendingUp } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
-import AdditionalCharts from './components/AdditionalCharts';
 import DashboardOverview from './components/DashboardOverview';
 import DataFreshnessCard from './components/DataFreshnessCard';
 import ImportErrorModal from './components/ImportErrorModal';
@@ -11,13 +10,17 @@ import SelfCustodyCard from './components/SelfCustodyCard';
 import AddWithdrawalModal from './components/AddWithdrawalModal';
 import TransactionClassificationModal from './components/TransactionClassificationModal';
 import ImportSummaryModal from './components/ImportSummaryModal';
-import InvestedVsPnLChart from './components/InvestedVsPnLChart';
 import NavBar from './components/NavBar';
-import PortfolioValueChart from './components/PortfolioValueChart';
-import TaxDashboard from './components/TaxDashboard';
 import TaxSummaryCard from './components/TaxSummaryCard';
 import TransactionHistory from './components/TransactionHistory';
 import UploadTransactions from './components/UploadTransactions';
+import ChartSkeleton from './components/ChartSkeleton';
+
+// Lazy load ALL chart components (including Recharts library)
+const PortfolioValueChart = lazy(() => import('./components/PortfolioValueChart'));
+const InvestedVsPnLChart = lazy(() => import('./components/InvestedVsPnLChart'));
+const AdditionalCharts = lazy(() => import('./components/AdditionalCharts'));
+const TaxDashboard = lazy(() => import('./components/TaxDashboard'));
 import { Stats } from './types/Stats';
 import { Transaction } from './types/Transaction';
 import { ImportError, ErrorRecoveryContext } from './types/ImportError';
@@ -417,18 +420,22 @@ const BitcoinTracker: React.FC = () => {
                   />
                 </div>
                 
-                {/* Chart placeholder here */}
+                {/* Lazy-loaded charts */}
                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                   <h2 className="text-xl font-bold text-gray-800 mb-4">
                     Portfolio Value Over Time
                   </h2>
-                  <PortfolioValueChart transactions={transactions} currentPrice={currentPrice} />
+                  <Suspense fallback={<ChartSkeleton />}>
+                    <PortfolioValueChart transactions={transactions} currentPrice={currentPrice} />
+                  </Suspense>
                 </div>
                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                   <h2 className="text-xl font-bold text-gray-800 mb-4">
                     Invested vs. Unrealized P&L (Monthly)
                   </h2>
-                  <InvestedVsPnLChart transactions={transactions} currentPrice={currentPrice} />
+                  <Suspense fallback={<ChartSkeleton />}>
+                    <InvestedVsPnLChart transactions={transactions} currentPrice={currentPrice} />
+                  </Suspense>
                 </div>
               </div>
             </div>
@@ -464,14 +471,34 @@ const BitcoinTracker: React.FC = () => {
           element={
             <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
               <div className="max-w-6xl mx-auto">
-                <AdditionalCharts transactions={transactions} currentPrice={currentPrice} />
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                      <p className="text-gray-600">Loading charts...</p>
+                    </div>
+                  </div>
+                }>
+                  <AdditionalCharts transactions={transactions} currentPrice={currentPrice} />
+                </Suspense>
               </div>
             </div>
           }
         />
         <Route
           path="/tax"
-          element={<TaxDashboard transactions={transactions} currentPrice={currentPrice || undefined} />}
+          element={
+            <Suspense fallback={
+              <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading tax dashboard...</p>
+                </div>
+              </div>
+            }>
+              <TaxDashboard transactions={transactions} currentPrice={currentPrice || undefined} />
+            </Suspense>
+          }
         />
       </Routes>
       
