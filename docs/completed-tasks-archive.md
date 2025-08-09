@@ -167,8 +167,6 @@ This foundation enables the Q2 2025 infrastructure phase to focus purely on depl
 - **Current Tasks**: [tasks.md](tasks.md) - Active development and planning
 - **Feature History**: [CHANGELOG.md](../CHANGELOG.md) - User-facing feature releases  
 - **Technical Guide**: [CLAUDE.md](../CLAUDE.md) - Architecture and setup documentation
-- **Project Status**: [critical-features.md](critical-features.md) - Current priorities and roadmap
 
 ### Navigation
 - **← Back to Current Tasks**: [tasks.md](tasks.md)
-- **→ View Project Status**: [critical-features.md](critical-features.md)

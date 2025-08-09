@@ -83,30 +83,28 @@ Tasks are organized by priority and feature area. Each task includes:
 
 ## 📊 Development Timeline & Milestones
 
-### 🎯 Alpha Release (March 2025)
-**Target**: Feature-complete app deployed with user accounts on free tiers
+### March 2025: Alpha Release
 - **Week 1**: Infrastructure setup (Supabase + Vercel + GitHub Actions)
-- **Week 2**: Authentication integration and data migration
-- **Week 3**: Multi-user testing and beta preparation
-- **Success Criteria**: First multi-user deployment with zero data loss
+- **Week 2**: Authentication and data migration
+- **Week 3**: Testing and beta preparation
+- **Milestone**: First multi-user deployment on free tiers
 
-### 🔒 Beta Release (April 2025)  
-**Target**: Trusted user base with production-ready security
-- **Week 1-2**: Privacy compliance and security hardening
-- **Week 3-4**: Performance optimization based on real usage
-- **Success Criteria**: 10-20 active beta users, security audit passed
+### April 2025: Beta Release  
+- **Week 1**: Security hardening and privacy compliance
+- **Week 2**: Beta user testing and feedback collection
+- **Week 3**: Performance optimization based on real usage
+- **Milestone**: Trusted user base with production-ready security
 
-### 🚀 Production Launch (May 2025)
-**Target**: Public availability with growth-ready infrastructure
-- **Week 1-2**: Professional monitoring and custom domain
-- **Week 3**: Load testing and public launch preparation
-- **Success Criteria**: Public launch ready, monitoring systems active
+### May 2025: Production Launch
+- **Week 1**: Professional monitoring and custom domain
+- **Week 2**: Load testing and scale preparation  
+- **Week 3**: Public launch preparation
+- **Milestone**: Public availability with growth-ready infrastructure
 
-### 🔌 Advanced Features (Q3 2025)
-**Target**: API integrations and premium features
-- API integrations (Strike, Coinbase, Kraken)
-- Automated sync and background processing
+### Q3 2025: Advanced Features
+- API integrations and automation features
 - Premium feature development
+- Revenue model implementation
 
 ---
 
@@ -133,24 +131,6 @@ Tasks are organized by priority and feature area. Each task includes:
 
 ---
 
-## ⚡ Infrastructure Approach Rationale
-
-### Why Foundation-First Development?
-1. **Risk Mitigation**: Validate infrastructure before advanced features
-2. **Cost Control**: Start free, scale gradually based on real usage  
-3. **User Safety**: Proper authentication before API key storage
-4. **Technical Debt**: Avoid premature optimization without real data
-5. **Market Validation**: Test demand before heavy API development investment
-
-### Quality Standards (Maintained Throughout)
-- **Test Coverage**: >90% for critical calculations, >80% overall
-- **Type Safety**: Full TypeScript coverage with strict mode  
-- **Error Handling**: Comprehensive recovery options
-- **Performance**: Sub-second response times
-- **Security**: Industry-standard authentication and data protection
-
----
-
 ## 📋 Development Standards & Process
 
 ### Definition of Done
@@ -164,6 +144,6 @@ Each task is considered complete when:
 - ✅ Performance impact assessed
 
 ### Task Archival Process
-- **Archive Criteria**: Tasks completed >3 months ago or when file exceeds 200 lines
+- **Archive Criteria**: Tasks completed >3 months ago or when file exceeds 150 lines
 - **Archive Location**: [completed-tasks-archive.md](completed-tasks-archive.md)
 - **Current Focus**: Keep only active and next 1-2 phases in detail

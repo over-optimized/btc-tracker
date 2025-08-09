@@ -505,9 +505,6 @@ Total Cost Estimate: [Based on Sonnet 4 pricing: $3 input + $15 output per 1M to
 ### Documentation Workflow & Maintenance
 
 ```bash
-# Update project status after significant changes
-vim docs/PROJECT_STATUS.md
-
 # Track new tasks and estimates
 vim docs/tasks.md
 
@@ -536,15 +533,10 @@ When completing major features or making significant changes, **ALWAYS** update 
    - Note any breaking changes
    - **Add development metrics**: Include Claude model, token usage, estimated cost, and story points
 
-3. **docs/PROJECT_STATUS.md**:
-   - Update current status and version
-   - Mark completed features
-   - Update next priorities
-
-4. **docs/critical-features.md**:
-   - Remove completed features
-   - Update remaining feature priorities
-   - Adjust implementation timelines
+3. **docs/tasks.md**:
+   - Update current phase status and priorities
+   - Move completed tasks to archive when appropriate
+   - Update timeline and cost estimates
 
 **Documentation Update Process**:
 ```bash
@@ -552,9 +544,8 @@ When completing major features or making significant changes, **ALWAYS** update 
 1. Get token usage summary from Claude
 2. Update CLAUDE.md with new technical details
 3. Add entry to CHANGELOG.md with version bump and development metrics
-4. Update PROJECT_STATUS.md current status
-5. Remove completed items from critical-features.md
-6. Commit all documentation updates together
+4. Update tasks.md current status and move completed items to archive
+5. Commit all documentation updates together
 ```
 
 **CHANGELOG Development Metrics Format**:
@@ -572,26 +563,22 @@ This ensures the project documentation stays current and accurate for future dev
 
 ### Documentation System
 
-The project uses a structured documentation approach:
+The project uses a streamlined documentation approach:
 
 - **[CHANGELOG.md](CHANGELOG.md)** - Complete project history and releases
-- **[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)** - High-level project overview and health
-- **[docs/critical-features.md](docs/critical-features.md)** - Next priority features and planning
-- **[docs/tasks.md](docs/tasks.md)** - Detailed task tracking with estimates and priorities
+- **[docs/tasks.md](docs/tasks.md)** - Current development planning and active tasks  
+- **[docs/completed-tasks-archive.md](docs/completed-tasks-archive.md)** - Historical task details (quarterly archives)
 
 ### Development Workflow
 
 ```bash
-# Check current project status
-cat docs/PROJECT_STATUS.md
-
-# Review next priorities
-cat docs/critical-features.md
-
-# See detailed task breakdown
+# Review current priorities and active tasks
 cat docs/tasks.md
 
-# View completed work
+# See detailed historical task breakdown
+cat docs/completed-tasks-archive.md
+
+# View completed work and releases
 cat CHANGELOG.md
 ```
 
