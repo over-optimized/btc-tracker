@@ -1,3 +1,11 @@
+/**
+ * Legacy exchange parsers for basic purchase-only transactions
+ * @deprecated Use enhancedExchangeParsers.ts instead for mixed transaction support
+ * Migration: Replace exchangeParsers with enhancedExchangeParsers for:
+ * - Mixed transaction type support (purchases, withdrawals, sales)
+ * - Intelligent transaction classification
+ * - Enhanced error handling and validation
+ */
 import { Transaction } from 'types/Transaction';
 import { generateStableTransactionId, type TransactionData } from './generateTransactionId';
 

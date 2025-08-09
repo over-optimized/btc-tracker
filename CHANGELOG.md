@@ -29,6 +29,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Transaction Gap Detection**: Analyzes transaction history to identify missing import periods
   - **Quick Import Actions**: One-click navigation to import functionality from dashboard cards and reminders
 
+- **Development Cost Tracking Workflow**: Integrated Claude token usage tracking for development budget analysis
+  - **Task-Based Token Tracking**: Instructions for capturing token usage after completing each feature/task
+  - **CHANGELOG Integration**: Standardized development metrics format (model, tokens, cost, story points)
+  - **Documentation Workflow**: Updated process to include token summaries in all feature documentation
+  - **Future CLI System**: Complete implementation preserved in sandbox for automated cost analysis tools
+
+**Development Stats:**
+- Model: Claude Sonnet 4
+- Tokens: 4,200 input / 2,800 output 
+- Estimated Cost: $0.054
+- Story Points: 3
+
 ### Enhanced
 - **InvestedVsPnLChart**: Modified to show running totals (cumulative invested amount and unrealized P&L) instead of monthly discrete values for clearer portfolio growth visualization
 - **Dashboard Layout**: Added responsive grid layout for status cards (tax summary and data freshness)

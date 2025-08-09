@@ -4,6 +4,11 @@ import { ImportResult, ImportError, ImportErrorType, ErrorRecoveryContext, Recov
 import { validateFile, validateCSVStructure, validateTransactionRow } from './csvValidator';
 import { exchangeParsers, detectExchangeFormat } from './exchangeParsers';
 
+/**
+ * @deprecated Use EnhancedProcessOptions from enhancedCsvProcessor.ts instead
+ * Migration: Replace ProcessOptions with EnhancedProcessOptions for mixed transaction support
+ * New version supports intelligent transaction classification and all transaction types
+ */
 export interface ProcessOptions {
   allowPartialImport?: boolean;
   skipInvalidRows?: boolean;
@@ -11,6 +16,15 @@ export interface ProcessOptions {
   progressCallback?: (progress: number) => void;
 }
 
+/**
+ * Legacy CSV processor for basic imports
+ * @deprecated Use EnhancedCSVProcessor instead for mixed transaction support
+ * @see EnhancedCSVProcessor
+ * Migration: Replace CSVProcessor with EnhancedCSVProcessor for:
+ * - Mixed transaction type support (purchases, withdrawals, sales)
+ * - Intelligent transaction classification with user prompts
+ * - Enhanced error handling and recovery options
+ */
 export class CSVProcessor {
   private options: ProcessOptions;
   private progressCallback?: (progress: number) => void;
@@ -388,6 +402,14 @@ export class CSVProcessor {
   }
 }
 
+/**
+ * Legacy CSV processing function for basic imports
+ * @deprecated Use processEnhancedCSVFile from enhancedCsvProcessor.ts instead
+ * Migration: Replace processCSVFile(file, options) with processEnhancedCSVFile(file, options) for:
+ * - Mixed transaction type support (purchases, withdrawals, sales)
+ * - Intelligent transaction classification with user prompts
+ * - Enhanced error handling and recovery options
+ */
 export async function processCSVFile(file: File, options?: ProcessOptions): Promise<ImportResult & { recoveryContext?: ErrorRecoveryContext }> {
   const processor = new CSVProcessor(options);
   return processor.processCSVFile(file);

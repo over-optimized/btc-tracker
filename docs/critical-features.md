@@ -1,101 +1,157 @@
-# Outstanding Features & Development Plan
+# Foundation Infrastructure & Production Deployment Plan
 
 ## 🎯 Overview
 
-This document tracks remaining features and improvements for the Bitcoin DCA Tracker. Completed features are documented in [CHANGELOG.md](../CHANGELOG.md).
+This document tracks the transition from localhost-complete application to production-ready multi-user platform. All core Bitcoin DCA tracking features are complete - now focusing on infrastructure foundation.
 
-## ✅ Recently Completed
+## ✅ Recently Completed (Q1 2025)
 
-- **✅ Stable Transaction ID Generation** (v1.2.0) - Eliminates duplicate transactions on re-import
+- **✅ Stable Transaction ID Generation** (v1.2.0) - Eliminates duplicate transactions on re-import  
 - **✅ Enhanced Error Handling** (v2.0.0) - Comprehensive error handling with recovery options
 - **✅ Tax Reporting System** (v2.1.0) - Complete multi-method tax calculations with professional export
+- **✅ Intelligent Transaction Classification** (v2.2.0) - Mixed CSV support with AI-powered categorization
+- **✅ Self-Custody Tracking System** (v2.2.0) - Security scoring, milestone alerts, and withdrawal recording
 
 ---
 
-## 🎯 Current Status: All Core Features Completed
+## 🏗️ Current Status: Infrastructure Phase (Q2 2025)
 
-The Bitcoin DCA Tracker now includes all essential features for comprehensive Bitcoin portfolio tracking and tax reporting. The application is **production-ready** with:
+**Phase Transition**: Moving from feature-complete localhost app → production-ready multi-user platform
 
-- ✅ **Transaction Management**: Multi-exchange CSV import with stable IDs and deduplication
-- ✅ **Portfolio Analytics**: Real-time portfolio tracking with comprehensive charts
-- ✅ **Tax Reporting**: Professional-grade tax calculations with multiple methods and export formats
-- ✅ **Error Handling**: Comprehensive error recovery and user guidance
-- ✅ **Data Integrity**: Zero data loss with robust validation and migration systems
+The application has **all core features complete** for Bitcoin DCA tracking but needs foundational infrastructure:
 
----
-
-## 🚀 Future Enhancement Opportunities
-
-While all core features are complete, these enhancements could further improve the user experience:
-
-### Performance & Scalability
-- **Large Dataset Optimization**: Virtualization for 10,000+ transaction portfolios
-- **Memory Management**: Advanced caching for large CSV processing
-- **Background Processing**: Web Workers for complex tax calculations
-
-### User Experience
-- **Mobile Optimization**: Responsive design improvements for complex tax tables
-- **Offline Support**: Service worker for offline portfolio access
-- **Advanced Visualizations**: Additional chart types and portfolio analytics
-
-### Integration & Automation
-- **Exchange API Integration**: Direct API imports vs CSV-only
-- **Real-time Disposal Tracking**: Automatic detection of Bitcoin sales
-- **Third-party Integrations**: Direct export to tax preparation software
-
-### Advanced Tax Features
-- **Wash Sale Rules**: Implement IRS wash sale rule detection
-- **Multi-Currency Support**: International tax implications and reporting
-- **Advanced Strategies**: Automated tax-loss harvesting recommendations
-- **Professional Integration**: CPA/tax professional collaboration features
-- **Audit Trail**: Enhanced documentation for tax authority compliance
+- ✅ **Feature-Complete**: All Bitcoin tracking, tax reporting, and analytics functionality ready
+- 🏗️ **Infrastructure Needed**: Multi-user authentication, database, production deployment
+- 🎯 **Goal**: Deploy existing features with user accounts on cost-effective, scalable infrastructure
 
 ---
 
-## 📊 Project Success Metrics - ACHIEVED
+## 🚀 CRITICAL INFRASTRUCTURE PRIORITIES (Q2 2025)
 
-### ✅ Technical Excellence
-- **Test Coverage**: 90% overall, >95% for tax calculations
-- **Type Safety**: 100% TypeScript coverage with strict mode
-- **Performance**: Handles 5,000+ transactions efficiently
-- **Zero Data Loss**: Comprehensive backup and migration systems
+#### 1. Foundation Infrastructure (~28 points, 2-3 weeks)
+- **Supabase Setup**: PostgreSQL database schema for multi-user transactions
+- **Vercel Deployment**: Automated CI/CD with GitHub Actions
+- **Authentication**: Supabase Auth integration with existing UI
+- **Data Migration**: localStorage → database utility to preserve user data
+- **Multi-user Isolation**: Row Level Security for data privacy
 
-### ✅ User Experience
-- **Error Recovery**: Comprehensive error scenarios with recovery options
-- **Professional Export**: TurboTax-compatible and multi-format support
-- **Tax Accuracy**: 54 unit tests validating all calculation scenarios
-- **Documentation**: Complete user guides and technical documentation
+#### 2. Cost-Effective Technology Stack
+- **Supabase**: Free tier (500MB DB, 50K requests) - backend + auth + database
+- **Vercel**: Free tier (hobby projects) - frontend deployment
+- **GitHub Actions**: Free (2000 minutes) - CI/CD automation
+- **Domain**: Free subdomain initially (btc-tracker.vercel.app)
 
-### ✅ Business Value
-- **Tax Compliance**: Professional-grade reporting for tax filing
-- **Time Savings**: Automated calculation vs manual tracking
-- **Accuracy**: Eliminated calculation errors with validated algorithms
-- **Privacy**: 100% client-side processing with no data sharing
+### PHASE 2: Beta Security & Multi-User (MEDIUM Priority - April 2025)
+**Goal: Safe for trusted beta users with essential security**
+
+#### 3. Security & Compliance (~21 points, 3-4 weeks)  
+- **Data Backup/Export**: User data portability and GDPR compliance
+- **Privacy Policy**: Legal compliance preparation
+- **Audit Logging**: Track user actions for security
+- **Beta Invites**: Controlled rollout system
+- **Performance Optimization**: Database indexing based on real usage
+
+#### 4. Cost Scaling
+- **Supabase Pro**: $25/month if needed for more storage
+- **Custom Domain**: ~$10-15/year
+- **Monitoring**: Sentry free tier for error tracking
+
+### PHASE 3: Production Scale-Ready (MEDIUM Priority - May 2025)
+**Goal: Handle growth efficiently with professional monitoring**
+
+#### 5. Production Readiness (~21 points, 2-3 weeks)
+- **Professional Branding**: Custom domain (btc-tracker.com)  
+- **Error Monitoring**: Sentry integration for professional error tracking
+- **Performance Analytics**: Database optimization and caching strategies
+- **Load Testing**: Understand system limits before public launch
+- **Background Jobs**: Supabase Edge Functions for future automation
+
+### PHASE 4: API Integration & Automation (LOW Priority - Q3 2025)
+**Goal: Advanced features post-foundation (~44 points, 4-6 weeks)**
+
+#### 6. Exchange API Integration (After Foundation Complete)
+- **Strike API**: OAuth integration for automatic transaction sync
+- **Coinbase API**: Advanced Trade + v2 API for complete transaction history
+- **Kraken API**: With 120-day limitation and CSV fallback
+- **Security**: Encrypted API key storage and rotation
+- **Background Sync**: Scheduled automatic updates
 
 ---
 
-## 📋 Development Process
+## 📊 Development Timeline & Success Metrics
 
-### Task Tracking
-Detailed task breakdown and progress tracking is maintained in [tasks.md](tasks.md).
+### 🎯 Alpha Release (March 2025)
+**Target**: Feature-complete app deployed with user accounts on free tiers
 
-### Quality Standards
-- **Code Coverage**: >90% for critical tax calculations, >80% overall
-- **Type Safety**: Full TypeScript coverage with strict mode
-- **Error Handling**: Comprehensive error scenarios with user-friendly messages
-- **Performance**: Sub-second response for typical portfolio sizes
-- **Accessibility**: WCAG 2.1 AA compliance for all new components
+- **Week 1**: Supabase + Vercel + GitHub Actions setup
+- **Week 2**: Authentication integration and data migration
+- **Week 3**: Multi-user testing and beta preparation
+- **Success Criteria**: First multi-user deployment with zero data loss
 
-### Documentation Requirements
-- **Technical**: Architecture decisions and API documentation
-- **User**: Step-by-step tax reporting guides
-- **Legal**: Clear disclaimers about tax advice limitations
-- **Testing**: Comprehensive test scenarios and validation data
+### 🔒 Beta Release (April 2025)  
+**Target**: Trusted user base with production-ready security
+
+- **Week 1-2**: Privacy compliance and security hardening
+- **Week 3-4**: Performance optimization based on real usage
+- **Success Criteria**: 10-20 active beta users, security audit passed
+
+### 🚀 Production Launch (May 2025)
+**Target**: Public availability with growth-ready infrastructure
+
+- **Week 1-2**: Professional monitoring and custom domain
+- **Week 3**: Load testing and public launch preparation
+- **Success Criteria**: Public launch ready, monitoring systems active
+
+### 🔌 Advanced Features (Q3 2025)
+**Target**: API integrations and premium features
+
+- API integrations (Strike, Coinbase, Kraken)
+- Automated sync and background processing
+- Premium feature development
+
+---
+
+## 💰 Cost-Effective Scaling Strategy
+
+### Phase 1: $0/month (Alpha)
+- Leverage all free tiers
+- Validate product-market fit
+- Gather user feedback
+
+### Phase 2: ~$10-25/month (Beta)  
+- Scale only as needed
+- Monitor cost vs user growth
+- Optimize before upgrading
+
+### Phase 3: Revenue-dependent (Production)
+- Scale based on actual usage
+- Implement premium features
+- Monitor unit economics
+
+---
+
+## ⚡ Why This Approach?
+
+1. **Risk Mitigation**: Validate infrastructure before advanced features
+2. **Cost Control**: Start free, scale gradually based on real usage  
+3. **User Safety**: Proper authentication before API key storage
+4. **Technical Debt**: Avoid premature optimization without real data
+5. **Market Validation**: Test demand before heavy API development investment
+
+---
+
+## 📋 Quality Standards (Maintained)
+
+- **Test Coverage**: >90% for critical calculations, >80% overall
+- **Type Safety**: Full TypeScript coverage with strict mode  
+- **Error Handling**: Comprehensive recovery options
+- **Performance**: Sub-second response times
+- **Security**: Industry-standard authentication and data protection
 
 ---
 
 ## 🔗 Related Resources
 
+- [tasks.md](tasks.md) - Detailed task breakdown and progress tracking  
 - [CHANGELOG.md](../CHANGELOG.md) - Completed features and releases
-- [tasks.md](tasks.md) - Detailed task tracking and estimates  
 - [CLAUDE.md](../CLAUDE.md) - Technical architecture and setup guide
