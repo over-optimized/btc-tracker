@@ -91,13 +91,31 @@ src/
 
 ## Technical Highlights
 
-### CSV Processing Pipeline
+### Robust CSV Processing Pipeline (v2.0.0)
 
-1. **File Upload**: Drag-and-drop or click-to-upload interface
-2. **Format Detection**: Automatic exchange format recognition
-3. **Data Parsing**: Exchange-specific parsers with validation
-4. **Deduplication**: ID-based duplicate prevention
-5. **Storage**: Persistent localStorage with proper serialization
+1. **File Validation**: Size, type, and structure validation before processing
+2. **Format Detection**: Intelligent exchange format recognition with confidence scoring
+3. **Multi-Layer Validation**: File → structure → row-level data validation
+4. **Error Recovery**: Context-aware recovery options with user guidance
+5. **Progress Tracking**: Real-time progress indication for large files
+6. **Deduplication**: Stable ID-based duplicate prevention across re-imports
+7. **Storage**: Persistent localStorage with versioning and migration support
+
+### Stable Transaction ID System (v1.2.0)
+
+- **Deterministic IDs**: Content-based IDs that remain stable across re-imports
+- **Exchange-Specific Logic**: Reference-based for Strike, hash-based for others
+- **Collision Detection**: Advanced algorithms to prevent ID conflicts
+- **Data Migration**: Automatic migration of existing user data with backup/restore
+- **Version Tracking**: localStorage versioning with seamless upgrades
+
+### Advanced Error Handling (v2.0.0)
+
+- **Comprehensive Error Types**: Specific error categories with recovery guidance
+- **Progressive Disclosure**: Summary → detailed errors → recovery options → help
+- **Export Problematic Data**: CSV export of rows with issues for manual review
+- **Smart Recovery**: Context-aware suggestions (try different formats, skip invalid rows)
+- **User-Friendly UI**: Modal interfaces with clear actions and guidance
 
 ### Chart System
 
@@ -106,12 +124,13 @@ src/
 - **Interactive Tooltips**: Formatted currency and BTC values
 - **Multiple Chart Types**: Line charts, area charts, bar charts
 
-### Testing Strategy
+### Comprehensive Testing Strategy
 
-- **Unit Tests**: Utility functions and parsers
-- **Component Tests**: UI components with realistic data
-- **Integration Tests**: Chart rendering and interaction
-- **Coverage**: Comprehensive test coverage for core logic
+- **Unit Tests**: >90% coverage for critical utilities (ID generation, validation, error recovery)
+- **Integration Tests**: End-to-end CSV import scenarios and error handling
+- **Error Scenario Tests**: Comprehensive validation of all error paths and recovery options
+- **Performance Tests**: Large dataset handling and processing efficiency
+- **Component Tests**: UI components with realistic data and error states
 
 ## Data Models
 
@@ -179,27 +198,94 @@ pnpm test --run src/components/__tests__/ComponentName.test.tsx
 # Run all tests with coverage
 pnpm test
 
+# Run error handling tests specifically
+pnpm test --run src/utils/csvValidator.test.ts src/utils/errorRecovery.test.ts
+
+# Run ID generation and migration tests
+pnpm test --run src/utils/generateTransactionId.test.ts src/utils/dataMigration.test.ts
+
 # View coverage report
 open coverage/index.html
 ```
 
-### Code Quality
+### Code Quality & Standards
 
 ```bash
 pnpm lint      # ESLint checking
-pnpm format    # Prettier formatting
+pnpm format    # Prettier formatting  
 pnpm dev       # Development server
 pnpm build     # Production build
+pnpm typecheck # TypeScript type checking (if available)
 ```
 
-## Current Limitations & Known Issues
+### Documentation Workflow
 
-1. **ID Stability**: Coinbase and Kraken parsers use timestamp-based IDs
-2. **Exchange Detection**: Could be more robust with better format signatures
-3. **Data Validation**: Limited validation of CSV data integrity
-4. **Error Handling**: Basic error messages, could be more user-friendly
-5. **Performance**: No virtualization for large transaction lists
-6. **Offline Support**: No service worker or offline capabilities
+```bash
+# Update project status after significant changes
+vim docs/PROJECT_STATUS.md
+
+# Track new tasks and estimates
+vim docs/tasks.md
+
+# Document completed features
+vim CHANGELOG.md
+
+# Update this file for architectural changes
+vim CLAUDE.md
+```
+
+## Project Management & Development
+
+### Documentation System
+
+The project uses a structured documentation approach:
+
+- **[CHANGELOG.md](CHANGELOG.md)** - Complete project history and releases
+- **[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)** - High-level project overview and health
+- **[docs/critical-features.md](docs/critical-features.md)** - Next priority features and planning
+- **[docs/tasks.md](docs/tasks.md)** - Detailed task tracking with estimates and priorities
+
+### Development Workflow
+
+```bash
+# Check current project status
+cat docs/PROJECT_STATUS.md
+
+# Review next priorities
+cat docs/critical-features.md
+
+# See detailed task breakdown
+cat docs/tasks.md
+
+# View completed work
+cat CHANGELOG.md
+```
+
+### Quality Standards
+
+- **Code Coverage**: >90% for critical utilities, >80% overall
+- **Type Safety**: Full TypeScript coverage with strict mode
+- **Error Handling**: Comprehensive error scenarios with recovery options
+- **Performance**: Sub-second response for typical portfolio sizes
+- **Testing**: Unit, integration, and error scenario coverage
+
+## Current Status & Recent Achievements
+
+### ✅ Recently Completed (v2.0.0)
+1. **Stable Transaction ID System** - Eliminated duplicate import issues
+2. **Comprehensive Error Handling** - Professional-grade CSV import with recovery options
+3. **Enhanced User Experience** - Detailed error feedback and recovery suggestions
+
+### 🎯 Current Priority
+**Tax Reporting System** - Multi-method tax calculations with professional export capabilities
+
+### 📋 Known Limitations
+
+1. **Tax Features**: No tax reporting capabilities yet (in development)
+2. **Performance**: No virtualization for large transaction lists (10,000+ rows)
+3. **Offline Support**: No service worker or offline capabilities
+4. **Mobile**: Limited mobile optimization
+5. **Exchange APIs**: Only CSV import supported (no direct API integration)
 
 ## Security Considerations
 
@@ -222,4 +308,37 @@ pnpm build     # Production build
 - **Data Processing**: In-memory processing suitable for thousands of transactions
 - **Real-time Updates**: Efficient price polling with cleanup
 
-This project demonstrates modern React development practices with comprehensive testing, type safety, and user-focused design principles.
+## Architecture & Design Principles
+
+### Core Design Philosophy
+- **Error-First Design**: Comprehensive error handling throughout the application
+- **User Experience Focus**: Progressive disclosure and recovery options for all failure scenarios  
+- **Data Integrity**: Zero data loss with automatic backup and migration systems
+- **Type Safety**: Full TypeScript coverage with strict mode enabled
+- **Testing Excellence**: >80% overall coverage, >90% for critical business logic
+
+### Key Architectural Decisions
+
+#### Client-Side Architecture
+- **No Backend Dependency**: All processing happens in browser for privacy and simplicity
+- **localStorage Persistence**: Versioned data storage with automatic migration
+- **Modular Design**: Clear separation between data processing, UI components, and business logic
+
+#### Robust Data Processing
+- **Multi-Stage Validation**: File → Structure → Row-level validation with specific error types
+- **Stable ID Generation**: Content-based IDs that remain consistent across re-imports
+- **Error Recovery**: Context-aware recovery options with user guidance and data export
+
+#### Performance Considerations
+- **Streaming Processing**: Large CSV files processed with progress indication
+- **Memory Efficiency**: Proper cleanup and resource management
+- **Caching Strategy**: Intelligent data caching with versioning for fast retrieval
+
+### Technology Choices Rationale
+- **React 19**: Latest stable with concurrent features for smooth UX
+- **TypeScript**: Strict typing prevents runtime errors and improves maintainability
+- **Vite**: Fast development builds and optimized production bundles
+- **Vitest**: Modern testing framework with excellent TypeScript integration
+- **Tailwind CSS**: Utility-first CSS for rapid, consistent UI development
+
+This project demonstrates modern React development practices with comprehensive testing, type safety, and user-focused design principles, specifically architected for financial data accuracy and user trust.
