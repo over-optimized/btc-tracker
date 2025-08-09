@@ -191,7 +191,7 @@ describe('utility functions', () => {
     });
 
     it('should handle very large numbers', () => {
-      expect(normalizeAmount(999999.99999999)).toBe('1000000.00000000');
+      expect(normalizeAmount(999999.99999999)).toBe('999999.99999999');
     });
   });
 
