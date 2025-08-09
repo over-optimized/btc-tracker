@@ -40,16 +40,25 @@ src/
 │   ├── InvestedVsPnLChart.tsx # Monthly investment analysis
 │   ├── NavBar.tsx          # Navigation component
 │   ├── PortfolioValueChart.tsx # Portfolio value over time
+│   ├── TaxConfig.tsx       # Tax configuration interface
+│   ├── TaxDashboard.tsx    # Main tax reporting page
+│   ├── TaxExport.tsx       # Tax report export functionality
+│   ├── TaxOptimization.tsx # Tax strategy and analysis tools
+│   ├── TaxReport.tsx       # Tax report display component
+│   ├── TaxSummaryCard.tsx  # Dashboard tax summary widget
 │   ├── TransactionHistory.tsx # Paginated transaction table
 │   └── UploadTransactions.tsx # File upload interface
 ├── types/                   # TypeScript type definitions
 │   ├── Stats.ts            # Portfolio statistics interface
+│   ├── TaxTypes.ts         # Tax calculation type definitions
 │   └── Transaction.ts      # Transaction data model
 ├── utils/                   # Utility functions
 │   ├── exchangeParsers.ts  # Multi-exchange CSV parsers
 │   ├── formatBTC.ts        # Bitcoin amount formatting
 │   ├── formatCurrency.ts   # Currency formatting
-│   └── storage.ts          # localStorage management
+│   ├── storage.ts          # localStorage management
+│   ├── taxCalculator.ts    # Tax calculation engine
+│   └── taxLotManager.ts    # Tax lot tracking system
 ├── app.tsx                  # Main application component
 └── main.tsx                # Application entry point
 ```
@@ -89,6 +98,14 @@ src/
 - Transaction serialization with Date object handling
 - Clear data functionality with confirmation
 
+### 6. Tax Reporting System
+
+- **Multi-Method Support**: FIFO, LIFO, HIFO, and Specific Identification tax calculations
+- **Comprehensive Reports**: Detailed acquisition and disposal tracking with holding periods
+- **Tax Optimization**: Strategy recommendations and hypothetical disposal analysis
+- **Professional Export**: CSV, JSON, and TurboTax-compatible formats
+- **Dashboard Integration**: Tax summary cards with real-time calculations
+
 ## Technical Highlights
 
 ### Robust CSV Processing Pipeline (v2.0.0)
@@ -124,13 +141,23 @@ src/
 - **Interactive Tooltips**: Formatted currency and BTC values
 - **Multiple Chart Types**: Line charts, area charts, bar charts
 
+### Tax Calculation Engine (v2.1.0)
+
+- **Multi-Method Support**: Complete implementation of FIFO, LIFO, HIFO, and Specific Identification
+- **Lot Tracking**: Individual purchase lot management with partial disposal support
+- **Holding Period Logic**: Automatic short-term vs long-term classification (365+ days)
+- **Tax Event Generation**: Complete audit trail of acquisitions and disposals
+- **Optimization Analysis**: Tax-loss harvesting and strategy recommendations
+- **Professional Export**: TurboTax-compatible CSV and comprehensive JSON formats
+
 ### Comprehensive Testing Strategy
 
-- **Unit Tests**: >90% coverage for critical utilities (ID generation, validation, error recovery)
-- **Integration Tests**: End-to-end CSV import scenarios and error handling
-- **Error Scenario Tests**: Comprehensive validation of all error paths and recovery options
-- **Performance Tests**: Large dataset handling and processing efficiency
-- **Component Tests**: UI components with realistic data and error states
+- **Unit Tests**: >95% coverage for tax calculations, >90% for critical utilities
+- **Integration Tests**: End-to-end CSV import scenarios and tax calculation workflows
+- **Tax Scenario Tests**: Comprehensive validation of FIFO/LIFO/HIFO calculations
+- **Error Scenario Tests**: Tax calculation edge cases and error recovery
+- **Performance Tests**: Large portfolio handling and multi-method comparisons
+- **Component Tests**: UI components with realistic tax data and scenarios
 
 ## Data Models
 
@@ -157,6 +184,43 @@ interface Stats {
   avgCostBasis: number; // Average cost per BTC
   currentValue: number; // Current portfolio value
   unrealizedPnL: number; // Profit/Loss vs investment
+}
+```
+
+### Tax Data Models
+
+```typescript
+interface TaxLot {
+  id: string;                    // Unique identifier for this lot
+  transactionId: string;         // Reference to original transaction
+  purchaseDate: Date;           // Date of acquisition
+  btcAmount: number;            // Original BTC amount in this lot
+  remaining: number;            // Remaining BTC in this lot (after disposals)
+  costBasis: number;            // Original USD cost for this lot
+  pricePerBtc: number;          // Price per BTC at time of purchase
+  exchange: string;             // Exchange where purchased
+}
+
+interface TaxEvent {
+  id: string;
+  type: TaxEventType;           // ACQUISITION or DISPOSAL
+  date: Date;
+  btcAmount: number;
+  usdValue: number;
+  costBasis?: number;           // Cost basis for disposed BTC
+  capitalGain?: number;         // Gain or loss (can be negative)
+  holdingPeriod?: HoldingPeriod; // SHORT_TERM or LONG_TERM
+  disposedLots?: DisposedLot[]; // Which lots were used for disposal
+}
+
+interface TaxReport {
+  taxYear: number;              // Tax year (e.g., 2024)
+  method: TaxMethod;            // Calculation method used (FIFO/LIFO/HIFO)
+  generatedAt: Date;            // When this report was generated
+  summary: TaxSummary;          // Summary statistics
+  acquisitions: TaxEvent[];     // All purchase events
+  disposals: TaxEvent[];        // All sale/disposal events
+  remainingLots: TaxLot[];      // Lots still held
 }
 ```
 
@@ -204,6 +268,12 @@ pnpm test --run src/utils/csvValidator.test.ts src/utils/errorRecovery.test.ts
 # Run ID generation and migration tests
 pnpm test --run src/utils/generateTransactionId.test.ts src/utils/dataMigration.test.ts
 
+# Run tax calculation tests specifically
+pnpm test --run src/utils/__tests__/tax
+
+# Run specific tax component tests
+pnpm test --run src/utils/__tests__/taxLotManager.test.ts src/utils/__tests__/taxCalculator.test.ts
+
 # View coverage report
 open coverage/index.html
 ```
@@ -218,7 +288,7 @@ pnpm build     # Production build
 pnpm typecheck # TypeScript type checking (if available)
 ```
 
-### Documentation Workflow
+### Documentation Workflow & Maintenance
 
 ```bash
 # Update project status after significant changes
@@ -233,6 +303,45 @@ vim CHANGELOG.md
 # Update this file for architectural changes
 vim CLAUDE.md
 ```
+
+**IMPORTANT: Documentation Maintenance Requirements**
+
+When completing major features or making significant changes, **ALWAYS** update the following documentation:
+
+1. **CLAUDE.md** (this file): 
+   - Add new components to project structure
+   - Update core features list
+   - Add new technical highlights
+   - Update data models and interfaces
+   - Add new testing commands
+
+2. **CHANGELOG.md**:
+   - Document the completed feature with version number
+   - Include technical implementation details
+   - List user-facing improvements
+   - Note any breaking changes
+
+3. **docs/PROJECT_STATUS.md**:
+   - Update current status and version
+   - Mark completed features
+   - Update next priorities
+
+4. **docs/critical-features.md**:
+   - Remove completed features
+   - Update remaining feature priorities
+   - Adjust implementation timelines
+
+**Documentation Update Process**:
+```bash
+# After completing a major feature:
+1. Update CLAUDE.md with new technical details
+2. Add entry to CHANGELOG.md with version bump
+3. Update PROJECT_STATUS.md current status
+4. Remove completed items from critical-features.md
+5. Commit all documentation updates together
+```
+
+This ensures the project documentation stays current and accurate for future development work.
 
 ## Project Management & Development
 
@@ -271,21 +380,21 @@ cat CHANGELOG.md
 
 ## Current Status & Recent Achievements
 
-### ✅ Recently Completed (v2.0.0)
-1. **Stable Transaction ID System** - Eliminated duplicate import issues
-2. **Comprehensive Error Handling** - Professional-grade CSV import with recovery options
-3. **Enhanced User Experience** - Detailed error feedback and recovery suggestions
+### ✅ Recently Completed (v2.1.0)
+1. **Stable Transaction ID System** (v1.2.0) - Eliminated duplicate import issues
+2. **Comprehensive Error Handling** (v2.0.0) - Professional-grade CSV import with recovery options
+3. **Tax Reporting System** (v2.1.0) - Complete multi-method tax calculations with professional export capabilities
 
-### 🎯 Current Priority
-**Tax Reporting System** - Multi-method tax calculations with professional export capabilities
+### 🎯 Current Status
+**Production Ready** - All core features implemented with comprehensive testing and documentation
 
 ### 📋 Known Limitations
 
-1. **Tax Features**: No tax reporting capabilities yet (in development)
-2. **Performance**: No virtualization for large transaction lists (10,000+ rows)
-3. **Offline Support**: No service worker or offline capabilities
-4. **Mobile**: Limited mobile optimization
-5. **Exchange APIs**: Only CSV import supported (no direct API integration)
+1. **Performance**: No virtualization for large transaction lists (10,000+ rows)
+2. **Offline Support**: No service worker or offline capabilities
+3. **Mobile**: Limited mobile optimization for complex tax tables
+4. **Exchange APIs**: Only CSV import supported (no direct API integration)
+5. **Disposal Tracking**: Manual disposal entry (no automatic exchange integration)
 
 ## Security Considerations
 

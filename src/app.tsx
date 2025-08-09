@@ -9,6 +9,8 @@ import ImportSummaryModal from './components/ImportSummaryModal';
 import InvestedVsPnLChart from './components/InvestedVsPnLChart';
 import NavBar from './components/NavBar';
 import PortfolioValueChart from './components/PortfolioValueChart';
+import TaxDashboard from './components/TaxDashboard';
+import TaxSummaryCard from './components/TaxSummaryCard';
 import TransactionHistory from './components/TransactionHistory';
 import UploadTransactions from './components/UploadTransactions';
 import { Stats } from './types/Stats';
@@ -301,6 +303,12 @@ const BitcoinTracker: React.FC = () => {
                   </div>
                 )}
                 {transactions.length > 0 && <DashboardOverview stats={stats} />}
+                
+                {/* Tax Summary Card */}
+                <div className="mb-6">
+                  <TaxSummaryCard transactions={transactions} />
+                </div>
+                
                 {/* Chart placeholder here */}
                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
                   <h2 className="text-xl font-bold text-gray-800 mb-4">
@@ -352,6 +360,10 @@ const BitcoinTracker: React.FC = () => {
               </div>
             </div>
           }
+        />
+        <Route
+          path="/tax"
+          element={<TaxDashboard transactions={transactions} currentPrice={currentPrice || undefined} />}
         />
       </Routes>
     </>

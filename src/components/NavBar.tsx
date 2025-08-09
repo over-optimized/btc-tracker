@@ -5,6 +5,7 @@ const navItems = [
   { to: '/transactions', label: 'Transactions' },
   { to: '/upload', label: 'Upload' },
   { to: '/charts', label: 'Charts' },
+  { to: '/tax', label: 'Tax Reports' },
 ];
 
 const NavBar: React.FC = () => (
