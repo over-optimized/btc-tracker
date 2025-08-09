@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Self-Custody Tracking & Milestone System**: Complete solution for tracking Bitcoin movements to self-custody
+  - **Extended Transaction Model**: Support for withdrawal transactions with destination wallet, network fees, and tax flags
+  - **Milestone Recommendations**: Smart alerts at 0.001, 0.01, 0.05, 0.1, and 1.0 BTC thresholds with educational content
+  - **SelfCustodyCard**: Dashboard widget showing security score, exchange balances, and milestone recommendations  
+  - **AddWithdrawalModal**: User-friendly interface for recording withdrawals to self-custody
+  - **Portfolio Security Analysis**: Real-time risk assessment based on exchange exposure and concentration
+  - **Tax Integration**: Withdrawals properly handled as non-taxable events in tax calculations
+
 - **Data Freshness Monitoring System**: Comprehensive import reminder system for users with regular trading patterns
   - **DataFreshnessCard**: Dashboard widget showing data staleness with color-coded indicators (fresh, aging, stale, very stale)
   - **ImportReminderToast**: Smart notification system with snooze options and customizable reminder intervals

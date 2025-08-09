@@ -57,9 +57,21 @@ export class TaxCalculator {
       });
     }
 
-    // Process each transaction as an acquisition
+    // Process each transaction (skip withdrawals as they're non-taxable movements)
     for (const transaction of yearTransactions) {
       try {
+        // Skip withdrawal/transfer transactions as they're non-taxable self-custody movements
+        if (this.isWithdrawalTransaction(transaction)) {
+          // Add to warnings for visibility but don't process as acquisition
+          warnings.push({
+            code: 'WITHDRAWAL_SKIPPED',
+            message: `Withdrawal transaction skipped (non-taxable): ${transaction.btcAmount} BTC to ${transaction.destinationWallet || 'self-custody'}`,
+            suggestion: 'This withdrawal does not create a taxable event',
+          });
+          continue;
+        }
+
+        // Process as acquisition for purchases/buys
         this.processAcquisition(transaction);
       } catch (error) {
         errors.push({
@@ -251,6 +263,28 @@ export class TaxCalculator {
     return transactions.filter(tx => 
       tx.date >= startDate && tx.date <= endDate
     );
+  }
+
+  /**
+   * Check if a transaction is a withdrawal to self-custody (non-taxable)
+   */
+  private isWithdrawalTransaction(transaction: Transaction): boolean {
+    // Check explicit withdrawal types
+    if (transaction.type === 'Withdrawal' || transaction.type === 'Transfer') {
+      return true;
+    }
+
+    // Check self-custody flag
+    if (transaction.isSelfCustody === true) {
+      return true;
+    }
+
+    // Check taxable flag (explicitly marked as non-taxable)
+    if (transaction.isTaxable === false) {
+      return true;
+    }
+
+    return false;
   }
 
   /**

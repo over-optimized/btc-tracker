@@ -7,6 +7,8 @@ import DashboardOverview from './components/DashboardOverview';
 import DataFreshnessCard from './components/DataFreshnessCard';
 import ImportErrorModal from './components/ImportErrorModal';
 import ImportReminderToast from './components/ImportReminderToast';
+import SelfCustodyCard from './components/SelfCustodyCard';
+import AddWithdrawalModal from './components/AddWithdrawalModal';
 import ImportSummaryModal from './components/ImportSummaryModal';
 import InvestedVsPnLChart from './components/InvestedVsPnLChart';
 import NavBar from './components/NavBar';
@@ -45,6 +47,7 @@ const BitcoinTracker: React.FC = () => {
   const [importErrors, setImportErrors] = useState<ImportError[]>([]);
   const [importWarnings, setImportWarnings] = useState<ImportError[]>([]);
   const [recoveryContext, setRecoveryContext] = useState<ErrorRecoveryContext>();
+  const [withdrawalModalOpen, setWithdrawalModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -265,6 +268,18 @@ const BitcoinTracker: React.FC = () => {
     }
   };
 
+  const handleAddWithdrawal = (withdrawal: Transaction) => {
+    const updatedTransactions = [...transactions, withdrawal];
+    setTransactions(updatedTransactions);
+    saveTransactions(updatedTransactions);
+  };
+
+  // Get unique exchanges for withdrawal modal
+  const getExchangesList = (): string[] => {
+    const exchanges = new Set(transactions.map(tx => tx.exchange));
+    return Array.from(exchanges).sort();
+  };
+
   return (
     <>
       <NavBar />
@@ -292,6 +307,12 @@ const BitcoinTracker: React.FC = () => {
                 onRetry={handleRetry}
                 onExportErrors={handleExportErrors}
               />
+              <AddWithdrawalModal
+                isOpen={withdrawalModalOpen}
+                onClose={() => setWithdrawalModalOpen(false)}
+                onAdd={handleAddWithdrawal}
+                exchanges={getExchangesList()}
+              />
               <div className="max-w-6xl mx-auto">
                 {/* Current Price Display */}
                 {currentPrice && (
@@ -307,11 +328,16 @@ const BitcoinTracker: React.FC = () => {
                 {transactions.length > 0 && <DashboardOverview stats={stats} />}
                 
                 {/* Status Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
                   <TaxSummaryCard transactions={transactions} />
                   <DataFreshnessCard 
                     transactions={transactions} 
                     onImportClick={() => navigate('/upload')} 
+                  />
+                  <SelfCustodyCard 
+                    transactions={transactions} 
+                    currentPrice={currentPrice || undefined}
+                    onAddWithdrawal={() => setWithdrawalModalOpen(true)}
                   />
                 </div>
                 
