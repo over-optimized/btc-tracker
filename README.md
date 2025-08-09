@@ -113,8 +113,8 @@ pnpm build      # Build for production
 
 ## 🎯 Project Status
 
-**Current Version**: v2.1.0+ (Pre-Production)  
-**Development Status**: All core features complete ✅
+**Current Version**: v0.3.0-dev (Pre-Alpha Development)  
+**Development Status**: Q1 2025 features complete, preparing for Alpha infrastructure deployment ✅
 
 Recent major additions:
 - ✅ **Intelligent Transaction Classification** - Mixed CSV file support

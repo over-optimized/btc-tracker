@@ -254,7 +254,7 @@ export const exchangeParsers = { ... }
 
 ## Technical Highlights
 
-### Intelligent Transaction Classification Engine (v2.2.0)
+### Intelligent Transaction Classification Engine (Development Milestone 4)
 
 1. **Multi-Type Detection**: Automatically identifies purchases, withdrawals, sales, and transfers
 2. **Pattern Recognition**: Advanced heuristics with confidence scoring (0-100%)
@@ -263,7 +263,7 @@ export const exchangeParsers = { ... }
 5. **Tax Integration**: Proper categorization for tax calculation compatibility
 6. **Exchange Compatibility**: Works with all supported exchange formats
 
-### Enhanced CSV Processing Pipeline (v2.0.0+)
+### Enhanced CSV Processing Pipeline (Development Milestone 2+)
 
 1. **Universal Format Support**: Handles mixed transaction types in single CSV files
 2. **Intelligent Format Detection**: Auto-detects exchange format with confidence scoring
@@ -273,7 +273,7 @@ export const exchangeParsers = { ... }
 6. **Smart Deduplication**: Stable ID-based duplicate prevention across re-imports
 7. **Versioned Storage**: Persistent localStorage with automatic migration support
 
-### Stable Transaction ID System (v1.2.0)
+### Stable Transaction ID System (Development Milestone 1)
 
 - **Deterministic IDs**: Content-based IDs that remain stable across re-imports
 - **Exchange-Specific Logic**: Reference-based for Strike, hash-based for others
@@ -281,7 +281,7 @@ export const exchangeParsers = { ... }
 - **Data Migration**: Automatic migration of existing user data with backup/restore
 - **Version Tracking**: localStorage versioning with seamless upgrades
 
-### Advanced Error Handling (v2.0.0)
+### Advanced Error Handling (Development Milestone 2)
 
 - **Comprehensive Error Types**: Specific error categories with recovery guidance
 - **Progressive Disclosure**: Summary → detailed errors → recovery options → help
@@ -296,7 +296,7 @@ export const exchangeParsers = { ... }
 - **Interactive Tooltips**: Formatted currency and BTC values
 - **Multiple Chart Types**: Line charts, area charts, bar charts
 
-### Self-Custody Security System (v2.2.0)
+### Self-Custody Security System (Development Milestone 4)
 
 - **Milestone Detection**: Automatic alerts at common self-custody thresholds (0.01, 0.1, 1.0 BTC)
 - **Security Scoring**: Real-time risk assessment (0-100) based on exchange exposure
@@ -305,7 +305,7 @@ export const exchangeParsers = { ... }
 - **Withdrawal Recording**: Manual entry system for Bitcoin moved to self-custody
 - **Tax Compliance**: Proper handling of withdrawals as non-taxable events
 
-### Tax Calculation Engine (v2.1.0)
+### Tax Calculation Engine (Development Milestone 3)
 
 - **Multi-Method Support**: Complete implementation of FIFO, LIFO, HIFO, and Specific Identification
 - **Lot Tracking**: Individual purchase lot management with partial disposal support
@@ -592,10 +592,11 @@ cat CHANGELOG.md
 
 ## Current Status & Recent Achievements
 
-### ✅ Recently Completed (v2.1.0)
-1. **Stable Transaction ID System** (v1.2.0) - Eliminated duplicate import issues
-2. **Comprehensive Error Handling** (v2.0.0) - Professional-grade CSV import with recovery options
-3. **Tax Reporting System** (v2.1.0) - Complete multi-method tax calculations with professional export capabilities
+### ✅ Recently Completed (Q1 2025 Development Phase)
+1. **Stable Transaction ID System** (Development Milestone 1) - Eliminated duplicate import issues
+2. **Comprehensive Error Handling** (Development Milestone 2) - Professional-grade CSV import with recovery options
+3. **Tax Reporting System** (Development Milestone 3) - Complete multi-method tax calculations with professional export capabilities
+4. **Intelligent Classification & Self-Custody** (Development Milestone 4) - Mixed CSV support and security tracking
 
 ### 🎯 Current Status
 **Pre-Production Development** - All core features implemented with comprehensive testing and documentation

@@ -5,7 +5,14 @@ All notable changes to the Bitcoin DCA Tracker will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] - v0.4.0-alpha.1 (Planned March 2025)
+### Infrastructure Deployment
+- Multi-user authentication with Supabase
+- Production deployment with Vercel
+- Database migration from localStorage
+- CI/CD pipeline with GitHub Actions
+
+## [v0.3.0-dev] - Q1 2025 Development Phase (Current)
 
 ### Added
 - **Intelligent Transaction Classification System**: Revolutionary CSV import enhancement that handles mixed transaction types
@@ -48,9 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Future enhancements and features will be documented here
 
-## [2.1.0] - 2025-01-09
-
-### Added - Comprehensive Tax Reporting System
+## Development Milestone 3 - Professional Tax Reporting (January 2025)
 - **Multi-Method Tax Calculations**: Complete implementation of FIFO, LIFO, HIFO, and Specific Identification methods
 - **Tax Lot Management**: Individual purchase lot tracking with partial disposal support and validation
 - **Holding Period Classification**: Automatic short-term vs long-term determination (365+ day threshold)
@@ -96,9 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Optimization Suggestions**: Contextual recommendations based on portfolio analysis
 - **Error Handling**: Comprehensive validation with clear error messages and recovery options
 
-## [2.0.0] - 2025-01-09
-
-### Added - Enhanced Error Handling System
+## Development Milestone 2 - Comprehensive Error Handling (January 2025)
+### Added
 - **Comprehensive Error Type System**: New `ImportError` interface with specific error categories
 - **CSV Validation Framework**: Multi-layered validation for files, structure, and data integrity
 - **Advanced Error Recovery**: Context-aware recovery options with automated suggestions
@@ -126,7 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Data validation (invalid values, dates, amounts)
 - Processing errors (network, timeout, memory)
 
-## [1.2.0] - 2025-01-09
+## Development Milestone 1 - Stable Transaction IDs (January 2025)
 
 ### Added - Stable Transaction ID Generation
 - **Deterministic ID System**: Content-based transaction IDs that remain stable across re-imports
@@ -157,7 +161,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Progress reporting and validation
 - Support for mixed ID formats during transition
 
-## [1.1.0] - 2024-12-XX (Previous Release)
+## Early Development Phase (December 2024)
 
 ### Added
 - Multi-exchange CSV import support (Strike, Coinbase, Kraken, Generic)
@@ -172,7 +176,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Responsive design with Tailwind CSS
 - TypeScript for type safety
 
-## [1.0.0] - 2024-11-XX (Initial Release)
+## Project Inception (November 2024)
 
 ### Added
 - Basic Bitcoin DCA transaction tracking

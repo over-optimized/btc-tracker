@@ -1,7 +1,7 @@
 {
   "name": "btc-tracker",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.3.0-dev",
+  "description": "Bitcoin DCA Portfolio Tracker - Pre-Alpha Development",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
