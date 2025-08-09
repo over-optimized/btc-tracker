@@ -36,14 +36,22 @@ const InvestedVsPnLChart: React.FC<Props> = ({ transactions, currentPrice }) => 
     entry.btc += tx.btcAmount;
   });
 
-  // Prepare chart data
+  // Prepare chart data with running totals
+  let cumulativeInvested = 0;
+  let cumulativeBtc = 0;
+  
   const data: MonthData[] = Array.from(monthMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, { invested, btc }]) => ({
-      month: formatMonthLabel(month),
-      invested,
-      pnl: currentPrice ? btc * currentPrice - invested : 0,
-    }));
+    .map(([month, { invested, btc }]) => {
+      cumulativeInvested += invested;
+      cumulativeBtc += btc;
+      
+      return {
+        month: formatMonthLabel(month),
+        invested: cumulativeInvested,
+        pnl: currentPrice ? cumulativeBtc * currentPrice - cumulativeInvested : 0,
+      };
+    });
 
   return (
     <ResponsiveContainer width="100%" height={300}>
