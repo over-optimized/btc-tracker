@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { CheckCircle, AlertTriangle, Upload, Eye } from 'lucide-react';
 import { ImportError } from '../types/ImportError';
 
@@ -12,6 +11,7 @@ interface ImportSummaryModalProps {
   errors?: ImportError[];
   warnings?: ImportError[];
   onViewDetails?: () => void;
+  onUploadAnother?: () => void;
 }
 
 const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
@@ -23,8 +23,8 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
   errors = [],
   warnings = [],
   onViewDetails,
+  onUploadAnother,
 }) => {
-  const navigate = useNavigate();
   if (!open) return null;
 
   const hasIssues = errors.length > 0 || warnings.length > 0;
@@ -33,11 +33,9 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
 
   const handleUploadAnother = () => {
     onClose();
-    navigate('/upload');
-    setTimeout(() => {
-      const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
-      if (fileInput) fileInput.click();
-    }, 100);
+    if (onUploadAnother) {
+      onUploadAnother();
+    }
   };
 
   return (

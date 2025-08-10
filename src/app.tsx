@@ -1,478 +1,87 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
-import AddWithdrawalModal from './components/AddWithdrawalModal';
-import Dashboard from './components/Dashboard';
-import ImportErrorModal from './components/ImportErrorModal';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import AppRoutes from './components/AppRoutes';
+import GlobalModals from './components/GlobalModals';
 import ImportReminderToast from './components/ImportReminderToast';
-import ImportSummaryModal from './components/ImportSummaryModal';
 import NavBar from './components/NavBar';
-import TransactionClassificationModal from './components/TransactionClassificationModal';
-import TransactionHistory from './components/TransactionHistory';
-import UploadTransactions from './components/UploadTransactions';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { ErrorRecoveryContext, ImportError } from './types/ImportError';
-import { Stats } from './types/Stats';
-import { Transaction } from './types/Transaction';
-import { ClassificationDecision, ClassificationPrompt } from './types/TransactionClassification';
-import { EnhancedCSVProcessor, EnhancedProcessOptions } from './utils/enhancedCsvProcessor';
-import { exportProblematicRows } from './utils/errorRecovery';
-import { clearTransactions, getTransactions, saveTransactions } from './utils/storage';
-
-// Lazy load chart components
-const AdditionalCharts = lazy(() => import('./components/AdditionalCharts'));
-const TaxDashboard = lazy(() => import('./components/TaxDashboard'));
+import { useBitcoinPrice } from './hooks/useBitcoinPrice';
+import { useImportFlow } from './hooks/useImportFlow';
+import { usePortfolioStats } from './hooks/usePortfolioStats';
+import { useTransactionManager } from './hooks/useTransactionManager';
 
 const AppContent: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(
-    () => getTransactions().transactions,
-  );
-  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [stats, setStats] = useState<Stats>({
-    totalInvested: 0,
-    totalBitcoin: 0,
-    avgCostBasis: 0,
-    currentValue: 0,
-    unrealizedPnL: 0,
+  const navigate = useNavigate();
+  
+  // Custom hooks
+  const transactionManager = useTransactionManager();
+  const { currentPrice } = useBitcoinPrice();
+  const stats = usePortfolioStats(transactionManager.transactions, currentPrice);
+  const importFlow = useImportFlow({
+    onTransactionsMerged: transactionManager.mergeTransactions,
   });
 
-  // Import result states
-  const [importModalOpen, setImportModalOpen] = useState(false);
-  const [errorModalOpen, setErrorModalOpen] = useState(false);
-  const [importedCount, setImportedCount] = useState(0);
-  const [ignoredCount, setIgnoredCount] = useState(0);
-  const [importSummary, setImportSummary] = useState('');
-  const [importErrors, setImportErrors] = useState<ImportError[]>([]);
-  const [importWarnings, setImportWarnings] = useState<ImportError[]>([]);
-  const [recoveryContext, setRecoveryContext] = useState<ErrorRecoveryContext>();
-  const [withdrawalModalOpen, setWithdrawalModalOpen] = useState(false);
-
-  // Classification modal state
-  const [classificationModalOpen, setClassificationModalOpen] = useState(false);
-  const [classificationPrompts, setClassificationPrompts] = useState<ClassificationPrompt[]>([]);
-  const [pendingClassificationCallback, setPendingClassificationCallback] = useState<
-    ((decisions: ClassificationDecision[]) => void) | null
-  >(null);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    (async () => {
-      const price = await fetchBitcoinPrice();
-      setCurrentPrice(price);
-    })();
-    // Refresh price every 30 seconds
-    const interval = setInterval(fetchBitcoinPrice, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Calculate portfolio stats
-  useEffect(() => {
-    const totalInvested = transactions.reduce((sum, tx) => sum + tx.usdAmount, 0);
-    const totalBitcoin = transactions.reduce((sum, tx) => sum + tx.btcAmount, 0);
-    const avgCostBasis = totalBitcoin > 0 ? totalInvested / totalBitcoin : 0;
-    const currentValue = currentPrice ? totalBitcoin * currentPrice : 0;
-    const unrealizedPnL = currentValue - totalInvested;
-
-    setStats({
-      totalInvested,
-      totalBitcoin,
-      avgCostBasis,
-      currentValue,
-      unrealizedPnL,
-    });
-  }, [transactions, currentPrice]);
-
-  // Enhanced file upload with comprehensive error handling
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setLoading(true);
-    setUploadProgress(0);
-
-    const options: EnhancedProcessOptions = {
-      allowPartialImport: true,
-      skipInvalidRows: true,
-      maxErrors: 50,
-      progressCallback: setUploadProgress,
-    };
-
-    try {
-      const processor = new EnhancedCSVProcessor(options);
-      const result = await processor.processCSVFile(file);
-
-      setLoading(false);
-      setUploadProgress(100);
-
-      if (result.needsClassification && result.classificationPrompts) {
-        // Show classification modal for ambiguous transactions
-        setClassificationPrompts(result.classificationPrompts);
-        setPendingClassificationCallback(() => result.onClassificationComplete!);
-        setClassificationModalOpen(true);
-        return;
-      }
-
-      if (result.success && result.importedCount > 0) {
-        // Success - merge with existing transactions
-        const newTransactions = (result as any).transactions || [];
-        const txMap = new Map<string, Transaction>();
-
-        // Add existing transactions
-        transactions.forEach((tx) => txMap.set(tx.id, tx));
-
-        // Add new transactions (deduplication handled by stable IDs)
-        let ignored = 0;
-        newTransactions.forEach((tx: Transaction) => {
-          if (txMap.has(tx.id)) {
-            ignored++;
-          }
-          txMap.set(tx.id, tx);
-        });
-
-        const merged = Array.from(txMap.values());
-        setTransactions(merged);
-        saveTransactions(merged);
-
-        // Set results for summary modal
-        setImportedCount(result.importedCount);
-        setIgnoredCount(ignored + result.ignoredCount);
-        setImportSummary(result.summary);
-        setImportErrors(result.errors);
-        setImportWarnings(result.warnings);
-        setImportModalOpen(true);
-
-        // Navigate to dashboard
-        if (location.pathname !== '/') {
-          navigate('/');
-        }
-      } else {
-        // Failed or no transactions imported
-        setImportErrors(result.errors);
-        setImportWarnings(result.warnings);
-        setErrorModalOpen(true);
-      }
-    } catch (error) {
-      setLoading(false);
-      setImportErrors([
-        {
-          type: 'FILE_READ_ERROR' as any,
-          message: 'Unexpected error during file processing',
-          details: String(error),
-          suggestions: ['Try again with a different file', 'Contact support if error persists'],
-          recoverable: false,
-        },
-      ]);
-      setErrorModalOpen(true);
-    }
-  };
-
-  // Handle retry with recovery options
-  const handleRetry = (retryOptions: any) => {
-    setErrorModalOpen(false);
-    // Create a synthetic file input event for retry
-    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
-    if (fileInput?.files?.[0]) {
-      // We need to re-process with new options
-      const file = fileInput.files[0];
-      retryFileUpload(file, retryOptions);
-    }
-  };
-
-  const retryFileUpload = async (file: File, retryOptions: any) => {
-    setLoading(true);
-    setUploadProgress(0);
-
-    const options: EnhancedProcessOptions = {
-      allowPartialImport: true,
-      skipInvalidRows: true,
-      maxErrors: 50,
-      progressCallback: setUploadProgress,
-      ...retryOptions,
-    };
-
-    try {
-      const processor = new EnhancedCSVProcessor(options);
-      const result = await processor.processCSVFile(file);
-
-      setLoading(false);
-      setUploadProgress(100);
-
-      if (result.needsClassification && result.classificationPrompts) {
-        // Show classification modal for ambiguous transactions
-        setClassificationPrompts(result.classificationPrompts);
-        setPendingClassificationCallback(() => result.onClassificationComplete!);
-        setClassificationModalOpen(true);
-        return;
-      }
-
-      // Handle results same as main upload
-      if (result.success && result.importedCount > 0) {
-        const newTransactions = (result as any).transactions || [];
-        const txMap = new Map<string, Transaction>();
-
-        transactions.forEach((tx) => txMap.set(tx.id, tx));
-
-        let ignored = 0;
-        newTransactions.forEach((tx: Transaction) => {
-          if (txMap.has(tx.id)) {
-            ignored++;
-          }
-          txMap.set(tx.id, tx);
-        });
-
-        const merged = Array.from(txMap.values());
-        setTransactions(merged);
-        saveTransactions(merged);
-
-        setImportedCount(result.importedCount);
-        setIgnoredCount(ignored + result.ignoredCount);
-        setImportSummary(result.summary);
-        setImportErrors(result.errors);
-        setImportWarnings(result.warnings);
-        setImportModalOpen(true);
-
-        if (location.pathname !== '/') {
-          navigate('/');
-        }
-      } else {
-        setImportErrors(result.errors);
-        setImportWarnings(result.warnings);
-        setErrorModalOpen(true);
-      }
-    } catch (error) {
-      setLoading(false);
-      setImportErrors([
-        {
-          type: 'FILE_READ_ERROR' as any,
-          message: 'Retry failed',
-          details: String(error),
-          suggestions: ['Contact support'],
-          recoverable: false,
-        },
-      ]);
-      setErrorModalOpen(true);
-    }
-  };
-
-  // Handle error export
-  const handleExportErrors = (data: any) => {
-    exportProblematicRows(data, `errors-${Date.now()}.csv`);
-  };
-
-  // Handle showing error details
-  const handleViewErrorDetails = () => {
-    setImportModalOpen(false);
-    setErrorModalOpen(true);
-  };
-
-  const clearData = () => {
-    if (confirm('Are you sure you want to clear all transaction data?')) {
-      setTransactions([]);
-      clearTransactions();
-    }
-  };
-
-  const handleAddWithdrawal = (withdrawal: Transaction) => {
-    const updatedTransactions = [...transactions, withdrawal];
-    setTransactions(updatedTransactions);
-    saveTransactions(updatedTransactions);
-  };
-
-  // Handle transaction classification completion
-  const handleClassificationComplete = async (decisions: ClassificationDecision[]) => {
-    setClassificationModalOpen(false);
-
-    if (!pendingClassificationCallback) return;
-
-    try {
-      const result = pendingClassificationCallback(decisions) as any;
-
-      if (result.success && result.transactions.length > 0) {
-        // Merge classified transactions with existing ones
-        const txMap = new Map<string, Transaction>();
-
-        // Add existing transactions
-        transactions.forEach((tx) => txMap.set(tx.id, tx));
-
-        // Add new transactions
-        let ignored = 0;
-        result.transactions.forEach((tx: Transaction) => {
-          if (txMap.has(tx.id)) {
-            ignored++;
-          }
-          txMap.set(tx.id, tx);
-        });
-
-        const merged = Array.from(txMap.values());
-        setTransactions(merged);
-        saveTransactions(merged);
-
-        // Show success modal
-        setImportedCount(result.importedCount);
-        setIgnoredCount(ignored + result.ignoredCount);
-        setImportSummary(result.summary);
-        setImportErrors(result.errors);
-        setImportWarnings(result.warnings);
-        setImportModalOpen(true);
-
-        // Navigate to dashboard
-        if (location.pathname !== '/') {
-          navigate('/');
-        }
-      } else {
-        // Handle classification errors
-        setImportErrors(result.errors);
-        setImportWarnings(result.warnings);
-        setErrorModalOpen(true);
-      }
-    } catch (error) {
-      setImportErrors([
-        {
-          type: 'CLASSIFICATION_ERROR' as any,
-          message: 'Error processing classified transactions',
-          details: String(error),
-          suggestions: ['Try importing the file again'],
-          recoverable: false,
-        },
-      ]);
-      setErrorModalOpen(true);
-    } finally {
-      setPendingClassificationCallback(null);
-      setClassificationPrompts([]);
-    }
-  };
-
-  // Get unique exchanges for withdrawal modal
-  const getExchangesList = (): string[] => {
-    const exchanges = new Set(transactions.map((tx) => tx.exchange));
-    return Array.from(exchanges).sort();
-  };
 
   return (
     <>
       <NavBar />
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              <Dashboard
-                transactions={transactions}
-                currentPrice={currentPrice}
-                stats={stats}
-                onAddWithdrawal={() => setWithdrawalModalOpen(true)}
-              />
-            </>
-          }
-        />
-        <Route
-          path="/transactions"
-          element={
-            <div className="page-container">
-              <div className="max-w-6xl mx-auto">
-                <TransactionHistory transactions={transactions} />
-              </div>
-            </div>
-          }
-        />
-        <Route
-          path="/upload"
-          element={
-            <div className="page-container">
-              <div className="max-w-6xl mx-auto">
-                <UploadTransactions
-                  onUpload={handleFileUpload}
-                  loading={loading}
-                  transactionsCount={transactions.length}
-                  clearData={clearData}
-                />
-              </div>
-            </div>
-          }
-        />
-        <Route
-          path="/charts"
-          element={
-            <div className="page-container">
-              <div className="max-w-6xl mx-auto">
-                <Suspense
-                  fallback={
-                    <div className="flex items-center justify-center py-12">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading charts...</p>
-                      </div>
-                    </div>
-                  }
-                >
-                  <AdditionalCharts transactions={transactions} currentPrice={currentPrice} />
-                </Suspense>
-              </div>
-            </div>
-          }
-        />
-        <Route
-          path="/tax"
-          element={
-            <Suspense
-              fallback={
-                <div className="flex items-center justify-center min-h-screen">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading tax dashboard...</p>
-                  </div>
-                </div>
-              }
-            >
-              <TaxDashboard transactions={transactions} currentPrice={currentPrice || undefined} />
-            </Suspense>
-          }
-        />
-      </Routes>
+      
+      <AppRoutes
+        transactions={transactionManager.transactions}
+        currentPrice={currentPrice}
+        stats={stats}
+        onFileUpload={importFlow.handlers.handleFileUpload}
+        loading={importFlow.state.loading}
+        clearData={transactionManager.clearAllTransactions}
+        onAddWithdrawal={() => importFlow.handlers.setWithdrawalModalOpen(true)}
+      />
 
-      {/* Global modals available on all routes */}
-      <ImportSummaryModal
-        open={importModalOpen}
-        onClose={() => setImportModalOpen(false)}
-        importedCount={importedCount}
-        ignoredCount={ignoredCount}
-        summary={importSummary}
-        errors={importErrors}
-        warnings={importWarnings}
-        onViewDetails={handleViewErrorDetails}
-      />
-      <ImportErrorModal
-        isOpen={errorModalOpen}
-        onClose={() => setErrorModalOpen(false)}
-        errors={importErrors}
-        warnings={importWarnings}
-        recoveryContext={recoveryContext}
-        onRetry={handleRetry}
-        onExportErrors={handleExportErrors}
-      />
-      <AddWithdrawalModal
-        isOpen={withdrawalModalOpen}
-        onClose={() => setWithdrawalModalOpen(false)}
-        onAdd={handleAddWithdrawal}
-        exchanges={getExchangesList()}
-      />
-      <TransactionClassificationModal
-        isOpen={classificationModalOpen}
-        onClose={() => {
-          setClassificationModalOpen(false);
-          setPendingClassificationCallback(null);
-          setClassificationPrompts([]);
+      <GlobalModals
+        // Import Summary Modal
+        importModalOpen={importFlow.state.importModalOpen}
+        onImportModalClose={() => importFlow.handlers.setImportModalOpen(false)}
+        importedCount={importFlow.state.importedCount}
+        ignoredCount={importFlow.state.ignoredCount}
+        importSummary={importFlow.state.importSummary}
+        importErrors={importFlow.state.importErrors}
+        importWarnings={importFlow.state.importWarnings}
+        onViewErrorDetails={importFlow.handlers.handleViewErrorDetails}
+        onUploadAnother={() => {
+          navigate('/upload');
+          setTimeout(() => {
+            const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]');
+            if (fileInput) fileInput.click();
+          }, 100);
         }}
-        prompts={classificationPrompts}
-        onClassify={handleClassificationComplete}
+        
+        // Import Error Modal
+        errorModalOpen={importFlow.state.errorModalOpen}
+        onErrorModalClose={() => importFlow.handlers.setErrorModalOpen(false)}
+        recoveryContext={importFlow.state.recoveryContext}
+        onRetry={importFlow.handlers.handleRetry}
+        onExportErrors={importFlow.handlers.handleExportErrors}
+        
+        // Add Withdrawal Modal
+        withdrawalModalOpen={importFlow.state.withdrawalModalOpen}
+        onWithdrawalModalClose={() => importFlow.handlers.setWithdrawalModalOpen(false)}
+        onAddWithdrawal={transactionManager.addTransaction}
+        exchanges={transactionManager.getExchangesList()}
+        
+        // Transaction Classification Modal
+        classificationModalOpen={importFlow.state.classificationModalOpen}
+        onClassificationModalClose={() => {
+          importFlow.handlers.setClassificationModalOpen(false);
+          importFlow.handlers.setPendingClassificationCallback(null);
+          importFlow.handlers.setClassificationPrompts([]);
+        }}
+        classificationPrompts={importFlow.state.classificationPrompts}
+        onClassify={importFlow.handlers.handleClassificationComplete}
       />
 
-      {/* Global Import Reminder Toast */}
-      <ImportReminderToast transactions={transactions} onImportClick={() => navigate('/upload')} />
+      <ImportReminderToast 
+        transactions={transactionManager.transactions} 
+        onImportClick={() => navigate('/upload')} 
+      />
     </>
   );
 };
