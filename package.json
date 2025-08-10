@@ -8,9 +8,17 @@
     "build": "vite build",
     "build:analyze": "vite build --mode=development && open bundle-analysis.html",
     "preview": "vite preview",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "test": "vitest --coverage"
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:coverage:summary": "vitest --coverage --reporter=verbose",
+    "test:coverage:html": "vitest --coverage && open coverage/index.html",
+    "test:ui": "vitest --ui",
+    "quality": "pnpm lint && pnpm test:coverage",
+    "ci": "pnpm lint && pnpm test:coverage && pnpm build"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +33,7 @@
     "recharts": "^3.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.33.0",
     "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
