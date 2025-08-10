@@ -161,8 +161,11 @@ export class EnhancedCSVProcessor {
 
       result.success = true;
       result.importedCount = finalTransactions.length;
-      result.ignoredCount = initialClassification.skipped.length + 
-        (initialClassification.needsClassification.length - userDecisions.length);
+      
+      // Calculate ignored count: initially skipped + unclassified transactions
+      const unclassifiedCount = Math.max(0, initialClassification.needsClassification.length - userDecisions.length);
+      result.ignoredCount = initialClassification.skipped.length + unclassifiedCount;
+      
       result.transactions = finalTransactions;
       result.summary = `Successfully imported ${finalTransactions.length} transactions`;
 

@@ -1,32 +1,32 @@
-import { TrendingUp } from 'lucide-react';
-import { useEffect, useState, Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
+import AddWithdrawalModal from './components/AddWithdrawalModal';
 import Dashboard from './components/Dashboard';
 import ImportErrorModal from './components/ImportErrorModal';
 import ImportReminderToast from './components/ImportReminderToast';
-import AddWithdrawalModal from './components/AddWithdrawalModal';
-import TransactionClassificationModal from './components/TransactionClassificationModal';
 import ImportSummaryModal from './components/ImportSummaryModal';
 import NavBar from './components/NavBar';
+import TransactionClassificationModal from './components/TransactionClassificationModal';
 import TransactionHistory from './components/TransactionHistory';
 import UploadTransactions from './components/UploadTransactions';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { ErrorRecoveryContext, ImportError } from './types/ImportError';
+import { Stats } from './types/Stats';
+import { Transaction } from './types/Transaction';
+import { ClassificationDecision, ClassificationPrompt } from './types/TransactionClassification';
+import { EnhancedCSVProcessor, EnhancedProcessOptions } from './utils/enhancedCsvProcessor';
+import { exportProblematicRows } from './utils/errorRecovery';
+import { clearTransactions, getTransactions, saveTransactions } from './utils/storage';
 
 // Lazy load chart components
 const AdditionalCharts = lazy(() => import('./components/AdditionalCharts'));
 const TaxDashboard = lazy(() => import('./components/TaxDashboard'));
-import { Stats } from './types/Stats';
-import { Transaction } from './types/Transaction';
-import { ImportError, ErrorRecoveryContext } from './types/ImportError';
-import { EnhancedCSVProcessor, EnhancedProcessOptions } from './utils/enhancedCsvProcessor';
-import { ClassificationPrompt, ClassificationDecision } from './types/TransactionClassification';
-import { generateRecoveryOptions, exportProblematicRows, showHelpModal } from './utils/errorRecovery';
-import { formatCurrency } from './utils/formatCurrency';
-import { clearTransactions, getTransactions, saveTransactions } from './utils/storage';
 
 const AppContent: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(() => getTransactions().transactions);
+  const [transactions, setTransactions] = useState<Transaction[]>(
+    () => getTransactions().transactions,
+  );
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -37,7 +37,7 @@ const AppContent: React.FC = () => {
     currentValue: 0,
     unrealizedPnL: 0,
   });
-  
+
   // Import result states
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
@@ -48,15 +48,16 @@ const AppContent: React.FC = () => {
   const [importWarnings, setImportWarnings] = useState<ImportError[]>([]);
   const [recoveryContext, setRecoveryContext] = useState<ErrorRecoveryContext>();
   const [withdrawalModalOpen, setWithdrawalModalOpen] = useState(false);
-  
+
   // Classification modal state
   const [classificationModalOpen, setClassificationModalOpen] = useState(false);
   const [classificationPrompts, setClassificationPrompts] = useState<ClassificationPrompt[]>([]);
-  const [pendingClassificationCallback, setPendingClassificationCallback] = useState<((decisions: ClassificationDecision[]) => void) | null>(null);
-  
+  const [pendingClassificationCallback, setPendingClassificationCallback] = useState<
+    ((decisions: ClassificationDecision[]) => void) | null
+  >(null);
+
   const navigate = useNavigate();
   const location = useLocation();
-
 
   useEffect(() => {
     (async () => {
@@ -103,7 +104,7 @@ const AppContent: React.FC = () => {
     try {
       const processor = new EnhancedCSVProcessor(options);
       const result = await processor.processCSVFile(file);
-      
+
       setLoading(false);
       setUploadProgress(100);
 
@@ -119,10 +120,10 @@ const AppContent: React.FC = () => {
         // Success - merge with existing transactions
         const newTransactions = (result as any).transactions || [];
         const txMap = new Map<string, Transaction>();
-        
+
         // Add existing transactions
         transactions.forEach((tx) => txMap.set(tx.id, tx));
-        
+
         // Add new transactions (deduplication handled by stable IDs)
         let ignored = 0;
         newTransactions.forEach((tx: Transaction) => {
@@ -131,7 +132,7 @@ const AppContent: React.FC = () => {
           }
           txMap.set(tx.id, tx);
         });
-        
+
         const merged = Array.from(txMap.values());
         setTransactions(merged);
         saveTransactions(merged);
@@ -156,13 +157,15 @@ const AppContent: React.FC = () => {
       }
     } catch (error) {
       setLoading(false);
-      setImportErrors([{
-        type: 'FILE_READ_ERROR' as any,
-        message: 'Unexpected error during file processing',
-        details: String(error),
-        suggestions: ['Try again with a different file', 'Contact support if error persists'],
-        recoverable: false,
-      }]);
+      setImportErrors([
+        {
+          type: 'FILE_READ_ERROR' as any,
+          message: 'Unexpected error during file processing',
+          details: String(error),
+          suggestions: ['Try again with a different file', 'Contact support if error persists'],
+          recoverable: false,
+        },
+      ]);
       setErrorModalOpen(true);
     }
   };
@@ -194,7 +197,7 @@ const AppContent: React.FC = () => {
     try {
       const processor = new EnhancedCSVProcessor(options);
       const result = await processor.processCSVFile(file);
-      
+
       setLoading(false);
       setUploadProgress(100);
 
@@ -210,9 +213,9 @@ const AppContent: React.FC = () => {
       if (result.success && result.importedCount > 0) {
         const newTransactions = (result as any).transactions || [];
         const txMap = new Map<string, Transaction>();
-        
+
         transactions.forEach((tx) => txMap.set(tx.id, tx));
-        
+
         let ignored = 0;
         newTransactions.forEach((tx: Transaction) => {
           if (txMap.has(tx.id)) {
@@ -220,7 +223,7 @@ const AppContent: React.FC = () => {
           }
           txMap.set(tx.id, tx);
         });
-        
+
         const merged = Array.from(txMap.values());
         setTransactions(merged);
         saveTransactions(merged);
@@ -242,13 +245,15 @@ const AppContent: React.FC = () => {
       }
     } catch (error) {
       setLoading(false);
-      setImportErrors([{
-        type: 'FILE_READ_ERROR' as any,
-        message: 'Retry failed',
-        details: String(error),
-        suggestions: ['Contact support'],
-        recoverable: false,
-      }]);
+      setImportErrors([
+        {
+          type: 'FILE_READ_ERROR' as any,
+          message: 'Retry failed',
+          details: String(error),
+          suggestions: ['Contact support'],
+          recoverable: false,
+        },
+      ]);
       setErrorModalOpen(true);
     }
   };
@@ -280,19 +285,19 @@ const AppContent: React.FC = () => {
   // Handle transaction classification completion
   const handleClassificationComplete = async (decisions: ClassificationDecision[]) => {
     setClassificationModalOpen(false);
-    
+
     if (!pendingClassificationCallback) return;
-    
+
     try {
       const result = pendingClassificationCallback(decisions) as any;
-      
+
       if (result.success && result.transactions.length > 0) {
         // Merge classified transactions with existing ones
         const txMap = new Map<string, Transaction>();
-        
+
         // Add existing transactions
         transactions.forEach((tx) => txMap.set(tx.id, tx));
-        
+
         // Add new transactions
         let ignored = 0;
         result.transactions.forEach((tx: Transaction) => {
@@ -301,7 +306,7 @@ const AppContent: React.FC = () => {
           }
           txMap.set(tx.id, tx);
         });
-        
+
         const merged = Array.from(txMap.values());
         setTransactions(merged);
         saveTransactions(merged);
@@ -325,13 +330,15 @@ const AppContent: React.FC = () => {
         setErrorModalOpen(true);
       }
     } catch (error) {
-      setImportErrors([{
-        type: 'CLASSIFICATION_ERROR' as any,
-        message: 'Error processing classified transactions',
-        details: String(error),
-        suggestions: ['Try importing the file again'],
-        recoverable: false,
-      }]);
+      setImportErrors([
+        {
+          type: 'CLASSIFICATION_ERROR' as any,
+          message: 'Error processing classified transactions',
+          details: String(error),
+          suggestions: ['Try importing the file again'],
+          recoverable: false,
+        },
+      ]);
       setErrorModalOpen(true);
     } finally {
       setPendingClassificationCallback(null);
@@ -341,7 +348,7 @@ const AppContent: React.FC = () => {
 
   // Get unique exchanges for withdrawal modal
   const getExchangesList = (): string[] => {
-    const exchanges = new Set(transactions.map(tx => tx.exchange));
+    const exchanges = new Set(transactions.map((tx) => tx.exchange));
     return Array.from(exchanges).sort();
   };
 
@@ -353,42 +360,7 @@ const AppContent: React.FC = () => {
           path="/"
           element={
             <>
-              <ImportSummaryModal
-                open={importModalOpen}
-                onClose={() => setImportModalOpen(false)}
-                importedCount={importedCount}
-                ignoredCount={ignoredCount}
-                summary={importSummary}
-                errors={importErrors}
-                warnings={importWarnings}
-                onViewDetails={handleViewErrorDetails}
-              />
-              <ImportErrorModal
-                isOpen={errorModalOpen}
-                onClose={() => setErrorModalOpen(false)}
-                errors={importErrors}
-                warnings={importWarnings}
-                recoveryContext={recoveryContext}
-                onRetry={handleRetry}
-                onExportErrors={handleExportErrors}
-              />
-              <AddWithdrawalModal
-                isOpen={withdrawalModalOpen}
-                onClose={() => setWithdrawalModalOpen(false)}
-                onAdd={handleAddWithdrawal}
-                exchanges={getExchangesList()}
-              />
-              <TransactionClassificationModal
-                isOpen={classificationModalOpen}
-                onClose={() => {
-                  setClassificationModalOpen(false);
-                  setPendingClassificationCallback(null);
-                  setClassificationPrompts([]);
-                }}
-                prompts={classificationPrompts}
-                onClassify={handleClassificationComplete}
-              />
-              <Dashboard 
+              <Dashboard
                 transactions={transactions}
                 currentPrice={currentPrice}
                 stats={stats}
@@ -427,14 +399,16 @@ const AppContent: React.FC = () => {
           element={
             <div className="page-container">
               <div className="max-w-6xl mx-auto">
-                <Suspense fallback={
-                  <div className="flex items-center justify-center py-12">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                      <p className="text-gray-600">Loading charts...</p>
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading charts...</p>
+                      </div>
                     </div>
-                  </div>
-                }>
+                  }
+                >
                   <AdditionalCharts transactions={transactions} currentPrice={currentPrice} />
                 </Suspense>
               </div>
@@ -444,25 +418,61 @@ const AppContent: React.FC = () => {
         <Route
           path="/tax"
           element={
-            <Suspense fallback={
-              <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading tax dashboard...</p>
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center min-h-screen">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading tax dashboard...</p>
+                  </div>
                 </div>
-              </div>
-            }>
+              }
+            >
               <TaxDashboard transactions={transactions} currentPrice={currentPrice || undefined} />
             </Suspense>
           }
         />
       </Routes>
-      
-      {/* Global Import Reminder Toast */}
-      <ImportReminderToast 
-        transactions={transactions} 
-        onImportClick={() => navigate('/upload')} 
+
+      {/* Global modals available on all routes */}
+      <ImportSummaryModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        importedCount={importedCount}
+        ignoredCount={ignoredCount}
+        summary={importSummary}
+        errors={importErrors}
+        warnings={importWarnings}
+        onViewDetails={handleViewErrorDetails}
       />
+      <ImportErrorModal
+        isOpen={errorModalOpen}
+        onClose={() => setErrorModalOpen(false)}
+        errors={importErrors}
+        warnings={importWarnings}
+        recoveryContext={recoveryContext}
+        onRetry={handleRetry}
+        onExportErrors={handleExportErrors}
+      />
+      <AddWithdrawalModal
+        isOpen={withdrawalModalOpen}
+        onClose={() => setWithdrawalModalOpen(false)}
+        onAdd={handleAddWithdrawal}
+        exchanges={getExchangesList()}
+      />
+      <TransactionClassificationModal
+        isOpen={classificationModalOpen}
+        onClose={() => {
+          setClassificationModalOpen(false);
+          setPendingClassificationCallback(null);
+          setClassificationPrompts([]);
+        }}
+        prompts={classificationPrompts}
+        onClassify={handleClassificationComplete}
+      />
+
+      {/* Global Import Reminder Toast */}
+      <ImportReminderToast transactions={transactions} onImportClick={() => navigate('/upload')} />
     </>
   );
 };
