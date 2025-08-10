@@ -8,40 +8,44 @@ interface DashboardOverviewProps {
 }
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ stats }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center gap-3 mb-2">
-        <DollarSign className="text-blue-500" size={20} />
-        <span className="text-sm font-medium text-gray-600">Total Invested</span>
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+      <div className="flex items-center gap-2 sm:gap-3 mb-2">
+        <DollarSign className="text-blue-500 flex-shrink-0" size={18} />
+        <span className="text-xs sm:text-sm font-medium text-gray-600">Total Invested</span>
       </div>
-      <span className="text-2xl font-bold text-gray-800">
+      <span className="text-xl sm:text-2xl font-bold text-gray-800 break-words">
         {formatCurrency(stats.totalInvested)}
       </span>
     </div>
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center gap-3 mb-2">
-        <Bitcoin className="text-orange-500" size={20} />
-        <span className="text-sm font-medium text-gray-600">Total Bitcoin</span>
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+      <div className="flex items-center gap-2 sm:gap-3 mb-2">
+        <Bitcoin className="text-orange-500 flex-shrink-0" size={18} />
+        <span className="text-xs sm:text-sm font-medium text-gray-600">Total Bitcoin</span>
       </div>
-      <span className="text-2xl font-bold text-gray-800">{formatBTC(stats.totalBitcoin)}</span>
+      <span className="text-xl sm:text-2xl font-bold text-gray-800 break-words">
+        {formatBTC(stats.totalBitcoin)}
+      </span>
     </div>
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center gap-3 mb-2">
-        <Calculator className="text-purple-500" size={20} />
-        <span className="text-sm font-medium text-gray-600">Avg Cost Basis</span>
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+      <div className="flex items-center gap-2 sm:gap-3 mb-2">
+        <Calculator className="text-purple-500 flex-shrink-0" size={18} />
+        <span className="text-xs sm:text-sm font-medium text-gray-600">Avg Cost Basis</span>
       </div>
-      <span className="text-2xl font-bold text-gray-800">{formatCurrency(stats.avgCostBasis)}</span>
+      <span className="text-xl sm:text-2xl font-bold text-gray-800 break-words">
+        {formatCurrency(stats.avgCostBasis)}
+      </span>
     </div>
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center gap-3 mb-2">
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+      <div className="flex items-center gap-2 sm:gap-3 mb-2">
         <TrendingUp
-          className={stats.unrealizedPnL >= 0 ? 'text-green-500' : 'text-red-500'}
-          size={20}
+          className={`${stats.unrealizedPnL >= 0 ? 'text-green-500' : 'text-red-500'} flex-shrink-0`}
+          size={18}
         />
-        <span className="text-sm font-medium text-gray-600">Unrealized P&L</span>
+        <span className="text-xs sm:text-sm font-medium text-gray-600">Unrealized P&L</span>
       </div>
       <span
-        className={`text-2xl font-bold ${stats.unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}
+        className={`text-xl sm:text-2xl font-bold break-words ${stats.unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}
       >
         {formatCurrency(stats.unrealizedPnL)}
       </span>

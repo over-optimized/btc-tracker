@@ -45,15 +45,28 @@ const PortfolioValueChart: React.FC<PortfolioValueChartProps> = ({
     );
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
+      <LineChart data={data} margin={{ top: 16, right: 8, left: 8, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" minTickGap={24} />
+        <XAxis 
+          dataKey="date" 
+          minTickGap={30}
+          tick={{ fontSize: 12 }}
+          interval="preserveStartEnd"
+        />
         <YAxis
           dataKey="value"
-          tickFormatter={(v) => `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          tick={{ fontSize: 12 }}
+          width={60}
+          tickFormatter={(v) => {
+            if (v >= 1000000) return `$${(v / 1000000).toFixed(1)}M`;
+            if (v >= 1000) return `$${(v / 1000).toFixed(0)}K`;
+            return `$${v.toFixed(0)}`;
+          }}
         />
         <Tooltip
-          formatter={(v: number) => `$${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+          formatter={(v: number) => [`$${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}`, 'Portfolio Value']}
+          labelStyle={{ fontSize: 12 }}
+          contentStyle={{ fontSize: 12 }}
         />
         <Line
           type="monotone"

@@ -356,7 +356,7 @@ const BitcoinTracker: React.FC = () => {
         <Route
           path="/"
           element={
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-2 sm:p-4">
               <ImportSummaryModal
                 open={importModalOpen}
                 onClose={() => setImportModalOpen(false)}
@@ -395,10 +395,10 @@ const BitcoinTracker: React.FC = () => {
               <div className="max-w-6xl mx-auto">
                 {/* Current Price Display */}
                 {currentPrice && (
-                  <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <div className="flex items-center justify-center gap-4">
-                      <TrendingUp className="text-green-500" size={24} />
-                      <span className="text-2xl font-bold text-gray-800">
+                  <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+                    <div className="flex items-center justify-center gap-2 sm:gap-4">
+                      <TrendingUp className="text-green-500 flex-shrink-0" size={20} />
+                      <span className="text-lg sm:text-2xl font-bold text-gray-800 text-center">
                         Bitcoin: {formatCurrency(currentPrice)}
                       </span>
                     </div>
@@ -407,7 +407,7 @@ const BitcoinTracker: React.FC = () => {
                 {transactions.length > 0 && <DashboardOverview stats={stats} />}
                 
                 {/* Status Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
                   <TaxSummaryCard transactions={transactions} />
                   <DataFreshnessCard 
                     transactions={transactions} 
@@ -421,16 +421,16 @@ const BitcoinTracker: React.FC = () => {
                 </div>
                 
                 {/* Lazy-loaded charts */}
-                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                  <h2 className="text-xl font-bold text-gray-800 mb-4">
+                <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6 mb-4 sm:mb-6">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
                     Portfolio Value Over Time
                   </h2>
                   <Suspense fallback={<ChartSkeleton />}>
                     <PortfolioValueChart transactions={transactions} currentPrice={currentPrice} />
                   </Suspense>
                 </div>
-                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                  <h2 className="text-xl font-bold text-gray-800 mb-4">
+                <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6 mb-4 sm:mb-6">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
                     Invested vs. Unrealized P&L (Monthly)
                   </h2>
                   <Suspense fallback={<ChartSkeleton />}>
@@ -444,7 +444,7 @@ const BitcoinTracker: React.FC = () => {
         <Route
           path="/transactions"
           element={
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-2 sm:p-4">
               <div className="max-w-6xl mx-auto">
                 <TransactionHistory transactions={transactions} />
               </div>
@@ -454,7 +454,7 @@ const BitcoinTracker: React.FC = () => {
         <Route
           path="/upload"
           element={
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-2 sm:p-4">
               <div className="max-w-6xl mx-auto">
                 <UploadTransactions
                   onUpload={handleFileUpload}
@@ -469,7 +469,7 @@ const BitcoinTracker: React.FC = () => {
         <Route
           path="/charts"
           element={
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-2 sm:p-4">
               <div className="max-w-6xl mx-auto">
                 <Suspense fallback={
                   <div className="flex items-center justify-center py-12">

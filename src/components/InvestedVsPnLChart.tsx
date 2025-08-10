@@ -55,15 +55,32 @@ const InvestedVsPnLChart: React.FC<Props> = ({ transactions, currentPrice }) => 
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
-        <XAxis dataKey="month" />
-        <YAxis />
+      <BarChart data={data} margin={{ top: 16, right: 8, left: 8, bottom: 0 }}>
+        <XAxis 
+          dataKey="month" 
+          tick={{ fontSize: 12 }}
+          interval="preserveStartEnd"
+          minTickGap={20}
+        />
+        <YAxis 
+          tick={{ fontSize: 12 }}
+          width={60}
+          tickFormatter={(v) => {
+            if (v >= 1000000) return `$${(v / 1000000).toFixed(1)}M`;
+            if (v >= 1000) return `$${(v / 1000).toFixed(0)}K`;
+            return `$${v.toFixed(0)}`;
+          }}
+        />
         <Tooltip
           formatter={(value: number) =>
-            value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+            value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
           }
+          labelStyle={{ fontSize: 12 }}
+          contentStyle={{ fontSize: 12 }}
         />
-        <Legend />
+        <Legend 
+          wrapperStyle={{ fontSize: '12px' }}
+        />
         <Bar dataKey="invested" name="Invested" fill="#60a5fa" stackId="a" />
         <Bar dataKey="pnl" name="Unrealized P&L" fill="#34d399" stackId="a" />
       </BarChart>

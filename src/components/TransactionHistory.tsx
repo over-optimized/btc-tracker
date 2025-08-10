@@ -35,36 +35,43 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Transaction History</h2>
-      <div className="overflow-x-auto">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">
-            Rows per page:
-            <select
-              className="ml-2 px-2 py-1 border rounded"
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
-            >
-              {PAGE_SIZE_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </span>
-        </div>
+    <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6">
+      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Transaction History</h2>
+      
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+        <span className="text-xs sm:text-sm text-gray-600">
+          Rows per page:
+          <select
+            className="ml-2 px-2 py-1 border rounded text-xs sm:text-sm"
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+          >
+            {PAGE_SIZE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </span>
+        <span className="text-xs sm:text-sm text-gray-600">
+          Page {page} of {totalPages} ({transactions.length} total)
+        </span>
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
           <thead style={{ display: 'table', width: '100%', tableLayout: 'fixed' }}>
             <tr className="border-b">
-              <th className="text-left py-2">Date</th>
-              <th className="text-left py-2">Exchange</th>
-              <th className="text-right py-2">USD Amount</th>
-              <th className="text-right py-2">BTC Amount</th>
-              <th className="text-right py-2">Price</th>
+              <th className="text-left py-2 w-24">Date</th>
+              <th className="text-left py-2 w-32">Exchange</th>
+              <th className="text-right py-2 w-24">USD Amount</th>
+              <th className="text-right py-2 w-28">BTC Amount</th>
+              <th className="text-right py-2 w-20">Price</th>
             </tr>
           </thead>
           <tbody style={{ minHeight: minTableHeight, display: 'block', width: '100%' }}>
@@ -74,8 +81,8 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
                 className="border-b hover:bg-gray-50"
                 style={{ display: 'table', width: '100%', tableLayout: 'fixed' }}
               >
-                <td className="py-2">{tx.date.toLocaleDateString()}</td>
-                <td className="py-2">
+                <td className="py-2 w-24">{tx.date.toLocaleDateString()}</td>
+                <td className="py-2 w-32">
                   <span
                     className={`px-2 py-1 rounded text-xs font-medium ${
                       tx.exchange === 'Strike'
@@ -90,9 +97,9 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
                     {tx.exchange}
                   </span>
                 </td>
-                <td className="text-right py-2">{formatCurrency(tx.usdAmount)}</td>
-                <td className="text-right py-2">{formatBTC(tx.btcAmount)}</td>
-                <td className="text-right py-2">{formatCurrency(tx.price)}</td>
+                <td className="text-right py-2 w-24">{formatCurrency(tx.usdAmount)}</td>
+                <td className="text-right py-2 w-28">{formatBTC(tx.btcAmount)}</td>
+                <td className="text-right py-2 w-20">{formatCurrency(tx.price)}</td>
               </tr>
             ))}
             {/* Fill empty rows to keep height consistent */}
@@ -103,26 +110,70 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
             ))}
           </tbody>
         </table>
-        <div className="flex justify-between items-center mt-4">
-          <span className="text-sm text-gray-600">
-            Page {page} of {totalPages} ({transactions.length} total)
-          </span>
-          <div className="flex gap-2">
-            <button
-              className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </button>
-            <button
-              className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-            </button>
+      </div>
+
+      {/* Mobile Card Layout */}
+      <div className="sm:hidden space-y-3">
+        {paginated.map((tx) => (
+          <div key={tx.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+            <div className="flex justify-between items-start mb-2">
+              <div className="text-sm font-medium text-gray-800">
+                {tx.date.toLocaleDateString()}
+              </div>
+              <span
+                className={`px-2 py-1 rounded text-xs font-medium ${
+                  tx.exchange === 'Strike'
+                    ? 'bg-orange-100 text-orange-800'
+                    : tx.exchange === 'Coinbase'
+                      ? 'bg-blue-100 text-blue-800'
+                      : tx.exchange === 'Kraken'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                {tx.exchange}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-gray-600">USD:</span>
+                <span className="ml-1 font-medium">{formatCurrency(tx.usdAmount)}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">BTC:</span>
+                <span className="ml-1 font-medium">{formatBTC(tx.btcAmount)}</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-gray-600">Price:</span>
+                <span className="ml-1 font-medium">{formatCurrency(tx.price)}</span>
+              </div>
+            </div>
           </div>
+        ))}
+        
+        {/* Fill space for consistent height in mobile view */}
+        {Array.from({ length: pageSize - paginated.length }).map((_, i) => (
+          <div key={`empty-${i}`} style={{ height: '76px' }} />
+        ))}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center sm:justify-end mt-4">
+        <div className="flex gap-2">
+          <button
+            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 text-sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </button>
+          <button
+            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 text-sm"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>
