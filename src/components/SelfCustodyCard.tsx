@@ -4,6 +4,7 @@ import { Transaction } from '../types/Transaction';
 import { analyzeSelfCustody } from '../utils/selfCustodyTracker';
 import { formatBTC } from '../utils/formatBTC';
 import { formatCurrency } from '../utils/formatCurrency';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface SelfCustodyCardProps {
   transactions: Transaction[];
@@ -16,6 +17,8 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
   currentPrice,
   onAddWithdrawal,
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [showDetails, setShowDetails] = useState(false);
   const analysis = analyzeSelfCustody(transactions, currentPrice);
 
@@ -34,17 +37,34 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
   };
 
   const getCardStyle = () => {
-    switch (analysis.overallRisk) {
-      case 'low':
-        return 'bg-green-50 border-green-200';
-      case 'medium':
-        return 'bg-yellow-50 border-yellow-200';
-      case 'high':
-        return 'bg-orange-50 border-orange-200';
-      case 'critical':
-        return 'bg-red-50 border-red-200';
-      default:
-        return 'bg-gray-50 border-gray-200';
+    if (isDark) {
+      // Keep dark mode as-is with risk-based colors
+      switch (analysis.overallRisk) {
+        case 'low':
+          return 'bg-green-900/20 border-green-700';
+        case 'medium':
+          return 'bg-yellow-900/20 border-yellow-700';
+        case 'high':
+          return 'bg-orange-900/20 border-orange-700';
+        case 'critical':
+          return 'bg-red-900/20 border-red-700';
+        default:
+          return 'bg-gray-800 border-gray-700';
+      }
+    } else {
+      // Light mode with softer backgrounds
+      switch (analysis.overallRisk) {
+        case 'low':
+          return 'bg-green-50 border-green-200';
+        case 'medium':
+          return 'bg-yellow-50 border-yellow-200';
+        case 'high':
+          return 'bg-orange-50 border-orange-200';
+        case 'critical':
+          return 'bg-red-50 border-red-200';
+        default:
+          return 'bg-gray-50 border-gray-200';
+      }
     }
   };
 
@@ -76,12 +96,15 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
 
   if (analysis.totalOnExchanges === 0 && analysis.totalInSelfCustody === 0) {
     return (
-      <div className="bg-gray-50 border-gray-200 rounded-lg shadow border-2 p-4">
+      <div 
+        className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg shadow border-2 p-4"
+        style={isDark ? { backgroundColor: '#1f2937', borderColor: '#374151', color: '#f9fafb' } : { backgroundColor: '#fefefe', borderColor: '#eeeeee', color: '#0f172a' }}
+      >
         <div className="flex items-center gap-3 mb-3">
           <Wallet className="text-gray-500" size={20} />
-          <span className="text-sm font-medium text-gray-600">Self-Custody Status</span>
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-400">Self-Custody Status</span>
         </div>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-800 dark:text-gray-400">
           Import transactions to see self-custody recommendations
         </div>
       </div>
@@ -93,7 +116,7 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           {getSecurityIcon()}
-          <span className="text-sm font-medium text-gray-600">Self-Custody Status</span>
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-400">Self-Custody Status</span>
         </div>
         {onAddWithdrawal && (
           <button
@@ -113,7 +136,7 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
       </div>
 
       {/* Portfolio Breakdown */}
-      <div className="text-xs text-gray-600 mb-3 space-y-1">
+      <div className="text-xs text-gray-800 dark:text-gray-400 mb-3 space-y-1">
         <div className="flex justify-between">
           <span>On Exchanges:</span>
           <span className="font-medium">

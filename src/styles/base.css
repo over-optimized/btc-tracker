@@ -1,0 +1,23 @@
+/* Base Styles */
+@layer base {
+  /* Smooth transitions for theme switching */
+  * {
+    @apply transition-colors duration-200;
+  }
+  
+  /* Body styling */
+  body {
+    background-color: var(--color-bg-page);
+    color: var(--color-text-primary);
+  }
+  
+  /* Focus styles for accessibility */
+  *:focus {
+    @apply outline-none ring-2 ring-blue-500 ring-opacity-50;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}

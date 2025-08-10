@@ -2,6 +2,7 @@ import React from 'react';
 import { AlertTriangle, Calendar, CheckCircle, Clock, Upload } from 'lucide-react';
 import { Transaction } from '../types/Transaction';
 import { analyzeDataFreshness, detectTransactionGaps } from '../utils/dataFreshness';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface DataFreshnessCardProps {
   transactions: Transaction[];
@@ -9,24 +10,45 @@ interface DataFreshnessCardProps {
 }
 
 const DataFreshnessCard: React.FC<DataFreshnessCardProps> = ({ transactions, onImportClick }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const freshness = analyzeDataFreshness(transactions);
   const gaps = detectTransactionGaps(transactions);
 
   // Determine card styling based on staleness
   const getCardStyle = () => {
-    switch (freshness.staleness) {
-      case 'fresh':
-        return 'bg-green-50 border-green-200';
-      case 'aging':
-        return 'bg-yellow-50 border-yellow-200';
-      case 'stale':
-        return 'bg-orange-50 border-orange-200';
-      case 'very_stale':
-        return 'bg-red-50 border-red-200';
-      case 'empty':
-        return 'bg-blue-50 border-blue-200';
-      default:
-        return 'bg-gray-50 border-gray-200';
+    if (isDark) {
+      // Keep dark mode as-is with status colors
+      switch (freshness.staleness) {
+        case 'fresh':
+          return 'bg-green-900/20 border-green-700';
+        case 'aging':
+          return 'bg-yellow-900/20 border-yellow-700';
+        case 'stale':
+          return 'bg-orange-900/20 border-orange-700';
+        case 'very_stale':
+          return 'bg-red-900/20 border-red-700';
+        case 'empty':
+          return 'bg-blue-900/20 border-blue-700';
+        default:
+          return 'bg-gray-800 border-gray-700';
+      }
+    } else {
+      // Light mode with softer backgrounds
+      switch (freshness.staleness) {
+        case 'fresh':
+          return 'bg-green-50 border-green-200';
+        case 'aging':
+          return 'bg-yellow-50 border-yellow-200';
+        case 'stale':
+          return 'bg-orange-50 border-orange-200';
+        case 'very_stale':
+          return 'bg-red-50 border-red-200';
+        case 'empty':
+          return 'bg-blue-50 border-blue-200';
+        default:
+          return 'bg-gray-50 border-gray-200';
+      }
     }
   };
 
@@ -68,7 +90,7 @@ const DataFreshnessCard: React.FC<DataFreshnessCardProps> = ({ transactions, onI
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           {getIcon()}
-          <span className="text-sm font-medium text-gray-600">Data Status</span>
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-400">Data Status</span>
         </div>
         {freshness.isStale && onImportClick && (
           <button

@@ -4,10 +4,224 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bitcoin DCA Tracker</title>
+    <script>
+      // Prevent flash of unstyled content (FOUC)
+      (function() {
+        const stored = localStorage.getItem('btc-tracker:theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = stored || (systemDark ? 'dark' : 'light');
+        document.documentElement.classList.add(theme);
+      })();
+    </script>
+    <script>
+      // Configure Tailwind BEFORE loading it
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'card-bg': '#fefefe',
+              'card-border': '#eeeeee',
+              'nav-bg': '#fefefe',
+              'nav-border': '#eeeeee',
+            }
+          }
+        }
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* CSS Variables for theme support */
+      :root {
+        --color-bg-page: #fef3e2;
+        --color-bg-card: #fefefe;
+        --color-border-card: #eeeeee;
+        --color-text-primary: #0f172a;
+        --color-text-secondary: #1f2937;
+        --color-text-tertiary: #6b7280;
+        --color-nav-bg: #fefefe;
+        --color-nav-border: #eeeeee;
+        --gradient-page: linear-gradient(to bottom right, #fef3e2, #dbeafe);
+      }
+      .dark {
+        --color-bg-page: #111827;
+        --color-bg-card: #1f2937;
+        --color-border-card: #374151;
+        --color-text-primary: #f9fafb;
+        --color-text-secondary: #d1d5db;
+        --color-text-tertiary: #9ca3af;
+        --color-nav-bg: #1f2937;
+        --color-nav-border: #374151;
+        --gradient-page: linear-gradient(to bottom right, #111827, #1f2937);
+      }
+
+      /* Component Classes */
+      .card-base {
+        background-color: var(--color-bg-card);
+        border-color: var(--color-border-card);
+        color: var(--color-text-primary);
+      }
+      
+      .card-header {
+        color: var(--color-text-primary);
+      }
+      
+      .card-label {
+        color: var(--color-text-secondary);
+      }
+      
+      .card-value {
+        color: var(--color-text-primary);
+      }
+      
+      .card-value-small {
+        color: var(--color-text-primary);
+      }
+      
+      .nav-base {
+        background-color: var(--color-nav-bg);
+        border-color: var(--color-nav-border);
+      }
+      
+      .page-container {
+        background: var(--gradient-page);
+      }
+
+      /* Ensure headers have proper contrast in light mode */
+      .card-base h2,
+      .card-base .card-header {
+        color: var(--color-text-primary) !important;
+      }
+      
+      /* Force dark text in light mode for better contrast */
+      :not(.dark) .card-base h2,
+      :not(.dark) .card-base .card-header {
+        color: #0f172a !important;
+      }
+
+      /* Fix specific text contrast issues in light mode */
+      :not(.dark) .text-gray-800 {
+        color: #0f172a !important;
+      }
+      
+      /* Ensure all text with gray-800 class is dark in light mode */
+      :not(.dark) span.text-gray-800 {
+        color: #0f172a !important;
+      }
+
+      /* Fix navbar link contrast in light mode */
+      :not(.dark) .text-gray-700 {
+        color: #374151 !important;
+      }
+      
+      /* Make navbar links even darker for better readability */
+      :not(.dark) nav .text-gray-700 {
+        color: #1f2937 !important;
+      }
+
+      /* Comprehensive dark mode text contrast fixes */
+      .dark .text-gray-800,
+      .dark span.text-gray-800,
+      .dark h1.text-gray-800,
+      .dark h2.text-gray-800,
+      .dark h3.text-gray-800 {
+        color: #f9fafb !important;
+      }
+      
+      .dark .card-base h2,
+      .dark .card-base h3,
+      .dark .card-base .card-header {
+        color: #f9fafb !important;
+      }
+      
+      /* Fix specific Bitcoin price and chart headers in dark mode */
+      /* Exception: Don't override gradient text */
+      .dark .text-2xl.font-bold:not(.text-transparent),
+      .dark .text-xl.font-bold:not(.text-transparent),
+      .dark .text-lg.font-bold:not(.text-transparent) {
+        color: #f9fafb !important;
+      }
+      
+      /* Comprehensive dark mode navigation link contrast fixes */
+      .dark nav .text-gray-700,
+      .dark nav a.text-gray-700 {
+        color: #d1d5db !important;
+      }
+      
+      /* Ensure hover states maintain proper contrast */
+      .dark nav .text-gray-700:hover,
+      .dark nav a.text-gray-700:hover {
+        color: #3b82f6 !important; /* blue-500 */
+      }
+      
+      /* Fix Upload Transaction Files header specifically */
+      .dark .text-lg.font-bold.text-gray-800,
+      .dark .text-xl.font-bold.text-gray-800 {
+        color: #f9fafb !important;
+      }
+
+      /* Logo Enhancement - Shine Animation */
+      @keyframes logo-shine {
+        0% {
+          transform: translateX(-100%) translateY(-100%) rotate(30deg);
+          opacity: 0;
+        }
+        50% {
+          opacity: 0.6;
+        }
+        100% {
+          transform: translateX(100%) translateY(100%) rotate(30deg);
+          opacity: 0;
+        }
+      }
+
+      .logo-container::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          45deg,
+          transparent,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.2),
+          rgba(255, 255, 255, 0.1),
+          transparent
+        );
+        animation: logo-shine 4s ease-in-out infinite;
+        animation-delay: 2s;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .dark .logo-container::before {
+        background: linear-gradient(
+          45deg,
+          transparent,
+          rgba(255, 255, 255, 0.05),
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.05),
+          transparent
+        );
+      }
+
+      /* Enhance shine on hover */
+      .logo-container:hover::before {
+        animation-duration: 2s;
+      }
+
+      /* Base styles */
+      body {
+        background-color: var(--color-bg-page);
+        color: var(--color-text-primary);
+        transition: all 0.2s ease-in-out;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
   </body>
 </html>

@@ -1,0 +1,71 @@
+/* Component Classes */
+@layer components {
+  /* Card Components */
+  .card-base {
+    background-color: var(--color-bg-card);
+    border-color: var(--color-border-card);
+    color: var(--color-text-primary);
+    @apply rounded-lg shadow-sm border;
+  }
+  
+  .card-header {
+    color: var(--color-text-primary);
+    @apply text-lg font-semibold mb-4;
+  }
+  
+  .card-label {
+    color: var(--color-text-secondary);
+    @apply text-sm font-medium;
+  }
+  
+  .card-value {
+    color: var(--color-text-primary);
+    @apply text-2xl font-bold;
+  }
+  
+  .card-value-small {
+    color: var(--color-text-primary);
+    @apply text-xl font-bold;
+  }
+  
+  .card-description {
+    color: var(--color-text-tertiary);
+    @apply text-xs;
+  }
+  
+  /* Navigation */
+  .nav-base {
+    background-color: var(--color-nav-bg);
+    border-color: var(--color-nav-border);
+    @apply w-full shadow-sm border-b mb-4;
+  }
+  
+  /* Page Layout */
+  .page-container {
+    background: var(--gradient-page);
+    @apply min-h-screen p-2 sm:p-4;
+  }
+}
+
+/* Utility Classes */
+@layer utilities {
+  .text-theme-primary {
+    color: var(--color-text-primary);
+  }
+  
+  .text-theme-secondary {
+    color: var(--color-text-secondary);
+  }
+  
+  .text-theme-tertiary {
+    color: var(--color-text-tertiary);
+  }
+  
+  .bg-theme-card {
+    background-color: var(--color-bg-card);
+  }
+  
+  .border-theme-card {
+    border-color: var(--color-border-card);
+  }
+}

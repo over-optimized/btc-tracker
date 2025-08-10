@@ -16,6 +16,7 @@ interface TaxSummaryCardProps {
 }
 
 const TaxSummaryCard: React.FC<TaxSummaryCardProps> = ({ transactions }) => {
+
   const [taxSummary, setTaxSummary] = useState<{
     currentYearTransactions: number;
     potentialGains: number;
@@ -68,7 +69,9 @@ const TaxSummaryCard: React.FC<TaxSummaryCardProps> = ({ transactions }) => {
 
   if (transactions.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
+      <div 
+        className="card-base p-6"
+      >
         <div className="flex items-center gap-3 mb-4">
           <Calculator className="text-purple-500" size={20} />
           <span className="text-lg font-semibold text-gray-800">Tax Reports</span>
@@ -91,7 +94,9 @@ const TaxSummaryCard: React.FC<TaxSummaryCardProps> = ({ transactions }) => {
 
   if (!taxSummary) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
+      <div 
+        className="card-base p-6"
+      >
         <div className="flex items-center gap-3 mb-4">
           <Calculator className="text-purple-500" size={20} />
           <span className="text-lg font-semibold text-gray-800">Tax Reports</span>
@@ -120,32 +125,34 @@ const TaxSummaryCard: React.FC<TaxSummaryCardProps> = ({ transactions }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div 
+      className="card-base p-6"
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <Calculator className="text-purple-500" size={20} />
-          <span className="text-lg font-semibold text-gray-800">Tax Summary</span>
+          <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">Tax Summary</span>
         </div>
-        <span className="text-xs text-gray-500">{taxSummary.taxYear}</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400">{taxSummary.taxYear}</span>
       </div>
 
       <div className="space-y-3 mb-4">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">Transactions</span>
-          <span className="font-medium text-gray-800">
+          <span className="text-sm text-gray-800 dark:text-gray-400">Transactions</span>
+          <span className="font-medium text-gray-800 dark:text-gray-100">
             {taxSummary.currentYearTransactions}
           </span>
         </div>
 
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">Realized Gains</span>
+          <span className="text-sm text-gray-800 dark:text-gray-400">Realized Gains</span>
           <span className={`font-medium ${getGainLossColor(taxSummary.potentialGains)}`}>
             {formatCurrency(taxSummary.potentialGains)}
           </span>
         </div>
 
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600">Unrealized Gains</span>
+          <span className="text-sm text-gray-800 dark:text-gray-400">Unrealized Gains</span>
           <span className={`font-medium ${getGainLossColor(taxSummary.unrealizedGains)}`}>
             {formatCurrency(taxSummary.unrealizedGains)}
           </span>

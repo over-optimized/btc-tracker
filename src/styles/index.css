@@ -1,0 +1,14 @@
+/* Import theme variables first */
+@import './theme.css';
+
+@tailwind base;
+
+/* Import base styles after tailwind base */
+@import './base.css';
+
+@tailwind components;
+
+/* Import components after tailwind components */
+@import './components.css';
+
+@tailwind utilities;

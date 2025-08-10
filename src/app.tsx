@@ -1,24 +1,19 @@
 import { TrendingUp } from 'lucide-react';
 import { useEffect, useState, Suspense, lazy } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { fetchBitcoinPrice } from './apis/fetchBitcoinPrice';
-import DashboardOverview from './components/DashboardOverview';
-import DataFreshnessCard from './components/DataFreshnessCard';
+import Dashboard from './components/Dashboard';
 import ImportErrorModal from './components/ImportErrorModal';
 import ImportReminderToast from './components/ImportReminderToast';
-import SelfCustodyCard from './components/SelfCustodyCard';
 import AddWithdrawalModal from './components/AddWithdrawalModal';
 import TransactionClassificationModal from './components/TransactionClassificationModal';
 import ImportSummaryModal from './components/ImportSummaryModal';
 import NavBar from './components/NavBar';
-import TaxSummaryCard from './components/TaxSummaryCard';
 import TransactionHistory from './components/TransactionHistory';
 import UploadTransactions from './components/UploadTransactions';
-import ChartSkeleton from './components/ChartSkeleton';
 
-// Lazy load ALL chart components (including Recharts library)
-const PortfolioValueChart = lazy(() => import('./components/PortfolioValueChart'));
-const InvestedVsPnLChart = lazy(() => import('./components/InvestedVsPnLChart'));
+// Lazy load chart components
 const AdditionalCharts = lazy(() => import('./components/AdditionalCharts'));
 const TaxDashboard = lazy(() => import('./components/TaxDashboard'));
 import { Stats } from './types/Stats';
@@ -30,7 +25,7 @@ import { generateRecoveryOptions, exportProblematicRows, showHelpModal } from '.
 import { formatCurrency } from './utils/formatCurrency';
 import { clearTransactions, getTransactions, saveTransactions } from './utils/storage';
 
-const BitcoinTracker: React.FC = () => {
+const AppContent: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>(() => getTransactions().transactions);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,6 +56,7 @@ const BitcoinTracker: React.FC = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
+
 
   useEffect(() => {
     (async () => {
@@ -356,7 +352,7 @@ const BitcoinTracker: React.FC = () => {
         <Route
           path="/"
           element={
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-2 sm:p-4">
+            <>
               <ImportSummaryModal
                 open={importModalOpen}
                 onClose={() => setImportModalOpen(false)}
@@ -392,59 +388,19 @@ const BitcoinTracker: React.FC = () => {
                 prompts={classificationPrompts}
                 onClassify={handleClassificationComplete}
               />
-              <div className="max-w-6xl mx-auto">
-                {/* Current Price Display */}
-                {currentPrice && (
-                  <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
-                    <div className="flex items-center justify-center gap-2 sm:gap-4">
-                      <TrendingUp className="text-green-500 flex-shrink-0" size={20} />
-                      <span className="text-lg sm:text-2xl font-bold text-gray-800 text-center">
-                        Bitcoin: {formatCurrency(currentPrice)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-                {transactions.length > 0 && <DashboardOverview stats={stats} />}
-                
-                {/* Status Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <TaxSummaryCard transactions={transactions} />
-                  <DataFreshnessCard 
-                    transactions={transactions} 
-                    onImportClick={() => navigate('/upload')} 
-                  />
-                  <SelfCustodyCard 
-                    transactions={transactions} 
-                    currentPrice={currentPrice || undefined}
-                    onAddWithdrawal={() => setWithdrawalModalOpen(true)}
-                  />
-                </div>
-                
-                {/* Lazy-loaded charts */}
-                <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6 mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
-                    Portfolio Value Over Time
-                  </h2>
-                  <Suspense fallback={<ChartSkeleton />}>
-                    <PortfolioValueChart transactions={transactions} currentPrice={currentPrice} />
-                  </Suspense>
-                </div>
-                <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6 mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
-                    Invested vs. Unrealized P&L (Monthly)
-                  </h2>
-                  <Suspense fallback={<ChartSkeleton />}>
-                    <InvestedVsPnLChart transactions={transactions} currentPrice={currentPrice} />
-                  </Suspense>
-                </div>
-              </div>
-            </div>
+              <Dashboard 
+                transactions={transactions}
+                currentPrice={currentPrice}
+                stats={stats}
+                onAddWithdrawal={() => setWithdrawalModalOpen(true)}
+              />
+            </>
           }
         />
         <Route
           path="/transactions"
           element={
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-2 sm:p-4">
+            <div className="page-container">
               <div className="max-w-6xl mx-auto">
                 <TransactionHistory transactions={transactions} />
               </div>
@@ -454,7 +410,7 @@ const BitcoinTracker: React.FC = () => {
         <Route
           path="/upload"
           element={
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-2 sm:p-4">
+            <div className="page-container">
               <div className="max-w-6xl mx-auto">
                 <UploadTransactions
                   onUpload={handleFileUpload}
@@ -469,7 +425,7 @@ const BitcoinTracker: React.FC = () => {
         <Route
           path="/charts"
           element={
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 p-2 sm:p-4">
+            <div className="page-container">
               <div className="max-w-6xl mx-auto">
                 <Suspense fallback={
                   <div className="flex items-center justify-center py-12">
@@ -510,5 +466,11 @@ const BitcoinTracker: React.FC = () => {
     </>
   );
 };
+
+const BitcoinTracker: React.FC = () => (
+  <ThemeProvider>
+    <AppContent />
+  </ThemeProvider>
+);
 
 export default BitcoinTracker;

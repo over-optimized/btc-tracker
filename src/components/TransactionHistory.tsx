@@ -35,15 +35,17 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6">
-      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Transaction History</h2>
+    <div 
+      className="card-base p-3 sm:p-6"
+    >
+      <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Transaction History</h2>
       
       {/* Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
-        <span className="text-xs sm:text-sm text-gray-600">
+        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
           Rows per page:
           <select
-            className="ml-2 px-2 py-1 border rounded text-xs sm:text-sm"
+            className="ml-2 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             value={pageSize}
             onChange={(e) => {
               setPageSize(Number(e.target.value));
@@ -57,7 +59,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
             ))}
           </select>
         </span>
-        <span className="text-xs sm:text-sm text-gray-600">
+        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
           Page {page} of {totalPages} ({transactions.length} total)
         </span>
       </div>
@@ -66,22 +68,22 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
           <thead style={{ display: 'table', width: '100%', tableLayout: 'fixed' }}>
-            <tr className="border-b">
-              <th className="text-left py-2 w-24">Date</th>
-              <th className="text-left py-2 w-32">Exchange</th>
-              <th className="text-right py-2 w-24">USD Amount</th>
-              <th className="text-right py-2 w-28">BTC Amount</th>
-              <th className="text-right py-2 w-20">Price</th>
+            <tr className="border-b border-gray-200 dark:border-gray-600">
+              <th className="text-left py-2 w-24 text-gray-800 dark:text-gray-200">Date</th>
+              <th className="text-left py-2 w-32 text-gray-800 dark:text-gray-200">Exchange</th>
+              <th className="text-right py-2 w-24 text-gray-800 dark:text-gray-200">USD Amount</th>
+              <th className="text-right py-2 w-28 text-gray-800 dark:text-gray-200">BTC Amount</th>
+              <th className="text-right py-2 w-20 text-gray-800 dark:text-gray-200">Price</th>
             </tr>
           </thead>
           <tbody style={{ minHeight: minTableHeight, display: 'block', width: '100%' }}>
             {paginated.map((tx) => (
               <tr
                 key={tx.id}
-                className="border-b hover:bg-gray-50"
+                className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                 style={{ display: 'table', width: '100%', tableLayout: 'fixed' }}
               >
-                <td className="py-2 w-24">{tx.date.toLocaleDateString()}</td>
+                <td className="py-2 w-24 text-gray-800 dark:text-gray-200">{tx.date.toLocaleDateString()}</td>
                 <td className="py-2 w-32">
                   <span
                     className={`px-2 py-1 rounded text-xs font-medium ${
@@ -97,9 +99,9 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
                     {tx.exchange}
                   </span>
                 </td>
-                <td className="text-right py-2 w-24">{formatCurrency(tx.usdAmount)}</td>
-                <td className="text-right py-2 w-28">{formatBTC(tx.btcAmount)}</td>
-                <td className="text-right py-2 w-20">{formatCurrency(tx.price)}</td>
+                <td className="text-right py-2 w-24 text-gray-800 dark:text-gray-200">{formatCurrency(tx.usdAmount)}</td>
+                <td className="text-right py-2 w-28 text-gray-800 dark:text-gray-200">{formatBTC(tx.btcAmount)}</td>
+                <td className="text-right py-2 w-20 text-gray-800 dark:text-gray-200">{formatCurrency(tx.price)}</td>
               </tr>
             ))}
             {/* Fill empty rows to keep height consistent */}
@@ -115,9 +117,9 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
       {/* Mobile Card Layout */}
       <div className="sm:hidden space-y-3">
         {paginated.map((tx) => (
-          <div key={tx.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+          <div key={tx.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 bg-gray-50 dark:bg-gray-700">
             <div className="flex justify-between items-start mb-2">
-              <div className="text-sm font-medium text-gray-800">
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
                 {tx.date.toLocaleDateString()}
               </div>
               <span
@@ -136,16 +138,16 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
-                <span className="text-gray-600">USD:</span>
-                <span className="ml-1 font-medium">{formatCurrency(tx.usdAmount)}</span>
+                <span className="text-gray-600 dark:text-gray-400">USD:</span>
+                <span className="ml-1 font-medium text-gray-800 dark:text-gray-200">{formatCurrency(tx.usdAmount)}</span>
               </div>
               <div>
-                <span className="text-gray-600">BTC:</span>
-                <span className="ml-1 font-medium">{formatBTC(tx.btcAmount)}</span>
+                <span className="text-gray-600 dark:text-gray-400">BTC:</span>
+                <span className="ml-1 font-medium text-gray-800 dark:text-gray-200">{formatBTC(tx.btcAmount)}</span>
               </div>
               <div className="col-span-2">
-                <span className="text-gray-600">Price:</span>
-                <span className="ml-1 font-medium">{formatCurrency(tx.price)}</span>
+                <span className="text-gray-600 dark:text-gray-400">Price:</span>
+                <span className="ml-1 font-medium text-gray-800 dark:text-gray-200">{formatCurrency(tx.price)}</span>
               </div>
             </div>
           </div>
@@ -161,14 +163,14 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
       <div className="flex justify-center sm:justify-end mt-4">
         <div className="flex gap-2">
           <button
-            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 text-sm"
+            className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 text-sm transition-colors"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
           >
             Previous
           </button>
           <button
-            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 text-sm"
+            className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 text-sm transition-colors"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
           >
