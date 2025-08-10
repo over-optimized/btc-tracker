@@ -1,0 +1,16 @@
+Reference,Date & Time (UTC),Transaction Type,Amount USD,Fee USD,Amount BTC,Fee BTC,BTC Price,Cost Basis (USD),Destination,Description,Note
+test-001,Jan 15 2024 14:30:00,Purchase,-100.00,,0.00234567,,42643.21,100.00,,,Daily DCA
+test-002,Jan 15 2024 16:45:30,Deposit,500.00,,,,,,,,Bank transfer
+test-003,Jan 16 2024 14:30:00,Purchase,-100.00,,0.00231456,,43209.87,100.00,,,Daily DCA
+test-004,Jan 17 2024 09:15:22,Receive,,,0.00050000,,,,bc1qexample123456789abcdefghijk,Lightning receive,
+test-005,Jan 17 2024 14:30:00,Purchase,-100.00,,0.00225433,,44367.12,100.00,,,Daily DCA
+test-006,Jan 18 2024 11:22:33,Withdrawal,,,-0.00100000,0.00000500,44500.00,,bc1qtest987654321fedcba,Self custody withdrawal,Hardware wallet
+test-007,Jan 18 2024 14:30:00,Purchase,-100.00,,0.00222222,,45000.00,100.00,,,Daily DCA
+test-008,Jan 19 2024 14:30:00,Purchase,-50.00,,0.00110864,,45100.00,50.00,,,Reduced DCA
+test-009,Jan 20 2024 08:45:15,Send,,,-0.00025000,0.00000250,45200.00,,Lightning payment,Coffee purchase,
+test-010,Jan 20 2024 14:30:00,Purchase,-100.00,,0.00220751,,45300.00,100.00,,,Daily DCA
+test-011,Jan 21 2024 14:30:00,Purchase,-100.00,,0.00219298,,45600.00,100.00,,,Daily DCA
+test-012,Jan 22 2024 14:30:00,Purchase,-100.00,,0.00217865,,45900.00,100.00,,,Daily DCA
+test-013,Jan 23 2024 16:20:10,Withdrawal,,,-0.00500000,0.00002500,46000.00,,bc1qcoldwallet1234567890abcdef,Cold storage transfer,
+test-014,Jan 24 2024 14:30:00,Purchase,-150.00,,0.00324675,,46200.00,150.00,,,Increased DCA
+test-015,Jan 25 2024 14:30:00,Purchase,-100.00,,0.00216216,,46300.00,100.00,,,Daily DCA

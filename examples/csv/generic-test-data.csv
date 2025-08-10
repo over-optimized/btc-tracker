@@ -1,0 +1,11 @@
+Date,Exchange,Type,USD Amount,BTC Amount,Price,Transaction ID,Notes
+2024-01-15 14:30:00,Generic Exchange,Purchase,100.00,0.00234567,42643.21,gen123456789,Daily DCA buy
+2024-01-15 16:45:00,Generic Exchange,Deposit,500.00,0.00000000,,gen234567890,Bank deposit
+2024-01-16 14:30:00,Generic Exchange,Purchase,100.00,0.00231456,43209.87,gen345678901,Daily DCA buy
+2024-01-17 09:15:00,Generic Exchange,Receive,0.00,0.00050000,,gen456789012,Incoming transfer
+2024-01-17 14:30:00,Generic Exchange,Buy,100.00,0.00225433,44367.12,gen567890123,Daily DCA buy
+2024-01-18 11:22:00,Generic Exchange,Withdrawal,0.00,-0.00100000,,gen678901234,Self custody withdrawal
+2024-01-18 14:30:00,Generic Exchange,Purchase,100.00,0.00222222,45000.00,gen789012345,Daily DCA buy
+2024-01-19 14:30:00,Generic Exchange,Buy,50.00,0.00110864,45100.00,gen890123456,Reduced DCA
+2024-01-20 08:45:00,Generic Exchange,Send,0.00,-0.00025000,,gen901234567,Payment sent
+2024-01-20 14:30:00,Generic Exchange,Purchase,100.00,0.00220751,45300.00,gen012345678,Daily DCA buy
