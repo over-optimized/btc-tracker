@@ -36,10 +36,10 @@ const BrandHeader: React.FC<BrandHeaderProps> = ({
   const config = sizeConfig[size];
 
   return (
-    <div className={`logo-container relative overflow-hidden rounded-xl border border-gray-200/40 dark:border-gray-700/40 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm px-4 py-3 transition-all duration-300 hover:border-gray-300/60 dark:hover:border-gray-600/60 hover:shadow-lg hover:shadow-orange-100/20 dark:hover:shadow-orange-900/10 ${className}`}>
+    <div className={`logo-container relative overflow-hidden rounded-xl border border-gray-200/15 dark:border-gray-700/40 bg-white/20 dark:bg-gray-800/30 backdrop-blur-sm px-4 py-3 transition-all duration-300 hover:border-gray-300/30 dark:hover:border-gray-600/60 hover:shadow-lg hover:shadow-orange-100/20 dark:hover:shadow-orange-900/10 ${className}`}>
       <div className={`flex items-center ${config.container} relative z-10`}>
         {/* Logo Area - Future placeholder for custom logo */}
-        <div className="flex items-center gap-2 relative">
+        <div className="flex items-center gap-1 relative">
           {/* Primary Bitcoin Icon */}
           <div className="relative">
             <Bitcoin 

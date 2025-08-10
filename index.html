@@ -182,34 +182,67 @@
         left: -50%;
         width: 200%;
         height: 200%;
-        background: linear-gradient(
-          45deg,
-          transparent,
-          rgba(255, 255, 255, 0.1),
-          rgba(255, 255, 255, 0.2),
-          rgba(255, 255, 255, 0.1),
-          transparent
-        );
         animation: logo-shine 4s ease-in-out infinite;
         animation-delay: 2s;
         pointer-events: none;
         z-index: 1;
       }
 
+      /* Default shimmer - light mode enhanced */
+      .logo-container::before {
+        background: linear-gradient(
+          45deg,
+          transparent 0%,
+          transparent 30%,
+          rgba(255, 255, 255, 0.3) 45%,
+          rgba(255, 255, 255, 0.5) 48%,
+          rgba(255, 255, 255, 0.6) 50%,
+          rgba(255, 255, 255, 0.5) 52%,
+          rgba(255, 255, 255, 0.3) 55%,
+          transparent 70%,
+          transparent 100%
+        );
+      }
+
+      /* Dark mode shimmer override - very subtle */
       .dark .logo-container::before {
         background: linear-gradient(
           45deg,
-          transparent,
-          rgba(255, 255, 255, 0.05),
-          rgba(255, 255, 255, 0.1),
-          rgba(255, 255, 255, 0.05),
-          transparent
-        );
+          transparent 0%,
+          transparent 30%,
+          rgba(255, 255, 255, 0.01) 45%,
+          rgba(255, 255, 255, 0.02) 48%,
+          rgba(255, 255, 255, 0.03) 50%,
+          rgba(255, 255, 255, 0.02) 52%,
+          rgba(255, 255, 255, 0.01) 55%,
+          transparent 70%,
+          transparent 100%
+        ) !important;
       }
 
       /* Enhance shine on hover */
       .logo-container:hover::before {
         animation-duration: 2s;
+      }
+
+      /* Force light mode logo container transparency */
+      :not(.dark) .logo-container {
+        background-color: rgba(255, 255, 255, 0.35) !important;
+        border-color: rgba(229, 231, 235, 0.25) !important;
+      }
+      
+      :not(.dark) .logo-container:hover {
+        border-color: rgba(209, 213, 219, 0.4) !important;
+      }
+
+      /* Dark mode logo container - more transparent background */
+      .dark .logo-container {
+        background-color: rgba(31, 41, 55, 0.15) !important;
+        border-color: rgba(55, 65, 81, 0.25) !important;
+      }
+      
+      .dark .logo-container:hover {
+        border-color: rgba(55, 65, 81, 0.4) !important;
       }
 
       /* Base styles */
