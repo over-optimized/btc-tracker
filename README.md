@@ -97,19 +97,46 @@ Interested in contributing or running locally? Check out our comprehensive techn
 
 ```bash
 # Development commands
-pnpm dev        # Start development server
-pnpm test       # Run test suite with coverage
-pnpm lint       # Check code quality
-pnpm build      # Build for production
+pnpm dev                # Start development server
+pnpm test               # Run tests (no coverage)
+pnpm test:coverage      # Run tests with coverage thresholds
+pnpm lint               # Check code quality (ESLint v9)
+pnpm lint:fix           # Auto-fix linting issues
+pnpm format             # Format code with Prettier
+pnpm build              # Build for production
+
+# Quality gates
+pnpm quality            # Fast: lint + coverage
+pnpm ci                 # Full: lint + coverage + build
 ```
+
+**Coverage Thresholds (Enforced)**:
+- Overall: 75% minimum
+- Custom hooks (`src/hooks/`): 85% minimum  
+- Tax utilities (`src/utils/tax*`): 95% minimum
 
 ### Contributing
 
-1. Fork the repo and create a feature branch
-2. Follow the coding standards in [CLAUDE.md](CLAUDE.md)
-3. Add tests for new features (`pnpm test`)
-4. Ensure linting passes (`pnpm lint`)
-5. Submit a pull request with clear description
+1. **Fork and Setup**: Fork the repo and create a feature branch
+2. **Development**: Follow the coding standards detailed in [CLAUDE.md](CLAUDE.md)
+3. **Testing**: Add comprehensive tests for new features
+   - Custom hooks require 85%+ coverage
+   - Tax utilities require 95%+ coverage
+   - Run `pnpm test:coverage` to verify thresholds
+4. **Quality Gates**: Ensure all checks pass
+   - Run `pnpm quality` for fast lint + coverage check
+   - Run `pnpm ci` for full validation pipeline
+5. **Documentation**: Update relevant docs (see checklist below)
+6. **Submit**: Create pull request with clear description
+
+#### Documentation Checklist
+
+For significant features or changes, update these files:
+
+- [ ] **CLAUDE.md**: Add new components to project structure, update commands/features
+- [ ] **CHANGELOG.md**: Document feature with development metrics (model, tokens, cost)
+- [ ] **README.md**: Update user-facing features or setup instructions if needed
+- [ ] **Tests**: Ensure new functionality has comprehensive test coverage
 
 ## 🎯 Project Status
 

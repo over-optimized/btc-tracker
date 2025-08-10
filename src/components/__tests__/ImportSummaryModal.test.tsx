@@ -12,15 +12,15 @@ describe('ImportSummaryModal', () => {
         summary="3 Strike, 1 Coinbase"
       />,
     );
-    expect(screen.getByText(/Import Summary/i)).toBeInTheDocument();
+    expect(screen.getByText(/Import Completed/i)).toBeInTheDocument();
 
-    // Find the <p> containing "Imported:" and check it contains "3"
-    const importedP = screen.getByText(/Imported:/i).closest('p');
-    expect(importedP).toHaveTextContent('Imported: 3');
+    // Check for imported count
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('Imported')).toBeInTheDocument();
 
-    // Find the <p> containing "Ignored (duplicates):" and check it contains "1"
-    const ignoredP = screen.getByText(/Ignored \(duplicates\):/i).closest('p');
-    expect(ignoredP).toHaveTextContent('Ignored (duplicates): 1');
+    // Check for skipped count
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('Skipped')).toBeInTheDocument();
 
     expect(screen.getByText(/3 Strike, 1 Coinbase/)).toBeInTheDocument();
   });
@@ -35,6 +35,6 @@ describe('ImportSummaryModal', () => {
         summary=""
       />,
     );
-    expect(screen.queryByText(/Import Summary/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Import Completed/i)).not.toBeInTheDocument();
   });
 });

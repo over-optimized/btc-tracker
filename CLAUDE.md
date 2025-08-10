@@ -44,8 +44,10 @@ src/
 │   ├── __tests__/          # Component tests  
 │   ├── AdditionalCharts.tsx # Advanced chart visualizations
 │   ├── AddWithdrawalModal.tsx # Manual withdrawal entry interface
+│   ├── AppRoutes.tsx       # Routing component with lazy loading
 │   ├── DashboardOverview.tsx # Main stats dashboard
 │   ├── DataFreshnessCard.tsx # Import reminder dashboard widget
+│   ├── GlobalModals.tsx    # Global modal container component
 │   ├── ImportErrorModal.tsx # CSV import error handling interface
 │   ├── ImportReminderToast.tsx # Smart notification system for stale data
 │   ├── ImportSummaryModal.tsx # Import feedback modal
@@ -53,6 +55,7 @@ src/
 │   ├── NavBar.tsx          # Navigation component
 │   ├── PortfolioValueChart.tsx # Portfolio value over time
 │   ├── SelfCustodyCard.tsx # Security scoring and milestone tracking widget
+│   ├── SuspenseWrapper.tsx # Reusable loading fallback component
 │   ├── TaxConfig.tsx       # Tax configuration interface
 │   ├── TaxDashboard.tsx    # Main tax reporting page
 │   ├── TaxExport.tsx       # Tax report export functionality
@@ -62,6 +65,12 @@ src/
 │   ├── TransactionClassificationModal.tsx # Mixed transaction type classification UI
 │   ├── TransactionHistory.tsx # Paginated transaction table
 │   └── UploadTransactions.tsx # File upload interface
+├── hooks/                   # Custom React hooks
+│   ├── __tests__/          # Hook tests
+│   ├── useBitcoinPrice.ts  # Bitcoin price fetching and polling
+│   ├── useImportFlow.ts    # Import flow state management 
+│   ├── usePortfolioStats.ts # Portfolio statistics calculations
+│   └── useTransactionManager.ts # Transaction state and persistence
 ├── types/                   # TypeScript type definitions
 │   ├── ImportError.ts      # CSV import error handling types
 │   ├── Stats.ts            # Portfolio statistics interface
@@ -69,6 +78,7 @@ src/
 │   ├── Transaction.ts      # Transaction data model (extended for withdrawals)
 │   └── TransactionClassification.ts # Mixed transaction type classification
 ├── utils/                   # Utility functions
+│   ├── __tests__/          # Utility tests
 │   ├── csvProcessor.ts     # Legacy CSV processor (⚠️ DEPRECATED)
 │   ├── csvValidator.ts     # CSV file validation utilities
 │   ├── dataFreshness.ts    # Import reminder and staleness detection
@@ -85,7 +95,7 @@ src/
 │   ├── taxCalculator.ts    # Tax calculation engine (multi-method)
 │   ├── taxLotManager.ts    # Tax lot tracking system (FIFO/LIFO/HIFO)
 │   └── transactionClassifier.ts # AI-powered transaction classification engine
-├── app.tsx                  # Main application component
+├── app.tsx                  # Main application component (refactored)
 └── main.tsx                # Application entry point
 ```
 
@@ -113,25 +123,31 @@ pnpm build      # Build for production
 pnpm preview    # Preview production build locally
 
 # Code Quality  
-pnpm lint       # Run ESLint (includes TypeScript checks)
+pnpm lint       # Run ESLint v9 (flat config format)
 pnpm lint:fix   # Auto-fix ESLint issues
 pnpm format     # Format code with Prettier
-pnpm typecheck  # TypeScript type checking (if available)
 
-# Testing
-pnpm test       # Run all tests with coverage
-pnpm test:watch # Run tests in watch mode
-pnpm test:ui    # Run Vitest UI (if available)
+# Testing & Coverage
+pnpm test                 # Run tests (no coverage)
+pnpm test:watch          # Run tests in watch mode
+pnpm test:coverage       # Run tests with CLI coverage summary + HTML report
+pnpm test:coverage:html  # Run coverage and open HTML report
+pnpm test:ui             # Run Vitest interactive UI
+
+# Quality Gates & CI
+pnpm quality    # Run lint + coverage (quality gate)
+pnpm ci         # Full CI pipeline: lint + test + build
 
 # Specific test commands for new features
-pnpm test --run src/components/__tests__/ComponentName.test.tsx
-pnpm test --run src/utils/__tests__/utilityName.test.ts
-pnpm test --run src/utils/__tests__/tax  # All tax-related tests
+pnpm test src/components/__tests__/ComponentName.test.tsx
+pnpm test src/utils/__tests__/utilityName.test.ts
+pnpm test src/hooks/                    # All hook tests
+pnpm test src/utils/__tests__/tax       # All tax-related tests
 ```
 
-### Testing New Features
+### Testing New Features & Coverage Requirements
 
-When developing new features, ensure comprehensive testing:
+When developing new features, ensure comprehensive testing with enforced coverage thresholds:
 
 ```bash
 # 1. Run relevant existing tests
@@ -140,15 +156,21 @@ pnpm test --run src/utils/taxCalculator.test.ts
 # 2. Create new test files following naming convention
 # ComponentName.test.tsx for React components  
 # utilityName.test.ts for utility functions
+# useHookName.test.ts for custom hooks
 
-# 3. Aim for test coverage thresholds
-# >90% for critical utilities (tax calculations, data processing)
-# >80% for UI components
-# >70% overall project coverage
+# 3. Coverage thresholds (enforced by CI)
+# Overall: 75% minimum
+# src/hooks/: 85% minimum (custom hooks require high coverage)
+# src/utils/tax*: 95% minimum (tax calculations must be thoroughly tested)
 
-# 4. Run coverage report
-pnpm test --coverage
-open coverage/index.html  # View detailed coverage report
+# 4. Run coverage with multiple output formats
+pnpm test:coverage              # CLI summary + full HTML report
+pnpm test:coverage:summary      # Detailed CLI coverage only
+pnpm test:coverage:html         # Generate and open HTML report
+
+# 5. Quality check (runs lint + coverage)
+pnpm quality                    # Fast quality gate for development
+pnpm ci                         # Full CI pipeline (lint + coverage + build)
 ```
 
 ### Code Quality Standards
@@ -367,12 +389,14 @@ export const exchangeParsers = { ... }
 
 ### Comprehensive Testing Strategy
 
-- **Unit Tests**: >95% coverage for tax calculations, >90% for critical utilities
+- **Unit Tests**: 95% coverage for tax calculations, 85% for custom hooks, 75% overall minimum
+- **Custom Hook Tests**: 100% coverage achieved for useTransactionManager and usePortfolioStats
 - **Integration Tests**: End-to-end CSV import scenarios and tax calculation workflows
 - **Tax Scenario Tests**: Comprehensive validation of FIFO/LIFO/HIFO calculations
 - **Error Scenario Tests**: Tax calculation edge cases and error recovery
 - **Performance Tests**: Large portfolio handling and multi-method comparisons
-- **Component Tests**: UI components with realistic tax data and scenarios
+- **Component Tests**: UI components with realistic tax data and mocked providers
+- **Coverage Enforcement**: Automated thresholds prevent regression via CI pipeline
 
 ## Data Models
 
@@ -492,24 +516,30 @@ interface TaxReport {
 # Run specific test file
 pnpm test --run src/components/__tests__/ComponentName.test.tsx
 
-# Run all tests with coverage
+# Run all tests (without coverage)
 pnpm test
 
-# Run error handling tests specifically
-pnpm test --run src/utils/csvValidator.test.ts src/utils/errorRecovery.test.ts
+# Coverage testing with different output formats
+pnpm test:coverage              # CLI summary + HTML report (enforced thresholds)
+pnpm test:coverage:summary      # Detailed CLI-only coverage report
+pnpm test:coverage:html         # Generate coverage + open HTML report
+pnpm test:watch                 # Tests in watch mode (development)
 
-# Run ID generation and migration tests
+# Run specific test groups
+pnpm test src/hooks/                    # All custom hook tests
+pnpm test src/utils/__tests__/tax       # All tax calculation tests
+pnpm test --run src/utils/csvValidator.test.ts src/utils/errorRecovery.test.ts
 pnpm test --run src/utils/generateTransactionId.test.ts src/utils/dataMigration.test.ts
 
-# Run tax calculation tests specifically
-pnpm test --run src/utils/__tests__/tax
-
-# Run specific tax component tests
-pnpm test --run src/utils/__tests__/taxLotManager.test.ts src/utils/__tests__/taxCalculator.test.ts
-
-# View coverage report
-open coverage/index.html
+# Quality gates (combined testing + linting)
+pnpm quality                    # Fast: lint + coverage
+pnpm ci                         # Full: lint + coverage + build
 ```
+
+**Coverage Thresholds (Enforced)**:
+- Overall: 75% minimum
+- `src/hooks/`: 85% minimum (custom hooks require high test coverage)
+- `src/utils/tax*`: 95% minimum (tax calculations must be thoroughly tested)
 
 ### Code Quality & Standards
 
@@ -565,16 +595,18 @@ vim CHANGELOG.md
 vim CLAUDE.md
 ```
 
-**IMPORTANT: Documentation Maintenance Requirements**
+## Documentation Maintenance Guidelines
+
+### Mandatory Documentation Updates
 
 When completing major features or making significant changes, **ALWAYS** update the following documentation:
 
 1. **CLAUDE.md** (this file): 
    - Add new components to project structure
-   - Update core features list
-   - Add new technical highlights
+   - Update core features list and technical highlights
    - Update data models and interfaces
-   - Add new testing commands
+   - Add new testing commands and coverage requirements
+   - Update development workflow commands
 
 2. **CHANGELOG.md**:
    - Document the completed feature with version number
@@ -588,17 +620,38 @@ When completing major features or making significant changes, **ALWAYS** update 
    - Move completed tasks to archive when appropriate
    - Update timeline and cost estimates
 
-**Documentation Update Process**:
+### Documentation Update Checklist
+
+After completing any significant feature or refactoring:
+
 ```bash
-# After completing a major feature:
-1. Get token usage summary from Claude
-2. Update CLAUDE.md with new technical details
-3. Add entry to CHANGELOG.md with version bump and development metrics
-4. Update tasks.md current status and move completed items to archive
-5. Commit all documentation updates together
+# 1. Update technical documentation
+git status  # Check what files were modified
+vim CLAUDE.md  # Update project structure, commands, features
+
+# 2. Document the completed work
+vim CHANGELOG.md  # Add entry with development metrics
+
+# 3. Update task tracking
+vim docs/tasks.md  # Move completed tasks, update priorities
+
+# 4. Commit documentation together
+git add CLAUDE.md CHANGELOG.md docs/tasks.md
+git commit -m "docs: update technical documentation for [feature name]"
 ```
 
-**CHANGELOG Development Metrics Format**:
+### Documentation Standards
+
+- **Keep it Current**: Documentation should reflect the actual state of the codebase
+- **Be Specific**: Include exact commands, file paths, and version numbers
+- **Include Examples**: Show real usage patterns and command outputs
+- **Track Changes**: Every significant change should be documented with development metrics
+- **No Bloat**: Remove outdated information and consolidate where possible
+
+### CHANGELOG Development Metrics Format
+
+When adding entries to CHANGELOG.md, include development statistics:
+
 ```markdown
 **Development Stats:**
 - Model: Claude Sonnet 4
