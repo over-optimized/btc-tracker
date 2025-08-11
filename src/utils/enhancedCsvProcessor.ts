@@ -1,10 +1,10 @@
 import Papa from 'papaparse';
+import { ImportError, ImportResult } from '../types/ImportError';
 import { Transaction } from '../types/Transaction';
-import { ImportResult, ImportError } from '../types/ImportError';
-import { 
-  TransactionClassificationResult,
-  ClassificationPrompt, 
-  ClassificationDecision 
+import {
+  ClassificationDecision,
+  ClassificationPrompt,
+  TransactionClassificationResult
 } from '../types/TransactionClassification';
 import { validateFile } from './csvValidator';
 import { detectExchangeFormat, parseAllTransactions } from './enhancedExchangeParsers';
@@ -20,7 +20,7 @@ export interface EnhancedProcessOptions {
 export interface EnhancedImportResult extends ImportResult {
   needsClassification?: boolean;
   classificationPrompts?: ClassificationPrompt[];
-  onClassificationComplete?: (decisions: ClassificationDecision[]) => void;
+  onClassificationComplete?: (decisions: ClassificationDecision[]) => ImportResult & { transactions: Transaction[] };
 }
 
 export class EnhancedCSVProcessor {
@@ -86,10 +86,10 @@ export class EnhancedCSVProcessor {
       // If we have transactions that need user classification
       if (classification.needsClassification.length > 0) {
         const prompts = this.classifier.generateClassificationPrompts(classification.needsClassification);
-        
+
         // Store the raw data for later processing
         this.pendingRawTransactions = rawTransactions;
-        
+
         result.needsClassification = true;
         result.classificationPrompts = prompts;
         result.onClassificationComplete = (decisions: ClassificationDecision[]) => {
@@ -97,7 +97,7 @@ export class EnhancedCSVProcessor {
         };
         result.summary = `Found ${rawTransactions.length} transactions, ${classification.needsClassification.length} need classification`;
         result.success = true; // Success, but waiting for user input
-        
+
         return result;
       }
 
@@ -106,7 +106,7 @@ export class EnhancedCSVProcessor {
       result.importedCount = classification.classified.length;
       result.ignoredCount = classification.skipped.length;
       result.summary = `Successfully imported ${classification.classified.length} transactions`;
-      
+
       // Add classified transactions to result for immediate import
       (result as any).transactions = classification.classified;
 
@@ -161,11 +161,11 @@ export class EnhancedCSVProcessor {
 
       result.success = true;
       result.importedCount = finalTransactions.length;
-      
+
       // Calculate ignored count: initially skipped + unclassified transactions
       const unclassifiedCount = Math.max(0, initialClassification.needsClassification.length - userDecisions.length);
       result.ignoredCount = initialClassification.skipped.length + unclassifiedCount;
-      
+
       result.transactions = finalTransactions;
       result.summary = `Successfully imported ${finalTransactions.length} transactions`;
 
@@ -205,7 +205,7 @@ export class EnhancedCSVProcessor {
               details: `Row: ${error.row}, Type: ${error.type}`,
               recoverable: false,
             }));
-            
+
             resolve({ success: false, errors });
             return;
           }
