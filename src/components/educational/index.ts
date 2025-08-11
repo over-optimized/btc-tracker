@@ -4,9 +4,8 @@
 export { default as InfoTooltip } from './InfoTooltip';
 export type { InfoTooltipProps } from './InfoTooltip';
 
-export { default as TaxImplicationIndicator } from './TaxImplicationIndicator';
+export { default as TaxImplicationIndicator, TaxEventType } from './TaxImplicationIndicator';
 export type { TaxImplicationProps } from './TaxImplicationIndicator';
-export { TaxEventType } from './TaxImplicationIndicator';
 
 export { default as TaxEducationPanel } from './TaxEducationPanel';
 export type { TaxEducationPanelProps, TaxEducationContent } from './TaxEducationPanel';
@@ -23,7 +22,7 @@ export const createTaxScenario = (
   description: string,
   steps: Array<{ description: string; amount?: string; value?: string; note?: string }>,
   taxImplication: TaxEventType,
-  outcome: string
+  outcome: string,
 ) => ({
   title,
   description,
@@ -42,9 +41,10 @@ export const COMMON_TAX_CONTENT = {
       {
         scenario: 'You buy 0.01 BTC for $500 including $5 in fees',
         explanation: 'Your cost basis is $505 ($500 + $5 fees)',
-        outcome: 'When you later sell this Bitcoin, you\'ll calculate gains/losses against this $505 basis'
-      }
-    ]
+        outcome:
+          "When you later sell this Bitcoin, you'll calculate gains/losses against this $505 basis",
+      },
+    ],
   },
 
   HOLDING_PERIOD: {
@@ -55,18 +55,18 @@ export const COMMON_TAX_CONTENT = {
       {
         scenario: 'You buy Bitcoin on January 1st and sell on December 31st',
         explanation: 'You held for exactly 365 days (not more than one year)',
-        outcome: 'This is short-term capital gains, taxed as ordinary income'
+        outcome: 'This is short-term capital gains, taxed as ordinary income',
       },
       {
         scenario: 'You buy Bitcoin on January 1st and sell on January 2nd the following year',
         explanation: 'You held for 366 days (more than one year)',
-        outcome: 'This qualifies for long-term capital gains rates'
-      }
+        outcome: 'This qualifies for long-term capital gains rates',
+      },
     ],
     warnings: [
       'The holding period starts the day after purchase and includes the day of sale',
-      'Each Bitcoin lot has its own holding period - FIFO/LIFO affects which lots are used'
-    ]
+      'Each Bitcoin lot has its own holding period - FIFO/LIFO affects which lots are used',
+    ],
   },
 
   LIGHTNING_PAYMENTS: {
@@ -77,18 +77,18 @@ export const COMMON_TAX_CONTENT = {
       {
         scenario: 'You pay for coffee using Lightning Network',
         explanation: 'This is spending Bitcoin for goods/services',
-        outcome: 'Taxable disposal - calculate capital gains on the Bitcoin spent'
+        outcome: 'Taxable disposal - calculate capital gains on the Bitcoin spent',
       },
       {
         scenario: 'Friend sends you Bitcoin via Lightning to split a bill',
         explanation: 'You received Bitcoin in exchange for cash you spent',
-        outcome: 'Taxable income at fair market value when received'
-      }
+        outcome: 'Taxable income at fair market value when received',
+      },
     ],
     warnings: [
       'Lightning transactions are still Bitcoin transactions for tax purposes',
       'Keep records of all Lightning payments and receipts',
-      'Small amounts still create tax events - consider de minimis rules don\'t apply to crypto'
-    ]
-  }
+      "Small amounts still create tax events - consider de minimis rules don't apply to crypto",
+    ],
+  },
 };

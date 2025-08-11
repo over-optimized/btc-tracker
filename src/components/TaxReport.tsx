@@ -4,19 +4,18 @@
  */
 
 import { useState } from 'react';
-import { 
-  FileText, 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  Clock, 
-  ChevronDown, 
+import {
+  FileText,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  ChevronDown,
   ChevronUp,
-  Calendar,
   Building,
-  Hash
+  Hash,
 } from 'lucide-react';
-import { TaxReport as TaxReportType, TaxEvent, TaxLot, HoldingPeriod } from '../types/TaxTypes';
+import { TaxReport as TaxReportType, HoldingPeriod } from '../types/TaxTypes';
 import { formatCurrency } from '../utils/formatCurrency';
 import { formatBTC } from '../utils/formatBTC';
 
@@ -47,7 +46,9 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
         <div className="text-center text-gray-600">
           <FileText size={48} className="mx-auto mb-4 text-gray-400" />
           <h3 className="text-lg font-semibold mb-2">No Tax Report Generated</h3>
-          <p>Configure your tax settings and click "Generate Tax Report" to get started.</p>
+          <p>
+            Configure your tax settings and click &quot;Generate Tax Report&quot; to get started.
+          </p>
         </div>
       </div>
     );
@@ -79,9 +80,7 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
           <div className="flex items-center gap-3">
             <FileText className="text-purple-500" size={24} />
             <div>
-              <h2 className="text-xl font-bold text-gray-800">
-                Tax Report - {report.taxYear}
-              </h2>
+              <h2 className="text-xl font-bold text-gray-800">Tax Report - {report.taxYear}</h2>
               <p className="text-sm text-gray-600">
                 Method: {report.method} | Generated: {formatDate(report.generatedAt)}
               </p>
@@ -132,8 +131,8 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
             {formatCurrency(report.summary.totalGains)}
           </span>
           <div className="text-xs text-gray-500 mt-1">
-            ST: {formatCurrency(report.summary.shortTermGains)} | 
-            LT: {formatCurrency(report.summary.longTermGains)}
+            ST: {formatCurrency(report.summary.shortTermGains)} | LT:{' '}
+            {formatCurrency(report.summary.longTermGains)}
           </div>
         </div>
 
@@ -146,8 +145,8 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
             {formatCurrency(report.summary.totalLosses)}
           </span>
           <div className="text-xs text-gray-500 mt-1">
-            ST: {formatCurrency(report.summary.shortTermLosses)} | 
-            LT: {formatCurrency(report.summary.longTermLosses)}
+            ST: {formatCurrency(report.summary.shortTermLosses)} | LT:{' '}
+            {formatCurrency(report.summary.longTermLosses)}
           </div>
         </div>
 
@@ -169,7 +168,9 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
             <Clock className="text-blue-500" size={20} />
             <span className="text-sm font-medium text-gray-600">Unrealized Gains</span>
           </div>
-          <span className={`text-2xl font-bold ${getGainLossColor(report.summary.unrealizedGains)}`}>
+          <span
+            className={`text-2xl font-bold ${getGainLossColor(report.summary.unrealizedGains)}`}
+          >
             {formatCurrency(report.summary.unrealizedGains)}
           </span>
           <div className="text-xs text-gray-500 mt-1">
@@ -179,7 +180,7 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
       </div>
 
       {/* Detailed Sections */}
-      
+
       {/* Disposals Section */}
       {report.disposals.length > 0 && (
         <div className="bg-white rounded-lg shadow-lg">
@@ -194,7 +195,7 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
               {showDisposals ? <ChevronUp /> : <ChevronDown />}
             </button>
           </div>
-          
+
           {showDisposals && (
             <div className="p-6">
               <div className="overflow-x-auto">
@@ -217,16 +218,22 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
                         <td className="py-3">{formatBTC(disposal.btcAmount)}</td>
                         <td className="py-3">{formatCurrency(disposal.usdValue)}</td>
                         <td className="py-3">{formatCurrency(disposal.costBasis || 0)}</td>
-                        <td className={`py-3 font-medium ${getGainLossColor(disposal.capitalGain || 0)}`}>
+                        <td
+                          className={`py-3 font-medium ${getGainLossColor(disposal.capitalGain || 0)}`}
+                        >
                           {formatCurrency(disposal.capitalGain || 0)}
                         </td>
                         <td className="py-3">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            disposal.holdingPeriod === HoldingPeriod.LONG_TERM 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {formatHoldingPeriod(disposal.holdingPeriod || HoldingPeriod.SHORT_TERM)}
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              disposal.holdingPeriod === HoldingPeriod.LONG_TERM
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
+                            {formatHoldingPeriod(
+                              disposal.holdingPeriod || HoldingPeriod.SHORT_TERM,
+                            )}
                           </span>
                         </td>
                         <td className="py-3">{disposal.exchange || 'N/A'}</td>
@@ -253,7 +260,7 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
             {showAcquisitions ? <ChevronUp /> : <ChevronDown />}
           </button>
         </div>
-        
+
         {showAcquisitions && (
           <div className="p-6">
             <div className="overflow-x-auto">
@@ -274,7 +281,9 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
                       <td className="py-3">{formatDate(acquisition.date)}</td>
                       <td className="py-3">{formatBTC(acquisition.btcAmount)}</td>
                       <td className="py-3">{formatCurrency(acquisition.usdValue)}</td>
-                      <td className="py-3">{formatCurrency(acquisition.usdValue / acquisition.btcAmount)}</td>
+                      <td className="py-3">
+                        {formatCurrency(acquisition.usdValue / acquisition.btcAmount)}
+                      </td>
                       <td className="py-3 flex items-center gap-1">
                         <Building size={12} />
                         {acquisition.exchange || 'N/A'}
@@ -307,7 +316,7 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
             {showRemainingLots ? <ChevronUp /> : <ChevronDown />}
           </button>
         </div>
-        
+
         {showRemainingLots && (
           <div className="p-6">
             <div className="overflow-x-auto">
@@ -325,23 +334,29 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
                 </thead>
                 <tbody>
                   {report.remainingLots.map((lot) => {
-                    const ageInDays = Math.floor((Date.now() - lot.purchaseDate.getTime()) / (1000 * 60 * 60 * 24));
+                    const ageInDays = Math.floor(
+                      (Date.now() - lot.purchaseDate.getTime()) / (1000 * 60 * 60 * 24),
+                    );
                     const isLongTerm = ageInDays > 365;
-                    
+
                     return (
                       <tr key={lot.id} className="border-b hover:bg-gray-50">
                         <td className="py-3">{formatDate(lot.purchaseDate)}</td>
                         <td className="py-3">{formatBTC(lot.btcAmount)}</td>
                         <td className="py-3 font-medium">{formatBTC(lot.remaining)}</td>
-                        <td className="py-3">{formatCurrency((lot.remaining / lot.btcAmount) * lot.costBasis)}</td>
+                        <td className="py-3">
+                          {formatCurrency((lot.remaining / lot.btcAmount) * lot.costBasis)}
+                        </td>
                         <td className="py-3">{formatCurrency(lot.pricePerBtc)}</td>
                         <td className="py-3">{lot.exchange}</td>
                         <td className="py-3">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            isLongTerm 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              isLongTerm
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
                             {ageInDays} ({isLongTerm ? 'LT' : 'ST'})
                           </span>
                         </td>

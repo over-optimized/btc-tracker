@@ -29,25 +29,28 @@ export const USJurisdictionNotice: React.FC<USJurisdictionNoticeProps> = ({
             US Tax Law Focus
           </div>
           <div className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
-            This application is designed specifically for US taxpayers and follows US tax law. 
-            Tax calculations, classifications, and guidance are based on IRS regulations and 
-            may not apply in other jurisdictions.
+            This application is designed specifically for US taxpayers and follows US tax law. Tax
+            calculations, classifications, and guidance are based on IRS regulations and may not
+            apply in other jurisdictions.
           </div>
-          
+
           {includeDisclaimer && (
             <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
               <div className="flex items-start gap-2">
-                <AlertTriangle size={14} className="text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <AlertTriangle
+                  size={14}
+                  className="text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
+                />
                 <div className="text-xs text-blue-700 dark:text-blue-300">
-                  <strong>Not Tax Advice:</strong> This tool provides educational information 
-                  and calculations based on general tax principles. Always consult with a 
-                  qualified tax professional for your specific situation.
+                  <strong>Not Tax Advice:</strong> This tool provides educational information and
+                  calculations based on general tax principles. Always consult with a qualified tax
+                  professional for your specific situation.
                 </div>
               </div>
             </div>
           )}
         </div>
-        
+
         {showDismiss && onDismiss && (
           <button
             onClick={onDismiss}
@@ -67,8 +70,9 @@ export const USJurisdictionNotice: React.FC<USJurisdictionNoticeProps> = ({
         International Users
       </div>
       <div className="text-sm text-blue-800 dark:text-blue-300 mb-3">
-        If you're not a US taxpayer, this tool may still be useful for tracking your Bitcoin transactions, 
-        but please note that tax calculations and guidance will not apply to your jurisdiction.
+        If you&apos;re not a US taxpayer, this tool may still be useful for tracking your Bitcoin
+        transactions, but please note that tax calculations and guidance will not apply to your
+        jurisdiction.
       </div>
       <div className="space-y-2">
         <a
@@ -86,7 +90,9 @@ export const USJurisdictionNotice: React.FC<USJurisdictionNoticeProps> = ({
 
   if (variant === 'compact') {
     return (
-      <div className={`inline-flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300 ${className}`}>
+      <div
+        className={`inline-flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300 ${className}`}
+      >
         {showIcon && <Flag size={12} />}
         <span>US Tax Law Focus</span>
         {includeDisclaimer && (
@@ -98,8 +104,12 @@ export const USJurisdictionNotice: React.FC<USJurisdictionNoticeProps> = ({
 
   if (variant === 'inline') {
     return (
-      <div className={`inline-flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm ${className}`}>
-        {showIcon && <Info size={14} className="text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />}
+      <div
+        className={`inline-flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm ${className}`}
+      >
+        {showIcon && (
+          <Info size={14} className="text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+        )}
         <span className="text-blue-800 dark:text-blue-200">
           <strong>US Tax Focus:</strong> Calculations based on US tax law.
           {includeDisclaimer && ' Educational information only.'}
@@ -110,7 +120,9 @@ export const USJurisdictionNotice: React.FC<USJurisdictionNoticeProps> = ({
 
   if (variant === 'modal') {
     return (
-      <div className={`p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg ${className}`}>
+      <div
+        className={`p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg ${className}`}
+      >
         {renderContent()}
         {renderInternationalGuidance()}
       </div>
@@ -119,7 +131,9 @@ export const USJurisdictionNotice: React.FC<USJurisdictionNoticeProps> = ({
 
   // Banner variant (default)
   return (
-    <div className={`p-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 dark:border-blue-500 ${className}`}>
+    <div
+      className={`p-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 dark:border-blue-500 ${className}`}
+    >
       {renderContent()}
     </div>
   );

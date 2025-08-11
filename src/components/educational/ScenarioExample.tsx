@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, ArrowRight, DollarSign, Calculator, AlertCircle } from 'lucide-react';
+import { User, ArrowRight, Calculator, AlertCircle } from 'lucide-react';
 import TaxImplicationIndicator, { TaxEventType } from './TaxImplicationIndicator';
 
 export interface ScenarioStep {
@@ -45,9 +45,7 @@ export const ScenarioExample: React.FC<ScenarioExampleProps> = ({
             {index + 1}
           </div>
           <div className="flex-1">
-            <div className="text-sm text-gray-700 dark:text-gray-300">
-              {step.description}
-            </div>
+            <div className="text-sm text-gray-700 dark:text-gray-300">{step.description}</div>
             {(step.amount || step.value) && (
               <div className="flex items-center gap-4 mt-1 text-xs">
                 {step.amount && (
@@ -68,9 +66,7 @@ export const ScenarioExample: React.FC<ScenarioExampleProps> = ({
               </div>
             )}
           </div>
-          {index < steps.length - 1 && (
-            <ArrowRight size={14} className="text-gray-400 mt-1" />
-          )}
+          {index < steps.length - 1 && <ArrowRight size={14} className="text-gray-400 mt-1" />}
         </div>
       ))}
     </div>
@@ -133,9 +129,7 @@ export const ScenarioExample: React.FC<ScenarioExampleProps> = ({
           <div className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
             Tax Outcome
           </div>
-          <div className="text-sm text-blue-700 dark:text-blue-300">
-            {outcome}
-          </div>
+          <div className="text-sm text-blue-700 dark:text-blue-300">{outcome}</div>
         </div>
       </div>
     </div>
@@ -145,21 +139,11 @@ export const ScenarioExample: React.FC<ScenarioExampleProps> = ({
     return (
       <div className={`p-3 bg-gray-50 dark:bg-gray-800 rounded-lg ${className}`}>
         <div className="flex items-start justify-between mb-2">
-          <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
-            {title}
-          </div>
-          <TaxImplicationIndicator 
-            taxEventType={taxImplication}
-            size="sm"
-            variant="badge"
-          />
+          <div className="text-sm font-medium text-gray-800 dark:text-gray-200">{title}</div>
+          <TaxImplicationIndicator taxEventType={taxImplication} size="sm" variant="badge" />
         </div>
-        <div className="text-xs text-gray-600 dark:text-gray-400 mb-3">
-          {description}
-        </div>
-        <div className="text-xs text-blue-700 dark:text-blue-300">
-          {outcome}
-        </div>
+        <div className="text-xs text-gray-600 dark:text-gray-400 mb-3">{description}</div>
+        <div className="text-xs text-blue-700 dark:text-blue-300">{outcome}</div>
       </div>
     );
   }
@@ -169,29 +153,19 @@ export const ScenarioExample: React.FC<ScenarioExampleProps> = ({
       <div className={`border border-gray-200 dark:border-gray-700 rounded-lg p-4 ${className}`}>
         <div className="flex items-start justify-between mb-3">
           <div>
-            <h4 className="text-base font-medium text-gray-900 dark:text-gray-100">
-              {title}
-            </h4>
+            <h4 className="text-base font-medium text-gray-900 dark:text-gray-100">{title}</h4>
             {persona && (
               <div className="flex items-center gap-1 mt-1">
                 <User size={12} className="text-gray-500" />
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {persona}
-                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{persona}</span>
               </div>
             )}
           </div>
-          <TaxImplicationIndicator 
-            taxEventType={taxImplication}
-            size="md"
-            variant="badge"
-          />
+          <TaxImplicationIndicator taxEventType={taxImplication} size="md" variant="badge" />
         </div>
-        
-        <div className="text-sm text-gray-700 dark:text-gray-300 mb-4">
-          {description}
-        </div>
-        
+
+        <div className="text-sm text-gray-700 dark:text-gray-300 mb-4">{description}</div>
+
         {renderSteps()}
         {renderTaxCalculation()}
         {renderOutcome()}
@@ -201,22 +175,16 @@ export const ScenarioExample: React.FC<ScenarioExampleProps> = ({
 
   // Default variant
   return (
-    <div className={`p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg ${className}`}>
+    <div
+      className={`p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg ${className}`}
+    >
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-          {title}
-        </h4>
-        <TaxImplicationIndicator 
-          taxEventType={taxImplication}
-          size="sm"
-          variant="badge"
-        />
+        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{title}</h4>
+        <TaxImplicationIndicator taxEventType={taxImplication} size="sm" variant="badge" />
       </div>
-      
-      <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-        {description}
-      </div>
-      
+
+      <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">{description}</div>
+
       {renderSteps()}
       {renderTaxCalculation()}
       {renderOutcome()}

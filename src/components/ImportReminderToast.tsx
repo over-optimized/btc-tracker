@@ -20,20 +20,20 @@ const ImportReminderToast: React.FC<ImportReminderToastProps> = ({
   onSettingsClick,
 }) => {
   const [visible, setVisible] = useState(false);
-  const [preferences, setPreferences] = useState(getImportReminderPreferences());
+  const [preferences] = useState(getImportReminderPreferences());
 
   useEffect(() => {
     // Check if we should show reminder on mount
     if (shouldShowImportReminder(transactions)) {
       setVisible(true);
-      
+
       // Update last reminder shown time
       setImportReminderPreferences({
         ...preferences,
         lastReminderShown: new Date(),
       });
     }
-  }, [transactions]);
+  }, [transactions, preferences]);
 
   const handleDismiss = () => {
     setVisible(false);
@@ -42,12 +42,12 @@ const ImportReminderToast: React.FC<ImportReminderToastProps> = ({
   const handleSnooze = (days: number) => {
     const snoozeUntil = new Date();
     snoozeUntil.setDate(snoozeUntil.getDate() + days);
-    
+
     setImportReminderPreferences({
       ...preferences,
       lastReminderShown: snoozeUntil,
     });
-    
+
     setVisible(false);
   };
 
@@ -69,10 +69,7 @@ const ImportReminderToast: React.FC<ImportReminderToastProps> = ({
           <Bell className="text-orange-500" size={18} />
           <span className="text-sm font-semibold text-gray-800">Import Reminder</span>
         </div>
-        <button
-          onClick={handleDismiss}
-          className="text-gray-400 hover:text-gray-600 p-1"
-        >
+        <button onClick={handleDismiss} className="text-gray-400 hover:text-gray-600 p-1">
           <X size={16} />
         </button>
       </div>
@@ -80,9 +77,7 @@ const ImportReminderToast: React.FC<ImportReminderToastProps> = ({
       <div className="text-sm text-gray-700 mb-4">
         {freshness.message}
         {freshness.recommendation && (
-          <div className="mt-1 text-xs text-gray-600">
-            {freshness.recommendation}
-          </div>
+          <div className="mt-1 text-xs text-gray-600">{freshness.recommendation}</div>
         )}
       </div>
 
@@ -94,7 +89,7 @@ const ImportReminderToast: React.FC<ImportReminderToastProps> = ({
           <Upload size={14} />
           Import Strike Data
         </button>
-        
+
         <div className="flex gap-2">
           <button
             onClick={() => handleSnooze(1)}

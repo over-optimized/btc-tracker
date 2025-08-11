@@ -6,8 +6,6 @@
 import { useState } from 'react';
 import { Download, FileText, Database, FileSpreadsheet, CheckCircle } from 'lucide-react';
 import { TaxReport, TaxExportFormat, TaxExportOptions } from '../types/TaxTypes';
-import { formatCurrency } from '../utils/formatCurrency';
-import { formatBTC } from '../utils/formatBTC';
 
 interface TaxExportProps {
   report: TaxReport | null;
@@ -51,27 +49,41 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
 
   const generateCSV = (report: TaxReport): string => {
     const lines: string[] = [];
-    
+
     // Header
     lines.push('Bitcoin DCA Tracker - Tax Report');
     lines.push(`Tax Year: ${report.taxYear}`);
     lines.push(`Method: ${report.method}`);
     lines.push(`Generated: ${report.generatedAt.toLocaleDateString()}`);
     lines.push('');
-    
+
     // Summary
     lines.push('SUMMARY');
     lines.push('Description,Amount');
     lines.push(`Total Gains,${report.summary.totalGains.toFixed(exportOptions.currencyPrecision)}`);
-    lines.push(`Total Losses,${report.summary.totalLosses.toFixed(exportOptions.currencyPrecision)}`);
+    lines.push(
+      `Total Losses,${report.summary.totalLosses.toFixed(exportOptions.currencyPrecision)}`,
+    );
     lines.push(`Net Gains,${report.summary.netGains.toFixed(exportOptions.currencyPrecision)}`);
-    lines.push(`Short-term Gains,${report.summary.shortTermGains.toFixed(exportOptions.currencyPrecision)}`);
-    lines.push(`Long-term Gains,${report.summary.longTermGains.toFixed(exportOptions.currencyPrecision)}`);
-    lines.push(`Short-term Losses,${report.summary.shortTermLosses.toFixed(exportOptions.currencyPrecision)}`);
-    lines.push(`Long-term Losses,${report.summary.longTermLosses.toFixed(exportOptions.currencyPrecision)}`);
+    lines.push(
+      `Short-term Gains,${report.summary.shortTermGains.toFixed(exportOptions.currencyPrecision)}`,
+    );
+    lines.push(
+      `Long-term Gains,${report.summary.longTermGains.toFixed(exportOptions.currencyPrecision)}`,
+    );
+    lines.push(
+      `Short-term Losses,${report.summary.shortTermLosses.toFixed(exportOptions.currencyPrecision)}`,
+    );
+    lines.push(
+      `Long-term Losses,${report.summary.longTermLosses.toFixed(exportOptions.currencyPrecision)}`,
+    );
     lines.push(`Remaining BTC,${report.summary.remainingBtc.toFixed(8)}`);
-    lines.push(`Remaining Cost Basis,${report.summary.remainingCostBasis.toFixed(exportOptions.currencyPrecision)}`);
-    lines.push(`Unrealized Gains,${report.summary.unrealizedGains.toFixed(exportOptions.currencyPrecision)}`);
+    lines.push(
+      `Remaining Cost Basis,${report.summary.remainingCostBasis.toFixed(exportOptions.currencyPrecision)}`,
+    );
+    lines.push(
+      `Unrealized Gains,${report.summary.unrealizedGains.toFixed(exportOptions.currencyPrecision)}`,
+    );
     lines.push('');
 
     if (!exportOptions.includeSummaryOnly) {
@@ -79,8 +91,8 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
       if (report.disposals.length > 0) {
         lines.push('DISPOSALS');
         lines.push('Date,BTC Amount,Proceeds,Cost Basis,Capital Gain/Loss,Holding Period,Exchange');
-        
-        report.disposals.forEach(disposal => {
+
+        report.disposals.forEach((disposal) => {
           const date = disposal.date.toLocaleDateString();
           const btcAmount = disposal.btcAmount.toFixed(8);
           const proceeds = disposal.usdValue.toFixed(exportOptions.currencyPrecision);
@@ -88,8 +100,10 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
           const capitalGain = (disposal.capitalGain || 0).toFixed(exportOptions.currencyPrecision);
           const holdingPeriod = disposal.holdingPeriod || 'SHORT_TERM';
           const exchange = disposal.exchange || '';
-          
-          lines.push(`${date},${btcAmount},${proceeds},${costBasis},${capitalGain},${holdingPeriod},${exchange}`);
+
+          lines.push(
+            `${date},${btcAmount},${proceeds},${costBasis},${capitalGain},${holdingPeriod},${exchange}`,
+          );
         });
         lines.push('');
       }
@@ -97,15 +111,17 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
       // Acquisitions
       lines.push('ACQUISITIONS');
       lines.push('Date,BTC Amount,USD Amount,Price per BTC,Exchange,Transaction ID');
-      
-      report.acquisitions.forEach(acquisition => {
+
+      report.acquisitions.forEach((acquisition) => {
         const date = acquisition.date.toLocaleDateString();
         const btcAmount = acquisition.btcAmount.toFixed(8);
         const usdAmount = acquisition.usdValue.toFixed(exportOptions.currencyPrecision);
-        const pricePerBtc = (acquisition.usdValue / acquisition.btcAmount).toFixed(exportOptions.currencyPrecision);
+        const pricePerBtc = (acquisition.usdValue / acquisition.btcAmount).toFixed(
+          exportOptions.currencyPrecision,
+        );
         const exchange = acquisition.exchange || '';
         const txId = acquisition.transactionId || '';
-        
+
         lines.push(`${date},${btcAmount},${usdAmount},${pricePerBtc},${exchange},${txId}`);
       });
       lines.push('');
@@ -114,16 +130,20 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
       if (exportOptions.includeDetailedLots && report.remainingLots.length > 0) {
         lines.push('REMAINING TAX LOTS');
         lines.push('Purchase Date,Original BTC,Remaining BTC,Cost Basis,Price per BTC,Exchange');
-        
-        report.remainingLots.forEach(lot => {
+
+        report.remainingLots.forEach((lot) => {
           const date = lot.purchaseDate.toLocaleDateString();
           const originalBtc = lot.btcAmount.toFixed(8);
           const remainingBtc = lot.remaining.toFixed(8);
-          const costBasis = ((lot.remaining / lot.btcAmount) * lot.costBasis).toFixed(exportOptions.currencyPrecision);
+          const costBasis = ((lot.remaining / lot.btcAmount) * lot.costBasis).toFixed(
+            exportOptions.currencyPrecision,
+          );
           const pricePerBtc = lot.pricePerBtc.toFixed(exportOptions.currencyPrecision);
           const exchange = lot.exchange;
-          
-          lines.push(`${date},${originalBtc},${remainingBtc},${costBasis},${pricePerBtc},${exchange}`);
+
+          lines.push(
+            `${date},${originalBtc},${remainingBtc},${costBasis},${pricePerBtc},${exchange}`,
+          );
         });
       }
     }
@@ -133,22 +153,29 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
 
   const generateTurboTaxCSV = (report: TaxReport): string => {
     const lines: string[] = [];
-    
+
     // TurboTax compatible header
-    lines.push('Description,Date Acquired,Date Sold,Sales Price,Cost or Other Basis,Gain or Loss,Type');
-    
-    report.disposals.forEach(disposal => {
+    lines.push(
+      'Description,Date Acquired,Date Sold,Sales Price,Cost or Other Basis,Gain or Loss,Type',
+    );
+
+    report.disposals.forEach((disposal) => {
       // For TurboTax, we need to create entries for each disposed lot
-      disposal.disposedLots?.forEach(disposedLot => {
+      disposal.disposedLots?.forEach((disposedLot) => {
         const description = `Bitcoin (BTC)`;
         const dateAcquired = disposedLot.purchaseDate.toLocaleDateString();
         const dateSold = disposal.date.toLocaleDateString();
-        const salesPrice = (disposedLot.btcAmount * (disposal.usdValue / disposal.btcAmount)).toFixed(2);
+        const salesPrice = (
+          disposedLot.btcAmount *
+          (disposal.usdValue / disposal.btcAmount)
+        ).toFixed(2);
         const costBasis = disposedLot.costBasis.toFixed(2);
         const gainLoss = (parseFloat(salesPrice) - disposedLot.costBasis).toFixed(2);
         const type = disposedLot.holdingPeriod === 'LONG_TERM' ? 'Long-term' : 'Short-term';
-        
-        lines.push(`${description},${dateAcquired},${dateSold},${salesPrice},${costBasis},${gainLoss},${type}`);
+
+        lines.push(
+          `${description},${dateAcquired},${dateSold},${salesPrice},${costBasis},${gainLoss},${type}`,
+        );
       });
     });
 
@@ -171,7 +198,7 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
     if (!report) return;
 
     setExporting(true);
-    
+
     try {
       let content: string;
       let filename: string;
@@ -186,30 +213,33 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
           filename = `${baseFilename}.csv`;
           mimeType = 'text/csv';
           break;
-          
+
         case TaxExportFormat.TURBOTAX:
           content = generateTurboTaxCSV(report);
           filename = `${baseFilename}-turbotax.csv`;
           mimeType = 'text/csv';
           break;
-          
+
         case TaxExportFormat.JSON:
-          content = JSON.stringify({
-            report,
-            exportOptions,
-            exportedAt: new Date().toISOString(),
-          }, null, 2);
+          content = JSON.stringify(
+            {
+              report,
+              exportOptions,
+              exportedAt: new Date().toISOString(),
+            },
+            null,
+            2,
+          );
           filename = `${baseFilename}.json`;
           mimeType = 'application/json';
           break;
-          
+
         default:
           throw new Error('Unsupported export format');
       }
 
       downloadFile(content, filename, mimeType);
       setLastExport({ format: exportOptions.format, filename });
-      
     } catch (error) {
       console.error('Export failed:', error);
       alert('Export failed. Please try again.');
@@ -218,11 +248,8 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
     }
   };
 
-  const updateOption = <K extends keyof TaxExportOptions>(
-    key: K,
-    value: TaxExportOptions[K]
-  ) => {
-    setExportOptions(prev => ({ ...prev, [key]: value }));
+  const updateOption = <K extends keyof TaxExportOptions>(key: K, value: TaxExportOptions[K]) => {
+    setExportOptions((prev) => ({ ...prev, [key]: value }));
   };
 
   if (!report) {
@@ -289,7 +316,7 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
         {/* Export Options */}
         <div>
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Export Options</h3>
-          
+
           <div className="space-y-4">
             {/* Content Options */}
             <div className="space-y-3">
@@ -302,7 +329,7 @@ const TaxExport: React.FC<TaxExportProps> = ({ report, disabled = false }) => {
                 />
                 <span className="text-sm text-gray-700">Summary only (no transaction details)</span>
               </label>
-              
+
               {!exportOptions.includeSummaryOnly && (
                 <label className="flex items-center gap-2 ml-6">
                   <input

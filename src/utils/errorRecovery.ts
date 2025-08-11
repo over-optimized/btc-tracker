@@ -1,4 +1,9 @@
-import { ImportError, ImportErrorType, ErrorRecoveryContext, RecoveryOption } from '../types/ImportError';
+import {
+  ImportError,
+  ImportErrorType,
+  ErrorRecoveryContext,
+  RecoveryOption,
+} from '../types/ImportError';
 
 export function generateRecoveryOptions(
   errors: ImportError[],
@@ -9,21 +14,22 @@ export function generateRecoveryOptions(
     rowCount?: number;
     detectedFormat?: string;
     processedData?: any[];
-  }
+  },
 ): RecoveryOption[] {
   const options: RecoveryOption[] = [];
-  const errorTypes = new Set(errors.map(e => e.type));
+  const errorTypes = new Set(errors.map((e) => e.type));
 
   // Format-related recovery options
-  if (errorTypes.has(ImportErrorType.MISSING_REQUIRED_COLUMNS) || 
-      errorTypes.has(ImportErrorType.UNSUPPORTED_FORMAT)) {
-    
+  if (
+    errorTypes.has(ImportErrorType.MISSING_REQUIRED_COLUMNS) ||
+    errorTypes.has(ImportErrorType.UNSUPPORTED_FORMAT)
+  ) {
     options.push({
       id: 'try-generic-format',
       label: 'Try Generic Format',
       description: 'Attempt to parse using flexible column matching',
       action: 'retry',
-      data: { forceFormat: 'generic', skipValidation: true }
+      data: { forceFormat: 'generic', skipValidation: true },
     });
 
     if (context.detectedFormat !== 'generic') {
@@ -32,19 +38,19 @@ export function generateRecoveryOptions(
         label: `Force ${context.detectedFormat || 'Detected'} Format`,
         description: 'Override format detection and try anyway',
         action: 'retry',
-        data: { 
-          forceFormat: context.detectedFormat, 
+        data: {
+          forceFormat: context.detectedFormat,
           skipColumnValidation: true,
-          allowPartialImport: true 
-        }
+          allowPartialImport: true,
+        },
       });
     }
   }
 
   // Data validation recovery options
   if (errorTypes.has(ImportErrorType.INVALID_DATA_VALUES)) {
-    const recoverableErrors = errors.filter(e => 
-      e.type === ImportErrorType.INVALID_DATA_VALUES && e.recoverable
+    const recoverableErrors = errors.filter(
+      (e) => e.type === ImportErrorType.INVALID_DATA_VALUES && e.recoverable,
     ).length;
 
     if (recoverableErrors > 0) {
@@ -53,11 +59,11 @@ export function generateRecoveryOptions(
         label: 'Skip Invalid Rows',
         description: `Import valid data and skip ${recoverableErrors} problematic rows`,
         action: 'retry',
-        data: { 
-          skipInvalidRows: true, 
+        data: {
+          skipInvalidRows: true,
           allowPartialImport: true,
-          maxErrors: 100 
-        }
+          maxErrors: 100,
+        },
       });
     }
 
@@ -70,8 +76,8 @@ export function generateRecoveryOptions(
       data: {
         exportType: 'problem-rows',
         rows: context.processedData,
-        errors: errors.filter(e => e.rowNumber)
-      }
+        errors: errors.filter((e) => e.rowNumber),
+      },
     });
   }
 
@@ -82,7 +88,7 @@ export function generateRecoveryOptions(
       label: 'CSV Format Help',
       description: 'Learn how to fix common CSV formatting issues',
       action: 'modify',
-      data: { helpType: 'csv-format' }
+      data: { helpType: 'csv-format' },
     });
   }
 
@@ -93,18 +99,19 @@ export function generateRecoveryOptions(
       label: 'Export Guide',
       description: 'Step-by-step guide for exporting from your exchange',
       action: 'modify',
-      data: { helpType: 'export-guide', exchange: context.detectedFormat }
+      data: { helpType: 'export-guide', exchange: context.detectedFormat },
     });
   }
 
   // Large file issues
-  if (context.fileSize && context.fileSize > 5 * 1024 * 1024) { // > 5MB
+  if (context.fileSize && context.fileSize > 5 * 1024 * 1024) {
+    // > 5MB
     options.push({
       id: 'batch-import',
       label: 'Batch Processing',
       description: 'Process in smaller chunks to avoid timeouts',
       action: 'retry',
-      data: { batchSize: 1000, allowPartialImport: true }
+      data: { batchSize: 1000, allowPartialImport: true },
     });
   }
 
@@ -115,37 +122,30 @@ export function generateRecoveryOptions(
       label: 'Manual Review Guide',
       description: 'Get specific instructions for fixing your data',
       action: 'modify',
-      data: { 
+      data: {
         helpType: 'manual-review',
-        specificErrors: errors.slice(0, 5).map(e => ({
+        specificErrors: errors.slice(0, 5).map((e) => ({
           type: e.type,
           message: e.message,
-          suggestions: e.suggestions?.slice(0, 2) || []
-        }))
-      }
+          suggestions: e.suggestions?.slice(0, 2) || [],
+        })),
+      },
     });
   }
 
   return options;
 }
 
-export function createProblematicRowsCSV(
-  originalData: any[],
-  errors: ImportError[]
-): string {
+export function createProblematicRowsCSV(originalData: any[], errors: ImportError[]): string {
   if (!originalData || originalData.length === 0) {
     return 'No data available';
   }
 
   const errorRowNumbers = new Set(
-    errors
-      .filter(e => e.rowNumber)
-      .map(e => e.rowNumber! - 1) // Convert to 0-based index
+    errors.filter((e) => e.rowNumber).map((e) => e.rowNumber! - 1), // Convert to 0-based index
   );
 
-  const problematicRows = originalData.filter((_, index) => 
-    errorRowNumbers.has(index)
-  );
+  const problematicRows = originalData.filter((_, index) => errorRowNumbers.has(index));
 
   if (problematicRows.length === 0) {
     return 'No problematic rows found';
@@ -153,8 +153,8 @@ export function createProblematicRowsCSV(
 
   // Get all possible columns
   const allColumns = new Set<string>();
-  problematicRows.forEach(row => {
-    Object.keys(row).forEach(col => allColumns.add(col));
+  problematicRows.forEach((row) => {
+    Object.keys(row).forEach((col) => allColumns.add(col));
   });
 
   // Add error information columns
@@ -162,19 +162,17 @@ export function createProblematicRowsCSV(
   allColumns.add('__SUGGESTIONS__');
 
   const headers = Array.from(allColumns);
-  
+
   // Create CSV content
   const csvRows = problematicRows.map((row, index) => {
     const originalIndex = originalData.indexOf(row);
-    const rowErrors = errors.filter(e => e.rowNumber === originalIndex + 1);
-    
-    const csvRow = headers.map(header => {
+    const rowErrors = errors.filter((e) => e.rowNumber === originalIndex + 1);
+
+    const csvRow = headers.map((header) => {
       if (header === '__ERROR_DETAILS__') {
-        return `"${rowErrors.map(e => e.message).join('; ')}"`;
+        return `"${rowErrors.map((e) => e.message).join('; ')}"`;
       } else if (header === '__SUGGESTIONS__') {
-        const suggestions = rowErrors
-          .flatMap(e => e.suggestions || [])
-          .slice(0, 3);
+        const suggestions = rowErrors.flatMap((e) => e.suggestions || []).slice(0, 3);
         return `"${suggestions.join('; ')}"`;
       } else {
         const value = row[header] || '';
@@ -186,7 +184,7 @@ export function createProblematicRowsCSV(
         return stringValue;
       }
     });
-    
+
     return csvRow.join(',');
   });
 
@@ -231,7 +229,7 @@ export function generateHelpContent(helpType: string, context?: any): string {
 5. Try importing again
       `.trim();
 
-    case 'export-guide':
+    case 'export-guide': {
       const exchange = context?.exchange || 'your exchange';
       return `
 # Export Guide for ${exchange}
@@ -257,11 +255,12 @@ export function generateHelpContent(helpType: string, context?: any): string {
 - **Wrong format**: Look for "Advanced" or "Custom" export options
 - **Missing columns**: Try different export templates
       `.trim();
+    }
 
-    case 'manual-review':
+    case 'manual-review': {
       const errors = context?.specificErrors || [];
       let content = '# Manual Review Guide\n\nBased on your specific errors:\n\n';
-      
+
       errors.forEach((error: any, index: number) => {
         content += `## ${index + 1}. ${error.message}\n`;
         if (error.suggestions) {
@@ -289,22 +288,21 @@ If these suggestions don't resolve your issues:
       `.trim();
 
       return content;
+    }
 
     default:
       return 'Help content not available for this topic.';
   }
 }
 
-export function exportProblematicRows(
-  data: any,
-  fileName: string = 'problematic-rows.csv'
-): void {
+export function exportProblematicRows(data: any, fileName: string = 'problematic-rows.csv'): void {
   try {
-    const csvContent = typeof data === 'string' ? data : createProblematicRowsCSV(data.rows, data.errors);
-    
+    const csvContent =
+      typeof data === 'string' ? data : createProblematicRowsCSV(data.rows, data.errors);
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    
+
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
@@ -324,8 +322,9 @@ export function exportProblematicRows(
 export function showHelpModal(content: string): void {
   // Create and show a modal with help content
   const modal = document.createElement('div');
-  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
-  
+  modal.className =
+    'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
+
   modal.innerHTML = `
     <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
       <div class="flex items-center justify-between p-6 border-b border-gray-200">
@@ -346,6 +345,6 @@ export function showHelpModal(content: string): void {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
 }

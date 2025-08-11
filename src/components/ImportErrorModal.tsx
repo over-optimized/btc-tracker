@@ -1,6 +1,20 @@
 import React, { useState } from 'react';
-import { AlertTriangle, X, Download, RotateCcw, Edit, FileText, ChevronDown, ChevronRight } from 'lucide-react';
-import { ImportError, ErrorRecoveryContext, RecoveryOption, ImportErrorType } from '../types/ImportError';
+import {
+  AlertTriangle,
+  X,
+  Download,
+  RotateCcw,
+  Edit,
+  FileText,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react';
+import {
+  ImportError,
+  ErrorRecoveryContext,
+  RecoveryOption,
+  ImportErrorType,
+} from '../types/ImportError';
 
 interface ImportErrorModalProps {
   isOpen: boolean;
@@ -8,8 +22,8 @@ interface ImportErrorModalProps {
   errors: ImportError[];
   warnings: ImportError[];
   recoveryContext?: ErrorRecoveryContext;
-  onRetry: (options: any) => void;
-  onExportErrors?: (data: any) => void;
+  onRetry: (options: { action: string; data?: unknown }) => void;
+  onExportErrors?: (data: ImportError[]) => void;
 }
 
 export default function ImportErrorModal({
@@ -26,8 +40,8 @@ export default function ImportErrorModal({
 
   if (!isOpen) return null;
 
-  const criticalErrors = errors.filter(error => !error.recoverable);
-  const recoverableErrors = errors.filter(error => error.recoverable);
+  const criticalErrors = errors.filter((error) => !error.recoverable);
+  const recoverableErrors = errors.filter((error) => error.recoverable);
   const hasRecoveryOptions = recoveryContext?.recoveryOptions?.length > 0;
 
   const toggleSection = (section: string) => {
@@ -80,12 +94,18 @@ export default function ImportErrorModal({
     }
   };
 
-  const renderErrorList = (errorList: ImportError[], title: string, severity: 'error' | 'warning') => {
+  const renderErrorList = (
+    errorList: ImportError[],
+    title: string,
+    severity: 'error' | 'warning',
+  ) => {
     if (errorList.length === 0) return null;
 
     return (
       <div className="space-y-3">
-        <h4 className={`font-semibold text-sm ${severity === 'error' ? 'text-red-700' : 'text-yellow-700'}`}>
+        <h4
+          className={`font-semibold text-sm ${severity === 'error' ? 'text-red-700' : 'text-yellow-700'}`}
+        >
           {title} ({errorList.length})
         </h4>
         <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -93,51 +113,57 @@ export default function ImportErrorModal({
             <div
               key={index}
               className={`p-3 rounded-lg border ${
-                severity === 'error'
-                  ? 'border-red-200 bg-red-50'
-                  : 'border-yellow-200 bg-yellow-50'
+                severity === 'error' ? 'border-red-200 bg-red-50' : 'border-yellow-200 bg-yellow-50'
               }`}
             >
               <div className="flex items-start gap-3">
-                <span className="text-lg flex-shrink-0 mt-0.5">
-                  {getErrorIcon(error.type)}
-                </span>
+                <span className="text-lg flex-shrink-0 mt-0.5">{getErrorIcon(error.type)}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className={`font-medium text-sm ${
-                      severity === 'error' ? 'text-red-800' : 'text-yellow-800'
-                    }`}>
+                    <p
+                      className={`font-medium text-sm ${
+                        severity === 'error' ? 'text-red-800' : 'text-yellow-800'
+                      }`}
+                    >
                       {error.message}
                     </p>
                     {error.rowNumber && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        severity === 'error'
-                          ? 'bg-red-200 text-red-700'
-                          : 'bg-yellow-200 text-yellow-700'
-                      }`}>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          severity === 'error'
+                            ? 'bg-red-200 text-red-700'
+                            : 'bg-yellow-200 text-yellow-700'
+                        }`}
+                      >
                         Row {error.rowNumber}
                       </span>
                     )}
                   </div>
-                  
+
                   {error.details && (
-                    <p className={`text-sm mb-2 ${
-                      severity === 'error' ? 'text-red-600' : 'text-yellow-600'
-                    }`}>
+                    <p
+                      className={`text-sm mb-2 ${
+                        severity === 'error' ? 'text-red-600' : 'text-yellow-600'
+                      }`}
+                    >
                       {error.details}
                     </p>
                   )}
-                  
+
                   {error.suggestions && error.suggestions.length > 0 && (
                     <div className="mt-2">
-                      <p className={`text-xs font-medium mb-1 ${
-                        severity === 'error' ? 'text-red-700' : 'text-yellow-700'
-                      }`}>
+                      <p
+                        className={`text-xs font-medium mb-1 ${
+                          severity === 'error' ? 'text-red-700' : 'text-yellow-700'
+                        }`}
+                      >
                         Suggestions:
                       </p>
-                      <ul className={`text-xs space-y-1 ${
-                        severity === 'error' ? 'text-red-600' : 'text-yellow-600'
-                      }`}>
+                      <ul
+                        className={`text-xs space-y-1 ${
+                          severity === 'error' ? 'text-red-600' : 'text-yellow-600'
+                        }`}
+                      >
                         {error.suggestions.slice(0, 3).map((suggestion, i) => (
                           <li key={i} className="flex items-start gap-1">
                             <span>•</span>
@@ -175,10 +201,7 @@ export default function ImportErrorModal({
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -240,9 +263,8 @@ export default function ImportErrorModal({
                       )}
                       Critical Errors (Import Blocked)
                     </button>
-                    {expandedSections.has('critical') && (
-                      renderErrorList(criticalErrors, '', 'error')
-                    )}
+                    {expandedSections.has('critical') &&
+                      renderErrorList(criticalErrors, '', 'error')}
                   </div>
                 )}
 
@@ -260,9 +282,8 @@ export default function ImportErrorModal({
                       )}
                       Minor Issues (Can be skipped)
                     </button>
-                    {expandedSections.has('recoverable') && (
-                      renderErrorList(recoverableErrors, '', 'error')
-                    )}
+                    {expandedSections.has('recoverable') &&
+                      renderErrorList(recoverableErrors, '', 'error')}
                   </div>
                 )}
 
@@ -296,7 +317,7 @@ export default function ImportErrorModal({
                   </p>
                 </div>
 
-                {recoveryContext?.recoveryOptions?.map((option, index) => (
+                {recoveryContext?.recoveryOptions?.map((option, _index) => (
                   <div
                     key={option.id}
                     className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
@@ -304,14 +325,18 @@ export default function ImportErrorModal({
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          {option.action === 'retry' && <RotateCcw className="w-4 h-4 text-blue-500" />}
-                          {option.action === 'export' && <Download className="w-4 h-4 text-green-500" />}
-                          {option.action === 'modify' && <Edit className="w-4 h-4 text-orange-500" />}
+                          {option.action === 'retry' && (
+                            <RotateCcw className="w-4 h-4 text-blue-500" />
+                          )}
+                          {option.action === 'export' && (
+                            <Download className="w-4 h-4 text-green-500" />
+                          )}
+                          {option.action === 'modify' && (
+                            <Edit className="w-4 h-4 text-orange-500" />
+                          )}
                           <h4 className="font-medium text-gray-900">{option.label}</h4>
                         </div>
-                        <p className="text-sm text-gray-600 mb-3">
-                          {option.description}
-                        </p>
+                        <p className="text-sm text-gray-600 mb-3">{option.description}</p>
                       </div>
                       <button
                         onClick={() => handleRecoveryAction(option)}
@@ -319,8 +344,8 @@ export default function ImportErrorModal({
                           option.action === 'retry'
                             ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                             : option.action === 'export'
-                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                            : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                              : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
                         }`}
                       >
                         {option.action === 'retry' && 'Try This'}
@@ -349,13 +374,15 @@ export default function ImportErrorModal({
             </button>
             {hasRecoveryOptions && criticalErrors.length === 0 && (
               <button
-                onClick={() => handleRecoveryAction({ 
-                  id: 'skip-invalid', 
-                  label: '', 
-                  description: '', 
-                  action: 'retry',
-                  data: { skipInvalidRows: true, allowPartialImport: true }
-                })}
+                onClick={() =>
+                  handleRecoveryAction({
+                    id: 'skip-invalid',
+                    label: '',
+                    description: '',
+                    action: 'retry',
+                    data: { skipInvalidRows: true, allowPartialImport: true },
+                  })
+                }
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Import Valid Rows
