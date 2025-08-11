@@ -21,7 +21,7 @@ export const createTaxScenario = (
   title: string,
   description: string,
   steps: Array<{ description: string; amount?: string; value?: string; note?: string }>,
-  taxImplication: TaxEventType,
+  taxImplication: string, // TaxEventType - temporary fix for no-undef
   outcome: string,
 ) => ({
   title,

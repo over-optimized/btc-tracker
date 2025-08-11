@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: Replace 'any' types with proper CSV row interfaces for each exchange format
+// This file handles dynamic CSV data from multiple exchange formats
+
 import { Transaction } from '../types/Transaction';
 import { generateStableTransactionId, type TransactionData } from './generateTransactionId';
 
@@ -67,18 +71,11 @@ export const enhancedExchangeParsers = {
     );
 
     const btcAmount = parseFloat(
-      row['Quantity Transacted'] || 
-      row['Amount'] || 
-      row['Amount (BTC)'] ||
-      row['Size'] ||
-      0,
+      row['Quantity Transacted'] || row['Amount'] || row['Amount (BTC)'] || row['Size'] || 0,
     );
 
     const price = parseFloat(
-      row['USD Spot Price at Transaction'] ||
-        row['Price'] ||
-        row['Spot Price at Transaction'] ||
-        0,
+      row['USD Spot Price at Transaction'] || row['Price'] || row['Spot Price at Transaction'] || 0,
     );
 
     // Try to get reference/hash from various possible fields
@@ -109,7 +106,7 @@ export const enhancedExchangeParsers = {
 
     const transactionType = row['type'] || row['Type'];
     const date = parseDate(row['time'] || row['date'] || row['Date']);
-    
+
     // For trades, check if it's Bitcoin-related
     if (transactionType === 'trade') {
       const pair = row['pair'] || '';
@@ -203,11 +200,14 @@ export function detectExchangeFormat(headers: string[]): string {
   }
 
   // Coinbase detection
-  if (headerStr.includes('timestamp') && (headerStr.includes('transaction type') || headerStr.includes('quantity transacted'))) {
+  if (
+    headerStr.includes('timestamp') &&
+    (headerStr.includes('transaction type') || headerStr.includes('quantity transacted'))
+  ) {
     return 'coinbase';
   }
 
-  // Kraken detection  
+  // Kraken detection
   if (headerStr.includes('txid') || (headerStr.includes('type') && headerStr.includes('pair'))) {
     return 'kraken';
   }
@@ -219,24 +219,21 @@ export function detectExchangeFormat(headers: string[]): string {
 /**
  * Parse all rows from a CSV file using enhanced parsers
  */
-export function parseAllTransactions(
-  rows: any[], 
-  exchangeType: string
-): RawTransactionData[] {
+export function parseAllTransactions(rows: any[], exchangeType: string): RawTransactionData[] {
   const parser = enhancedExchangeParsers[exchangeType as keyof typeof enhancedExchangeParsers];
-  
+
   if (!parser) {
     return rows.map((row, index) => enhancedExchangeParsers.generic(row, index));
   }
 
   const results: RawTransactionData[] = [];
-  
+
   for (let i = 0; i < rows.length; i++) {
     const result = parser(rows[i], i);
     if (result) {
       results.push(result);
     }
   }
-  
+
   return results;
 }

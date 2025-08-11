@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: Replace 'any' types with proper error recovery and context interfaces
+// Dynamic error handling needs careful type analysis
+
 import {
   ImportError,
   ImportErrorType,

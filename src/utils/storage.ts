@@ -102,6 +102,7 @@ function deduplicateAndMigrate(transactions: Transaction[]): {
   removedCount: number;
 } {
   // Import here to avoid circular dependency
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { generateStableTransactionId } = require('./generateTransactionId');
 
   const txMap = new Map<string, Transaction>();

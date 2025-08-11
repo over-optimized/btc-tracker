@@ -1,11 +1,15 @@
-import { 
-  UnclassifiedTransaction, 
-  TransactionClassification, 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: Replace 'any' types with proper TypeScript interfaces for CSV data and classification logic
+// This file handles dynamic CSV parsing and needs careful type analysis
+
+import {
+  UnclassifiedTransaction,
+  TransactionClassification,
   TransactionClassificationResult,
   ClassificationDecision,
   TRANSACTION_TYPE_PATTERNS,
   AMOUNT_PATTERN_HEURISTICS,
-  ClassificationPrompt
+  ClassificationPrompt,
 } from '../types/TransactionClassification';
 import { Transaction } from '../types/Transaction';
 import { generateStableTransactionId } from './generateTransactionId';
@@ -14,10 +18,12 @@ export class TransactionClassifier {
   /**
    * Classify raw transaction data from CSV parsing
    */
-  classifyTransactions(rawTransactions: Array<{
-    rawData: any;
-    exchange: string;
-  }>): TransactionClassificationResult {
+  classifyTransactions(
+    rawTransactions: Array<{
+      rawData: any;
+      exchange: string;
+    }>,
+  ): TransactionClassificationResult {
     const classified: Transaction[] = [];
     const needsClassification: UnclassifiedTransaction[] = [];
     const skipped: UnclassifiedTransaction[] = [];
@@ -26,7 +32,7 @@ export class TransactionClassifier {
     for (const rawTx of rawTransactions) {
       try {
         const unclassified = this.parseRawTransaction(rawTx.rawData, rawTx.exchange);
-        
+
         if (!unclassified) {
           // Skip invalid transactions
           continue;
@@ -34,14 +40,14 @@ export class TransactionClassifier {
 
         // Try automatic classification
         const autoClassification = this.attemptAutoClassification(unclassified);
-        
+
         if (autoClassification.confidence >= 0.9) {
           // High confidence - auto-classify
           const transaction = this.applyClassification(unclassified, {
             transactionId: unclassified.id,
             classification: autoClassification.classification,
           });
-          
+
           if (transaction) {
             classified.push(transaction);
           }
@@ -117,34 +123,42 @@ export class TransactionClassifier {
   } {
     const type = tx.detectedType.toLowerCase();
     const amount = Math.abs(tx.btcAmount);
-    
+
     // High confidence purchases
     if (this.matchesPatterns(type, TRANSACTION_TYPE_PATTERNS.purchases) && tx.btcAmount > 0) {
       return {
         classification: TransactionClassification.PURCHASE,
         confidence: 0.95,
-        reason: `Transaction type "${tx.detectedType}" matches purchase patterns`
+        reason: `Transaction type "${tx.detectedType}" matches purchase patterns`,
       };
     }
 
     // High confidence sales (negative BTC, positive USD)
-    if (this.matchesPatterns(type, TRANSACTION_TYPE_PATTERNS.sales) && tx.btcAmount < 0 && tx.usdAmount > 0) {
+    if (
+      this.matchesPatterns(type, TRANSACTION_TYPE_PATTERNS.sales) &&
+      tx.btcAmount < 0 &&
+      tx.usdAmount > 0
+    ) {
       return {
         classification: TransactionClassification.SALE,
         confidence: 0.9,
-        reason: `Transaction type "${tx.detectedType}" matches sale patterns with USD proceeds`
+        reason: `Transaction type "${tx.detectedType}" matches sale patterns with USD proceeds`,
       };
     }
 
     // High confidence withdrawals (negative BTC, no/minimal USD)
-    if (this.matchesPatterns(type, TRANSACTION_TYPE_PATTERNS.withdrawals) && tx.btcAmount < 0 && tx.usdAmount <= 0) {
+    if (
+      this.matchesPatterns(type, TRANSACTION_TYPE_PATTERNS.withdrawals) &&
+      tx.btcAmount < 0 &&
+      tx.usdAmount <= 0
+    ) {
       // Check if amount matches common self-custody patterns
       const isSelfCustodyAmount = this.isCommonSelfCustodyAmount(amount);
-      
+
       return {
         classification: TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
         confidence: isSelfCustodyAmount ? 0.85 : 0.7,
-        reason: `Withdrawal pattern detected${isSelfCustodyAmount ? ' with common self-custody amount' : ''}`
+        reason: `Withdrawal pattern detected${isSelfCustodyAmount ? ' with common self-custody amount' : ''}`,
       };
     }
 
@@ -153,7 +167,7 @@ export class TransactionClassifier {
       return {
         classification: TransactionClassification.EXCHANGE_TRANSFER,
         confidence: 0.6,
-        reason: `Transaction type "${tx.detectedType}" suggests transfer between platforms`
+        reason: `Transaction type "${tx.detectedType}" suggests transfer between platforms`,
       };
     }
 
@@ -161,7 +175,7 @@ export class TransactionClassifier {
     return {
       classification: TransactionClassification.OTHER,
       confidence: 0.1,
-      reason: `Unable to automatically classify transaction type "${tx.detectedType}"`
+      reason: `Unable to automatically classify transaction type "${tx.detectedType}"`,
     };
   }
 
@@ -169,8 +183,8 @@ export class TransactionClassifier {
    * Apply user classification decision to create final transaction
    */
   applyClassification(
-    unclassified: UnclassifiedTransaction, 
-    decision: ClassificationDecision
+    unclassified: UnclassifiedTransaction,
+    decision: ClassificationDecision,
   ): Transaction | null {
     const baseTransaction = {
       id: unclassified.id,
@@ -229,21 +243,21 @@ export class TransactionClassifier {
    * Generate classification prompts for user
    */
   generateClassificationPrompts(
-    needsClassification: UnclassifiedTransaction[]
+    needsClassification: UnclassifiedTransaction[],
   ): ClassificationPrompt[] {
     const prompts: ClassificationPrompt[] = [];
 
     // Group by transaction type patterns
-    const withdrawals = needsClassification.filter(tx => 
-      this.matchesPatterns(tx.detectedType.toLowerCase(), TRANSACTION_TYPE_PATTERNS.withdrawals)
+    const withdrawals = needsClassification.filter((tx) =>
+      this.matchesPatterns(tx.detectedType.toLowerCase(), TRANSACTION_TYPE_PATTERNS.withdrawals),
     );
 
-    const sales = needsClassification.filter(tx => 
-      this.matchesPatterns(tx.detectedType.toLowerCase(), TRANSACTION_TYPE_PATTERNS.sales)
+    const sales = needsClassification.filter((tx) =>
+      this.matchesPatterns(tx.detectedType.toLowerCase(), TRANSACTION_TYPE_PATTERNS.sales),
     );
 
-    const unknown = needsClassification.filter(tx => 
-      !withdrawals.includes(tx) && !sales.includes(tx)
+    const unknown = needsClassification.filter(
+      (tx) => !withdrawals.includes(tx) && !sales.includes(tx),
     );
 
     // Withdrawal prompt
@@ -256,13 +270,13 @@ export class TransactionClassifier {
           {
             label: 'Mark All as Self-Custody',
             classification: TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
-            condition: (tx) => this.isCommonSelfCustodyAmount(Math.abs(tx.btcAmount))
+            condition: (tx) => this.isCommonSelfCustodyAmount(Math.abs(tx.btcAmount)),
           },
           {
             label: 'Mark All as Exchange Transfers',
             classification: TransactionClassification.EXCHANGE_TRANSFER,
-          }
-        ]
+          },
+        ],
       });
     }
 
@@ -276,8 +290,8 @@ export class TransactionClassifier {
           {
             label: 'Mark All as Sales',
             classification: TransactionClassification.SALE,
-          }
-        ]
+          },
+        ],
       });
     }
 
@@ -296,7 +310,7 @@ export class TransactionClassifier {
   // Helper methods
   private parseDate(rawData: any): Date | null {
     const dateFields = ['Date & Time (UTC)', 'Timestamp', 'Date', 'date', 'time', 'Time'];
-    
+
     for (const field of dateFields) {
       if (rawData[field]) {
         const date = new Date(rawData[field]);
@@ -305,21 +319,31 @@ export class TransactionClassifier {
         }
       }
     }
-    
+
     return null;
   }
 
   private extractTransactionType(rawData: any): string {
-    return rawData['Transaction Type'] || 
-           rawData['Type'] || 
-           rawData['type'] || 
-           rawData['Action'] || 
-           'Unknown';
+    return (
+      rawData['Transaction Type'] ||
+      rawData['Type'] ||
+      rawData['type'] ||
+      rawData['Action'] ||
+      'Unknown'
+    );
   }
 
   private extractBtcAmount(rawData: any): number {
-    const btcFields = ['Amount BTC', 'Amount (BTC)', 'BTC Amount', 'Volume', 'vol', 'Quantity', 'Bitcoin'];
-    
+    const btcFields = [
+      'Amount BTC',
+      'Amount (BTC)',
+      'BTC Amount',
+      'Volume',
+      'vol',
+      'Quantity',
+      'Bitcoin',
+    ];
+
     for (const field of btcFields) {
       if (rawData[field]) {
         const amount = parseFloat(rawData[field]);
@@ -328,13 +352,21 @@ export class TransactionClassifier {
         }
       }
     }
-    
+
     return 0;
   }
 
   private extractUsdAmount(rawData: any): number {
-    const usdFields = ['Amount USD', 'Amount (USD)', 'USD Amount', 'Total', 'Cost', 'Value', 'Subtotal'];
-    
+    const usdFields = [
+      'Amount USD',
+      'Amount (USD)',
+      'USD Amount',
+      'Total',
+      'Cost',
+      'Value',
+      'Subtotal',
+    ];
+
     for (const field of usdFields) {
       if (rawData[field]) {
         const amount = parseFloat(rawData[field]);
@@ -343,13 +375,13 @@ export class TransactionClassifier {
         }
       }
     }
-    
+
     return 0;
   }
 
   private extractPrice(rawData: any, btcAmount: number, usdAmount: number): number | undefined {
     const priceFields = ['BTC Price', 'Price', 'Rate', 'Exchange Rate', 'Unit Price'];
-    
+
     for (const field of priceFields) {
       if (rawData[field]) {
         const price = parseFloat(rawData[field]);
@@ -358,47 +390,49 @@ export class TransactionClassifier {
         }
       }
     }
-    
+
     // Calculate price from amounts if available
     if (btcAmount !== 0 && usdAmount > 0) {
       return usdAmount / Math.abs(btcAmount);
     }
-    
+
     return undefined;
   }
 
   private extractDestinationAddress(rawData: any): string | undefined {
     const addressFields = ['Address', 'Destination', 'To Address', 'Recipient', 'To'];
-    
+
     for (const field of addressFields) {
       if (rawData[field] && typeof rawData[field] === 'string') {
         return rawData[field];
       }
     }
-    
+
     return undefined;
   }
 
   private extractTxHash(rawData: any): string | undefined {
     const hashFields = ['Transaction Hash', 'Hash', 'TX Hash', 'TXID', 'Transaction ID'];
-    
+
     for (const field of hashFields) {
       if (rawData[field] && typeof rawData[field] === 'string') {
         return rawData[field];
       }
     }
-    
+
     return undefined;
   }
 
   private matchesPatterns(text: string, patterns: string[]): boolean {
     const lowerText = text.toLowerCase();
-    return patterns.some(pattern => lowerText.includes(pattern.toLowerCase()));
+    return patterns.some((pattern) => lowerText.includes(pattern.toLowerCase()));
   }
 
   private isCommonSelfCustodyAmount(btcAmount: number): boolean {
-    return AMOUNT_PATTERN_HEURISTICS.selfCustodyAmounts.some(commonAmount => 
-      Math.abs(btcAmount - commonAmount) <= commonAmount * AMOUNT_PATTERN_HEURISTICS.amountTolerance
+    return AMOUNT_PATTERN_HEURISTICS.selfCustodyAmounts.some(
+      (commonAmount) =>
+        Math.abs(btcAmount - commonAmount) <=
+        commonAmount * AMOUNT_PATTERN_HEURISTICS.amountTolerance,
     );
   }
 }

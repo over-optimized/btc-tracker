@@ -3,6 +3,10 @@
  * and their cost basis for tax calculations
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: Replace 'any' types with proper tax lot and disposal interfaces
+// Complex tax calculations need careful type analysis
+
 import {
   DisposalEvent,
   HoldingPeriod,
