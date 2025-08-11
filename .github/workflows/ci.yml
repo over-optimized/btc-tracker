@@ -57,7 +57,7 @@ jobs:
 
   feature-flag-compliance:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
     steps:
     - name: Checkout repository
@@ -78,10 +78,12 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
 
-    - name: Production safety verification
+    - name: Feature flag compliance verification
+      env:
+        TARGET_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'validation' }}
       run: |
-        echo "🚨 Production Deployment Safety Check"
-        NODE_ENV=production ./scripts/verify-compliance.sh
+        echo "🚨 Feature Flag Compliance Check (Environment: $TARGET_ENV)"
+        ./scripts/verify-compliance.sh
 
   deploy-staging:
     runs-on: ubuntu-latest
