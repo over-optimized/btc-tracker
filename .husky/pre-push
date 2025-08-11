@@ -1,1 +1,1 @@
-pnpm test:coverage && pnpm build
+pnpm test && pnpm build
