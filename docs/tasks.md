@@ -53,6 +53,31 @@ Tasks are organized by priority and feature area. Each task includes:
 
 **Enhanced UX Total**: 26 points **COMPLETED** | **Impact**: Professional appearance with dark mode! 🌙
 
+## 🎓 PHASE 0.5: User Education & Enhanced UX (HIGH Priority - March 2025)
+**Goal: Transform app into educational Bitcoin tax tool with comprehensive user guidance**
+
+| Task | Status | Priority | Estimate | Dependencies | Notes |
+|------|--------|----------|----------|--------------|-------|
+| ✅ Research and document all user decision points in existing modals | completed | high | 3 | none | **COMPLETED** - Comprehensive audit created |
+| Update docs/tasks.md with new User Education milestone | in_progress | high | 1 | Research complete | Adding this phase to task management |
+| Design expanded transaction classification enum with Lightning/P2P scenarios | todo | critical | 5 | Documentation complete | Gift, payment, reimbursement classifications |
+| Create educational component system (InfoTooltip, TaxEducationPanel, etc.) | todo | high | 8 | Classification design | Reusable educational framework |
+| Enhance TransactionClassificationModal with educational tooltips and examples | todo | critical | 8 | Component system | Address Lightning transaction scenarios |
+| Implement startup data validation and user-friendly reset workflows | todo | high | 5 | none | Pre-alpha data handling with export options |
+| Update CLAUDE.md with new user education standards and development guidelines | todo | medium | 3 | Modal enhancements | Development standards for future features |
+| Create comprehensive tax education hub (/tax-education route) | todo | medium | 8 | Educational components | Dedicated learning section |
+| Enhance landing page with clear US tax focus and educational positioning | todo | medium | 3 | Tax education hub | Clear value proposition |
+| Apply educational framework to all existing modals (TaxConfig, AddWithdrawal, etc.) | todo | medium | 5 | Component system | Universal educational experience |
+
+**Phase 0.5 Total**: 49 points (3 completed, 46 remaining) | **Target**: 3-4 weeks | **Impact**: Educational Bitcoin tax compliance tool
+
+**Educational Focus Areas:**
+- **Lightning & P2P Scenarios**: Gift transactions, payment splits, reimbursements
+- **Tax Implications**: Clear indicators for taxable income vs disposal vs non-taxable events  
+- **US Tax Jurisdiction**: Explicit focus on US tax law and compliance
+- **User Guidance**: Transform every decision point into educational opportunity
+- **Pre-Alpha Data Handling**: User-friendly data reset and migration workflows
+
 ## 🚀 PHASE 1: Alpha Infrastructure (HIGH Priority - March 2025)
 **Goal: Deploy feature-complete app with multi-user support on free tiers**
 

@@ -744,6 +744,7 @@ cat CHANGELOG.md
 - **Data Integrity**: Zero data loss with automatic backup and migration systems
 - **Type Safety**: Full TypeScript coverage with strict mode enabled
 - **Testing Excellence**: >80% overall coverage, >90% for critical business logic
+- **Educational First**: Every user decision point becomes an opportunity for Bitcoin tax education
 
 ### Key Architectural Decisions
 
@@ -814,3 +815,62 @@ The application includes all essential Bitcoin DCA tracking features and is tran
 - Monitor unit economics and optimize before tier upgrades
 
 This approach demonstrates modern full-stack development with React frontend and Supabase backend, emphasizing cost-effective scaling, security-first design, and user-focused financial data management.
+
+## User Education Standards
+
+### Mandatory UX Review for All Features
+When adding/modifying any user-facing feature, ALWAYS consider:
+
+1. **Decision Clarity**: Can users understand what each option means?
+2. **Tax Implications**: Are tax consequences clearly explained?
+3. **Educational Opportunities**: Can we teach users about Bitcoin/tax concepts?
+4. **Error Prevention**: What mistakes might users make here?
+5. **US Tax Focus**: Is US jurisdiction clearly indicated?
+
+### Pre-Alpha Data Handling
+- Breaking changes to data schemas are acceptable
+- Always provide export options before data resets
+- Clear messaging about pre-alpha data reliability expectations
+- Build towards future backwards compatibility
+
+### Educational Component Requirements
+- All modals with user decisions MUST include educational tooltips
+- Tax-related features MUST include tax implication warnings
+- Complex features MUST include "Learn More" sections
+- All financial calculations MUST include educational context
+
+### Testing Requirements for Educational Features
+- Test scenarios must include "confused user" workflows
+- Educational content must be verified by tax research
+- Tooltips and help sections require comprehensive content testing
+- UI components must work with educational framework integration
+
+### Lightning Network & P2P Transaction Standards
+- All transaction types must be covered: gifts, payments, reimbursements, mining/staking
+- Tax implications must be clearly explained for each scenario
+- Real-world examples must be provided for user guidance
+- Common mistakes must be addressed with warnings
+
+### US Tax Compliance Focus
+- All tax calculations assume US tax law compliance
+- Clear jurisdiction notices must be included
+- International users must receive appropriate guidance
+- Professional disclaimers required for tax-related features
+
+### Educational Component System
+The app includes a comprehensive educational framework in `src/components/educational/`:
+
+- **InfoTooltip**: Hover/click explanations with tax implications
+- **TaxImplicationIndicator**: Visual indicators for taxable income, disposal, non-taxable events
+- **TaxEducationPanel**: Expandable educational content with examples and warnings
+- **ScenarioExample**: Real-world use case demonstrations with tax calculations
+- **USJurisdictionNotice**: Clear US tax law focus messaging
+
+### Data Validation & Migration System
+Pre-alpha status allows breaking changes with user-friendly workflows:
+
+- **Startup Validation**: Automatic data compatibility checking on app launch
+- **Export-Before-Reset**: User can backup data before schema changes
+- **Migration Support**: Automatic data migration when possible
+- **Clear Communication**: Pre-alpha status and data reset expectations clearly communicated
+- **Recovery Options**: Multiple pathways for users to handle data incompatibility
