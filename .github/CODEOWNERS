@@ -1,0 +1,29 @@
+# CODEOWNERS - Define reviewers for repository sections
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global ownership - maintainer reviews all changes
+* @over-optimized
+
+# Critical infrastructure files require maintainer review
+/.github/ @over-optimized
+/scripts/ @over-optimized
+/docs/ @over-optimized
+/.husky/ @over-optimized
+*.md @over-optimized
+*.json @over-optimized
+*.js @over-optimized
+*.ts @over-optimized
+
+# Configuration files
+/.env* @over-optimized
+/vite.config.ts @over-optimized
+/vitest.config.ts @over-optimized
+/tailwind.config.js @over-optimized
+/eslint.config.js @over-optimized
+/tsconfig.json @over-optimized
+
+# Source code - ensure all changes go through maintainer
+/src/ @over-optimized
+
+# Deployment and CI/CD
+/vercel.json @over-optimized
