@@ -1,6 +1,7 @@
 import React from 'react';
 import { User, ArrowRight, Calculator, AlertCircle } from 'lucide-react';
 import TaxImplicationIndicator, { TaxEventType } from './TaxImplicationIndicator';
+import { HighRiskFeature } from '../FeatureFlag';
 
 export interface ScenarioStep {
   description: string;
@@ -27,6 +28,50 @@ export interface ScenarioExampleProps {
 }
 
 export const ScenarioExample: React.FC<ScenarioExampleProps> = ({
+  title,
+  description,
+  persona,
+  steps,
+  taxImplication,
+  taxCalculation,
+  outcome,
+  variant = 'default',
+  className = '',
+}) => {
+  // Wrap the entire component in a feature flag for tax education
+  return (
+    <HighRiskFeature
+      feature="taxEducation"
+      fallback={
+        <div
+          className={`p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg ${className}`}
+        >
+          <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
+            Tax scenario examples available in development mode only.
+            <br />
+            <span className="text-xs">
+              Educational scenarios require legal review before production deployment.
+            </span>
+          </div>
+        </div>
+      }
+    >
+      <ScenarioExampleContent
+        title={title}
+        description={description}
+        persona={persona}
+        steps={steps}
+        taxImplication={taxImplication}
+        taxCalculation={taxCalculation}
+        outcome={outcome}
+        variant={variant}
+        className={className}
+      />
+    </HighRiskFeature>
+  );
+};
+
+const ScenarioExampleContent: React.FC<ScenarioExampleProps> = ({
   title,
   description,
   persona,
