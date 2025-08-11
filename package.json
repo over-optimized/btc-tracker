@@ -22,7 +22,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@10.14.0",
   "dependencies": {
     "lucide-react": "^0.536.0",

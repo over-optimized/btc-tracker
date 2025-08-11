@@ -1,6 +1,12 @@
 # Bitcoin DCA Tracker
 
-A comprehensive web application for tracking your Bitcoin Dollar Cost Averaging (DCA) strategy across multiple exchanges. Features intelligent transaction classification, professional tax reporting, and self-custody tracking with milestone recommendations.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Actions](https://github.com/over-optimized/btc-tracker/workflows/CI/badge.svg)](https://github.com/over-optimized/btc-tracker/actions)
+[![Open Source](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
+
+An **open source** comprehensive web application for tracking your Bitcoin Dollar Cost Averaging (DCA) strategy across multiple exchanges. Features intelligent transaction classification, professional tax reporting, and self-custody tracking with milestone recommendations.
+
+**🎯 Mission**: Provide free, open source tools to help Bitcoin investors track their DCA strategies and understand tax implications through mathematical calculations (not tax advice).
 
 ![Dashboard Preview](https://via.placeholder.com/800x400/f97316/ffffff?text=Bitcoin+DCA+Tracker+Dashboard)
 
@@ -115,7 +121,15 @@ pnpm ci                 # Full: lint + coverage + build
 - Custom hooks (`src/hooks/`): 85% minimum  
 - Tax utilities (`src/utils/tax*`): 95% minimum
 
-### Contributing
+### 🤝 Contributing to Open Source
+
+**This is an open source project and contributions are welcome!** Whether you're:
+- A Bitcoin DCA investor with feature ideas
+- A developer who wants to improve cryptocurrency tools
+- A tax professional with compliance insights
+- Someone who found a bug or wants to improve documentation
+
+#### How to Contribute
 
 1. **Fork and Setup**: Fork the repo and create a feature branch
 2. **Development**: Follow the coding standards detailed in [CLAUDE.md](CLAUDE.md)
@@ -126,8 +140,17 @@ pnpm ci                 # Full: lint + coverage + build
 4. **Quality Gates**: Ensure all checks pass
    - Run `pnpm quality` for fast lint + coverage check
    - Run `pnpm ci` for full validation pipeline
-5. **Documentation**: Update relevant docs (see checklist below)
-6. **Submit**: Create pull request with clear description
+5. **Legal Compliance**: For tax-related features, review [legal compliance documentation](docs/legal-compliance-plan.md)
+6. **Documentation**: Update relevant docs (see checklist below)
+7. **Submit**: Create pull request with clear description
+
+#### Types of Contributions Welcome
+- 🐛 **Bug fixes** and performance improvements
+- ✨ **New exchange support** (add your favorite exchange's CSV parser)
+- 📊 **Analytics features** and portfolio insights  
+- 🧪 **Testing** improvements and coverage increases
+- 📚 **Documentation** improvements and translations
+- 🎨 **UI/UX** improvements and accessibility enhancements
 
 #### Documentation Checklist
 
