@@ -10,7 +10,7 @@ import { DisposalEvent, HoldingPeriod, TaxEventType } from '../../types/TaxTypes
 
 describe('TaxLotManager', () => {
   let manager: TaxLotManager;
-  
+
   beforeEach(() => {
     manager = new TaxLotManager();
   });
@@ -71,12 +71,36 @@ describe('TaxLotManager', () => {
     beforeEach(() => {
       // Add some test lots
       const transactions = [
-        { id: 'tx-1', date: new Date('2024-01-15'), exchange: 'Strike', type: 'Purchase', usdAmount: 1000, btcAmount: 0.02, price: 50000 },
-        { id: 'tx-2', date: new Date('2024-01-16'), exchange: 'Coinbase', type: 'Buy', usdAmount: 2000, btcAmount: 0.04, price: 50000 },
-        { id: 'tx-3', date: new Date('2024-01-17'), exchange: 'Kraken', type: 'Trade', usdAmount: 3000, btcAmount: 0.06, price: 50000 },
+        {
+          id: 'tx-1',
+          date: new Date('2024-01-15'),
+          exchange: 'Strike',
+          type: 'Purchase',
+          usdAmount: 1000,
+          btcAmount: 0.02,
+          price: 50000,
+        },
+        {
+          id: 'tx-2',
+          date: new Date('2024-01-16'),
+          exchange: 'Coinbase',
+          type: 'Buy',
+          usdAmount: 2000,
+          btcAmount: 0.04,
+          price: 50000,
+        },
+        {
+          id: 'tx-3',
+          date: new Date('2024-01-17'),
+          exchange: 'Kraken',
+          type: 'Trade',
+          usdAmount: 3000,
+          btcAmount: 0.06,
+          price: 50000,
+        },
       ];
 
-      transactions.forEach(tx => manager.addAcquisition(tx as Transaction));
+      transactions.forEach((tx) => manager.addAcquisition(tx as Transaction));
     });
 
     it('should return all lots', () => {
@@ -90,9 +114,9 @@ describe('TaxLotManager', () => {
     it('should return remaining lots only', () => {
       const remainingLots = manager.getRemainingLots();
       expect(remainingLots).toHaveLength(3);
-      
+
       // All lots should have remaining > 0 initially
-      remainingLots.forEach(lot => {
+      remainingLots.forEach((lot) => {
         expect(lot.remaining).toBeGreaterThan(0);
       });
     });
@@ -117,12 +141,36 @@ describe('TaxLotManager', () => {
     beforeEach(() => {
       // Add lots with different dates for FIFO testing
       const transactions = [
-        { id: 'tx-1', date: new Date('2024-01-15'), exchange: 'Strike', type: 'Purchase', usdAmount: 1000, btcAmount: 0.02, price: 50000 },
-        { id: 'tx-2', date: new Date('2024-02-15'), exchange: 'Coinbase', type: 'Buy', usdAmount: 2000, btcAmount: 0.04, price: 50000 },
-        { id: 'tx-3', date: new Date('2024-03-15'), exchange: 'Kraken', type: 'Trade', usdAmount: 3000, btcAmount: 0.06, price: 50000 },
+        {
+          id: 'tx-1',
+          date: new Date('2024-01-15'),
+          exchange: 'Strike',
+          type: 'Purchase',
+          usdAmount: 1000,
+          btcAmount: 0.02,
+          price: 50000,
+        },
+        {
+          id: 'tx-2',
+          date: new Date('2024-02-15'),
+          exchange: 'Coinbase',
+          type: 'Buy',
+          usdAmount: 2000,
+          btcAmount: 0.04,
+          price: 50000,
+        },
+        {
+          id: 'tx-3',
+          date: new Date('2024-03-15'),
+          exchange: 'Kraken',
+          type: 'Trade',
+          usdAmount: 3000,
+          btcAmount: 0.06,
+          price: 50000,
+        },
       ];
 
-      transactions.forEach(tx => manager.addAcquisition(tx as Transaction));
+      transactions.forEach((tx) => manager.addAcquisition(tx as Transaction));
     });
 
     it('should process FIFO disposal using oldest lots first', () => {
@@ -165,10 +213,10 @@ describe('TaxLotManager', () => {
       expect(disposalEvent.disposedLots).toHaveLength(1);
       expect(disposalEvent.disposedLots![0].btcAmount).toBe(0.01);
       expect(disposalEvent.costBasis).toBe(500); // Proportional: (0.01/0.02) * 1000
-      
+
       // Check remaining balance in first lot
       const remainingLots = manager.getRemainingLots();
-      const firstLot = remainingLots.find(lot => lot.id === 'lot-1');
+      const firstLot = remainingLots.find((lot) => lot.id === 'lot-1');
       expect(firstLot?.remaining).toBe(0.01); // 0.02 - 0.01
     });
 
@@ -191,12 +239,36 @@ describe('TaxLotManager', () => {
   describe('LIFO Disposal Processing', () => {
     beforeEach(() => {
       const transactions = [
-        { id: 'tx-1', date: new Date('2024-01-15'), exchange: 'Strike', type: 'Purchase', usdAmount: 1000, btcAmount: 0.02, price: 50000 },
-        { id: 'tx-2', date: new Date('2024-02-15'), exchange: 'Coinbase', type: 'Buy', usdAmount: 2000, btcAmount: 0.04, price: 50000 },
-        { id: 'tx-3', date: new Date('2024-03-15'), exchange: 'Kraken', type: 'Trade', usdAmount: 3000, btcAmount: 0.06, price: 50000 },
+        {
+          id: 'tx-1',
+          date: new Date('2024-01-15'),
+          exchange: 'Strike',
+          type: 'Purchase',
+          usdAmount: 1000,
+          btcAmount: 0.02,
+          price: 50000,
+        },
+        {
+          id: 'tx-2',
+          date: new Date('2024-02-15'),
+          exchange: 'Coinbase',
+          type: 'Buy',
+          usdAmount: 2000,
+          btcAmount: 0.04,
+          price: 50000,
+        },
+        {
+          id: 'tx-3',
+          date: new Date('2024-03-15'),
+          exchange: 'Kraken',
+          type: 'Trade',
+          usdAmount: 3000,
+          btcAmount: 0.06,
+          price: 50000,
+        },
       ];
 
-      transactions.forEach(tx => manager.addAcquisition(tx as Transaction));
+      transactions.forEach((tx) => manager.addAcquisition(tx as Transaction));
     });
 
     it('should process LIFO disposal using newest lots first', () => {
@@ -211,7 +283,7 @@ describe('TaxLotManager', () => {
       const disposalEvent = manager.processDisposal(disposal, 'LIFO');
 
       expect(disposalEvent.disposedLots).toHaveLength(2);
-      
+
       // Should use newest lots first
       const disposedLots = disposalEvent.disposedLots!;
       expect(disposedLots[0].btcAmount).toBe(0.06); // Full third lot (newest)
@@ -227,12 +299,36 @@ describe('TaxLotManager', () => {
     beforeEach(() => {
       // Add lots with different prices for HIFO testing
       const transactions = [
-        { id: 'tx-1', date: new Date('2024-01-15'), exchange: 'Strike', type: 'Purchase', usdAmount: 1000, btcAmount: 0.02, price: 50000 },
-        { id: 'tx-2', date: new Date('2024-02-15'), exchange: 'Coinbase', type: 'Buy', usdAmount: 2200, btcAmount: 0.04, price: 55000 }, // Higher price
-        { id: 'tx-3', date: new Date('2024-03-15'), exchange: 'Kraken', type: 'Trade', usdAmount: 2700, btcAmount: 0.06, price: 45000 }, // Lower price
+        {
+          id: 'tx-1',
+          date: new Date('2024-01-15'),
+          exchange: 'Strike',
+          type: 'Purchase',
+          usdAmount: 1000,
+          btcAmount: 0.02,
+          price: 50000,
+        },
+        {
+          id: 'tx-2',
+          date: new Date('2024-02-15'),
+          exchange: 'Coinbase',
+          type: 'Buy',
+          usdAmount: 2200,
+          btcAmount: 0.04,
+          price: 55000,
+        }, // Higher price
+        {
+          id: 'tx-3',
+          date: new Date('2024-03-15'),
+          exchange: 'Kraken',
+          type: 'Trade',
+          usdAmount: 2700,
+          btcAmount: 0.06,
+          price: 45000,
+        }, // Lower price
       ];
 
-      transactions.forEach(tx => manager.addAcquisition(tx as Transaction));
+      transactions.forEach((tx) => manager.addAcquisition(tx as Transaction));
     });
 
     it('should process HIFO disposal using highest cost lots first', () => {
@@ -247,7 +343,7 @@ describe('TaxLotManager', () => {
       const disposalEvent = manager.processDisposal(disposal, 'HIFO');
 
       expect(disposalEvent.disposedLots).toHaveLength(2);
-      
+
       // Should use highest cost lots first (lot-2 at 55000, then lot-1 at 50000)
       const disposedLots = disposalEvent.disposedLots!;
       expect(disposedLots[0].btcAmount).toBe(0.04); // Full second lot (highest price)
@@ -269,7 +365,9 @@ describe('TaxLotManager', () => {
         totalProceeds: 600,
       };
 
-      expect(() => manager.processDisposal(disposal, 'FIFO')).toThrow('No lots available for disposal');
+      expect(() => manager.processDisposal(disposal, 'FIFO')).toThrow(
+        'No lots available for disposal',
+      );
     });
 
     it('should throw error when insufficient BTC available', () => {
@@ -282,7 +380,7 @@ describe('TaxLotManager', () => {
         btcAmount: 0.02,
         price: 50000,
       };
-      
+
       manager.addAcquisition(transaction);
 
       const disposal: DisposalEvent = {
@@ -308,9 +406,9 @@ describe('TaxLotManager', () => {
         btcAmount: 0.02,
         price: 50000,
       };
-      
+
       manager.addAcquisition(transaction);
-      
+
       const validation = manager.validate();
       expect(validation.isValid).toBe(true);
       expect(validation.errors).toHaveLength(0);
@@ -326,12 +424,12 @@ describe('TaxLotManager', () => {
         btcAmount: 0.02,
         price: 50000,
       };
-      
+
       const lot = manager.addAcquisition(transaction);
-      
+
       // Manually corrupt the lot for testing
       manager.updateLot(lot.id, { remaining: -0.01 });
-      
+
       const validation = manager.validate();
       expect(validation.isValid).toBe(false);
       expect(validation.errors).toHaveLength(1);
@@ -342,11 +440,27 @@ describe('TaxLotManager', () => {
   describe('Persistence', () => {
     it('should serialize and deserialize lots correctly', () => {
       const transactions = [
-        { id: 'tx-1', date: new Date('2024-01-15'), exchange: 'Strike', type: 'Purchase', usdAmount: 1000, btcAmount: 0.02, price: 50000 },
-        { id: 'tx-2', date: new Date('2024-02-15'), exchange: 'Coinbase', type: 'Buy', usdAmount: 2000, btcAmount: 0.04, price: 50000 },
+        {
+          id: 'tx-1',
+          date: new Date('2024-01-15'),
+          exchange: 'Strike',
+          type: 'Purchase',
+          usdAmount: 1000,
+          btcAmount: 0.02,
+          price: 50000,
+        },
+        {
+          id: 'tx-2',
+          date: new Date('2024-02-15'),
+          exchange: 'Coinbase',
+          type: 'Buy',
+          usdAmount: 2000,
+          btcAmount: 0.04,
+          price: 50000,
+        },
       ];
 
-      transactions.forEach(tx => manager.addAcquisition(tx as Transaction));
+      transactions.forEach((tx) => manager.addAcquisition(tx as Transaction));
 
       const serialized = manager.toJSON();
       const newManager = TaxLotManager.fromJSON(serialized);
@@ -358,10 +472,18 @@ describe('TaxLotManager', () => {
 
     it('should handle date deserialization correctly', () => {
       const transactions = [
-        { id: 'tx-1', date: new Date('2024-01-15'), exchange: 'Strike', type: 'Purchase', usdAmount: 1000, btcAmount: 0.02, price: 50000 },
+        {
+          id: 'tx-1',
+          date: new Date('2024-01-15'),
+          exchange: 'Strike',
+          type: 'Purchase',
+          usdAmount: 1000,
+          btcAmount: 0.02,
+          price: 50000,
+        },
       ];
 
-      transactions.forEach(tx => manager.addAcquisition(tx as Transaction));
+      transactions.forEach((tx) => manager.addAcquisition(tx as Transaction));
 
       const serialized = manager.toJSON();
       const newManager = TaxLotManager.fromJSON(serialized);
@@ -375,17 +497,33 @@ describe('TaxLotManager', () => {
   describe('Unrealized Gains', () => {
     beforeEach(() => {
       const transactions = [
-        { id: 'tx-1', date: new Date('2024-01-15'), exchange: 'Strike', type: 'Purchase', usdAmount: 1000, btcAmount: 0.02, price: 50000 },
-        { id: 'tx-2', date: new Date('2024-02-15'), exchange: 'Coinbase', type: 'Buy', usdAmount: 2000, btcAmount: 0.04, price: 50000 },
+        {
+          id: 'tx-1',
+          date: new Date('2024-01-15'),
+          exchange: 'Strike',
+          type: 'Purchase',
+          usdAmount: 1000,
+          btcAmount: 0.02,
+          price: 50000,
+        },
+        {
+          id: 'tx-2',
+          date: new Date('2024-02-15'),
+          exchange: 'Coinbase',
+          type: 'Buy',
+          usdAmount: 2000,
+          btcAmount: 0.04,
+          price: 50000,
+        },
       ];
 
-      transactions.forEach(tx => manager.addAcquisition(tx as Transaction));
+      transactions.forEach((tx) => manager.addAcquisition(tx as Transaction));
     });
 
     it('should calculate unrealized gains correctly', () => {
       const currentPrice = 60000; // 20% increase
       const unrealizedGains = manager.getUnrealizedGains(currentPrice);
-      
+
       // Current value: 0.06 * 60000 = 3600
       // Cost basis: 3000
       // Unrealized gains: 600
@@ -395,11 +533,41 @@ describe('TaxLotManager', () => {
     it('should calculate unrealized losses correctly', () => {
       const currentPrice = 40000; // 20% decrease
       const unrealizedGains = manager.getUnrealizedGains(currentPrice);
-      
+
       // Current value: 0.06 * 40000 = 2400
       // Cost basis: 3000
       // Unrealized gains: -600 (loss)
       expect(unrealizedGains).toBe(-600);
+    });
+
+    it('should handle empty lots gracefully', () => {
+      const emptyManager = new TaxLotManager();
+
+      expect(emptyManager.getTotalCostBasis()).toBe(0);
+      expect(emptyManager.getTotalRemainingBtc()).toBe(0);
+      expect(emptyManager.getRemainingCostBasis()).toBe(0);
+      expect(emptyManager.getUnrealizedGains(50000)).toBe(0);
+      expect(emptyManager.getAllLots()).toHaveLength(0);
+      expect(emptyManager.getRemainingLots()).toHaveLength(0);
+    });
+
+    it('should clear all lots', () => {
+      manager.clear();
+
+      expect(manager.getAllLots()).toHaveLength(0);
+      expect(manager.getTotalRemainingBtc()).toBe(0);
+      expect(manager.getTotalCostBasis()).toBe(0);
+    });
+
+    it('should handle lot updates', () => {
+      const lots = manager.getAllLots();
+      if (lots.length > 0) {
+        const originalRemaining = lots[0].remaining;
+        manager.updateLot(lots[0].id, { remaining: originalRemaining - 0.01 });
+
+        const updatedLot = manager.getAllLots().find((lot) => lot.id === lots[0].id);
+        expect(updatedLot?.remaining).toBe(originalRemaining - 0.01);
+      }
     });
   });
 });
