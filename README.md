@@ -141,13 +141,16 @@ For significant features or changes, update these files:
 ## 🎯 Project Status
 
 **Current Version**: v0.3.0-dev (Pre-Alpha Development)  
-**Development Status**: Q1 2025 features complete, preparing for Alpha infrastructure deployment ✅
+**Development Status**: Q1 2025 features complete, implementing legal compliance for production deployment ⚖️
 
 Recent major additions:
 - ✅ **Intelligent Transaction Classification** - Mixed CSV file support
 - ✅ **Self-Custody Tracking** - Security scoring and milestone alerts  
 - ✅ **Professional Tax Reporting** - Multi-method calculations with TurboTax export
 - ✅ **Smart Import Reminders** - Data freshness monitoring for active traders
+- 🔄 **Legal Compliance System** - Feature flag implementation for production safety
+
+**🚨 Production Readiness**: Currently implementing feature flag system to ensure all educational content meets legal compliance standards before public deployment.
 
 ---
 
@@ -155,7 +158,26 @@ Recent major additions:
 
 **License**: MIT License - see [LICENSE](LICENSE) file for details
 
-**⚠️ Important Disclaimer**: This tool is for portfolio tracking and record-keeping purposes only. It does not constitute financial, tax, or investment advice. Always consult with qualified professionals for tax preparation and investment decisions. The tax calculations provided are estimates and should be verified with tax professionals.
+**⚠️ IMPORTANT LEGAL NOTICE**: This application is a **portfolio tracking and record-keeping tool only**. It does **NOT** provide financial, tax, legal, or investment advice.
+
+**✅ What This Tool Provides:**
+- Portfolio tracking and transaction management
+- Mathematical calculations for informational purposes only
+- Data export functionality
+
+**❌ What This Tool Does NOT Provide:**
+- Tax advice or professional tax preparation services
+- Legal guidance or regulatory interpretation  
+- Financial or investment advice
+- Professional consultation services
+
+**🏛️ Professional Consultation Required**: You are solely responsible for:
+- Consulting qualified tax professionals (CPA, Enrolled Agent) for tax preparation
+- Verifying all information with authoritative sources (IRS.gov)
+- Making your own financial and tax decisions
+- Ensuring compliance with applicable tax laws
+
+**Legal Protection**: By using this application, you acknowledge these limitations and agree that you will not rely on this tool for professional advice. The developers assume no liability for tax calculation accuracy or financial decisions based on this tool.
 
 ## 🙏 Credits
 

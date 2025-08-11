@@ -53,30 +53,53 @@ Tasks are organized by priority and feature area. Each task includes:
 
 **Enhanced UX Total**: 26 points **COMPLETED** | **Impact**: Professional appearance with dark mode! 🌙
 
-## 🎓 PHASE 0.5: User Education & Enhanced UX (HIGH Priority - March 2025)
+## ✅ COMPLETED: PHASE 0.5: User Education & Enhanced UX (HIGH Priority - March 2025)
 **Goal: Transform app into educational Bitcoin tax tool with comprehensive user guidance**
 
 | Task | Status | Priority | Estimate | Dependencies | Notes |
 |------|--------|----------|----------|--------------|-------|
 | ✅ Research and document all user decision points in existing modals | completed | high | 3 | none | **COMPLETED** - Comprehensive audit created |
-| Update docs/tasks.md with new User Education milestone | in_progress | high | 1 | Research complete | Adding this phase to task management |
-| Design expanded transaction classification enum with Lightning/P2P scenarios | todo | critical | 5 | Documentation complete | Gift, payment, reimbursement classifications |
-| Create educational component system (InfoTooltip, TaxEducationPanel, etc.) | todo | high | 8 | Classification design | Reusable educational framework |
-| Enhance TransactionClassificationModal with educational tooltips and examples | todo | critical | 8 | Component system | Address Lightning transaction scenarios |
-| Implement startup data validation and user-friendly reset workflows | todo | high | 5 | none | Pre-alpha data handling with export options |
-| Update CLAUDE.md with new user education standards and development guidelines | todo | medium | 3 | Modal enhancements | Development standards for future features |
-| Create comprehensive tax education hub (/tax-education route) | todo | medium | 8 | Educational components | Dedicated learning section |
-| Enhance landing page with clear US tax focus and educational positioning | todo | medium | 3 | Tax education hub | Clear value proposition |
-| Apply educational framework to all existing modals (TaxConfig, AddWithdrawal, etc.) | todo | medium | 5 | Component system | Universal educational experience |
+| ✅ Update docs/tasks.md with User Education milestone | completed | high | 1 | Research complete | **COMPLETED** - Phase documentation updated |
+| ✅ Design expanded transaction classification enum with Lightning/P2P scenarios | completed | critical | 5 | Documentation complete | **COMPLETED** - 12 classifications including gifts, payments, reimbursements |
+| ✅ Create educational component system (InfoTooltip, TaxEducationPanel, etc.) | completed | high | 8 | Classification design | **COMPLETED** - Reusable educational framework implemented |
+| ✅ Enhance TransactionClassificationModal with educational tooltips and examples | completed | critical | 8 | Component system | **COMPLETED** - Lightning transaction scenarios addressed |
+| ✅ Implement startup data validation and user-friendly reset workflows | completed | high | 5 | none | **COMPLETED** - Pre-alpha data handling with export options |
+| ✅ Update CLAUDE.md with user education standards and development guidelines | completed | medium | 3 | Modal enhancements | **COMPLETED** - Development standards documented |
+| ✅ Create comprehensive tax education hub (/tax-education route) | completed | medium | 8 | Educational components | **COMPLETED** - Dedicated learning section implemented |
+| ✅ Enhance landing page with clear US tax focus and educational positioning | completed | medium | 3 | Tax education hub | **COMPLETED** - Clear value proposition established |
+| ✅ Apply educational framework to all existing modals (TaxConfig, AddWithdrawal, etc.) | completed | medium | 5 | Component system | **COMPLETED** - Universal educational experience implemented |
 
-**Phase 0.5 Total**: 49 points (3 completed, 46 remaining) | **Target**: 3-4 weeks | **Impact**: Educational Bitcoin tax compliance tool
+**Phase 0.5 Total**: 49 points **COMPLETED** | **Impact**: Educational Bitcoin tax compliance tool with comprehensive user guidance! 🎓
 
-**Educational Focus Areas:**
-- **Lightning & P2P Scenarios**: Gift transactions, payment splits, reimbursements
-- **Tax Implications**: Clear indicators for taxable income vs disposal vs non-taxable events  
-- **US Tax Jurisdiction**: Explicit focus on US tax law and compliance
-- **User Guidance**: Transform every decision point into educational opportunity
-- **Pre-Alpha Data Handling**: User-friendly data reset and migration workflows
+## 🚨 PHASE 0.6: Legal Compliance & Risk Management (CRITICAL Priority - March 2025)
+**Goal: Mitigate legal liability from educational content while preserving development work through feature toggles**
+
+**CRITICAL LEGAL ISSUE IDENTIFIED**: Educational content contains prescriptive tax advice creating significant liability risks. Immediate feature flag implementation required.
+
+| Task | Status | Priority | Estimate | Dependencies | Notes |
+|------|--------|----------|----------|--------------|-------|
+| ✅ Create comprehensive legal compliance plan documentation | completed | critical | 5 | none | **COMPLETED** - Risk assessment and mitigation strategy |
+| ✅ Create feature flags technical implementation guide | completed | critical | 8 | Legal plan | **COMPLETED** - Complete technical architecture documented |
+| ✅ Update docs/tasks.md with Phase 0.6: Legal Compliance milestone | completed | critical | 1 | Documentation | **COMPLETED** - Task management updated |
+| Update CLAUDE.md with legal compliance development standards | todo | high | 3 | Task documentation | Development standards for legal risk management |
+| Create detailed legal risk assessment documentation | todo | high | 5 | Implementation guide | Comprehensive risk categorization and mapping |
+| Update README.md with user-facing compliance messaging | todo | high | 2 | Risk assessment | User-facing legal disclaimers and positioning |
+| Create compliance workflow and legal review process documentation | todo | medium | 3 | README update | Ongoing legal review procedures |
+| Create safe mode development guidelines documentation | todo | medium | 5 | Compliance workflow | Development standards for legal compliance |
+| Implement feature toggle system based on documented plan | todo | critical | 13 | All documentation | Complete technical implementation |
+| Configure production environment for safe mode operation | todo | critical | 3 | Feature toggles | Production deployment with all high-risk features disabled |
+
+**Phase 0.6 Total**: 48 points (19 completed, 29 remaining) | **Target**: 3-4 days | **Impact**: Zero legal liability in production
+
+**Legal Risk Categories:**
+- **High Risk (DISABLE IN PROD)**: Educational components, expanded classifications, tax education hub, detailed tax guidance
+- **Medium Risk (ENHANCED DISCLAIMERS)**: Tax calculations, transaction classification guidance  
+- **Safe Features**: Portfolio tracking, mathematical calculations, basic disclaimers
+
+**Feature Toggle Strategy:**
+- **Production**: High-risk features OFF, safe mode ON, comprehensive disclaimers
+- **Development**: All features ON for continued development  
+- **Staging**: Selective feature combinations for legal review
 
 ## 🚀 PHASE 1: Alpha Infrastructure (HIGH Priority - March 2025)
 **Goal: Deploy feature-complete app with multi-user support on free tiers**

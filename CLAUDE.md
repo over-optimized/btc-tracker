@@ -26,6 +26,7 @@ The Bitcoin DCA Tracker is a modern React + TypeScript web application designed 
 - **ESLint** + **Prettier** for code quality
 - **Vitest** + **Testing Library** for comprehensive testing
 - **PNPM** as package manager
+- **Feature Flag System** for legal compliance and risk management
 
 ### Key Libraries
 
@@ -195,6 +196,15 @@ pnpm ci                         # Full CI pipeline (lint + coverage + build)
 - **Error Boundaries**: Wrap complex components in error boundaries
 - **Accessibility**: Include ARIA labels and keyboard navigation
 - **Testing**: Include both unit tests and integration scenarios
+- **Legal Compliance**: All tax-related features must be wrapped with feature flags
+
+#### Legal Compliance Development Standards
+- **Feature Flag Requirements**: ALL tax education and advice features MUST be behind feature flags
+- **Risk Assessment**: Categorize new features as High/Medium/Low legal risk before development
+- **Safe Mode First**: Develop safe mode UI/UX first, then add enhanced features via flags
+- **Disclaimer Integration**: Every tax-related feature requires appropriate disclaimers
+- **Professional Consultation**: Direct users to qualified professionals for tax advice
+- **Documentation Updates**: Legal compliance documentation must be updated for new tax features
 
 #### ⚠️ CRITICAL: Dashboard Performance Guidelines
 
@@ -387,6 +397,16 @@ export const exchangeParsers = { ... }
 - **Optimization Analysis**: Tax-loss harvesting and strategy recommendations
 - **Professional Export**: TurboTax-compatible CSV and comprehensive JSON formats
 
+### Legal Compliance & Feature Flag System (Development Milestone 5)
+
+- **Risk-Based Feature Management**: High/Medium/Low risk categorization for all tax-related features
+- **Environment-Specific Configuration**: Production safe mode with development flexibility
+- **Feature Flag Infrastructure**: React context-based system with TypeScript safety
+- **Legal Risk Mitigation**: Complete disabling of prescriptive tax advice in production
+- **Safe Mode Operation**: Portfolio tracking with mathematical calculations and disclaimers only
+- **Development Preservation**: All educational features preserved for future legal review
+- **Compliance Documentation**: Comprehensive legal review process and emergency procedures
+
 ### Comprehensive Testing Strategy
 
 - **Unit Tests**: 95% coverage for tax calculations, 85% for custom hooks, 75% overall minimum
@@ -551,6 +571,29 @@ pnpm build     # Production build
 pnpm typecheck # TypeScript type checking (if available)
 ```
 
+### Legal Compliance Development Workflow
+
+```bash
+# Feature Flag Development Workflow
+pnpm dev       # Development mode - all features enabled
+NODE_ENV=production pnpm build    # Production mode - safe mode only
+
+# Legal Compliance Commands
+pnpm build:verify-compliance      # Verify production safety (planned)
+pnpm test:feature-flags          # Test all feature flag combinations (planned)
+
+# Environment Verification
+VITE_SAFE_MODE=true pnpm build   # Force safe mode verification
+VITE_DEBUG_MODE=true pnpm dev    # Enable feature flag debugging
+```
+
+**Legal Compliance Checklist (Before Production Deployment):**
+- ✅ High-risk features disabled in production environment
+- ✅ Safe mode disclaimers visible throughout application  
+- ✅ Professional consultation guidance integrated
+- ✅ No prescriptive tax advice in production build
+- ✅ Feature flag system tested and verified
+
 ### Token Usage Tracking
 
 For budget tracking and development cost analysis, track Claude token usage after completing each task or feature:
@@ -700,9 +743,10 @@ cat CHANGELOG.md
 2. **Comprehensive Error Handling** (Development Milestone 2) - Professional-grade CSV import with recovery options
 3. **Tax Reporting System** (Development Milestone 3) - Complete multi-method tax calculations with professional export capabilities
 4. **Intelligent Classification & Self-Custody** (Development Milestone 4) - Mixed CSV support and security tracking
+5. **Legal Compliance & Feature Flag System** (Development Milestone 5) - Risk-based feature management with production safety
 
 ### 🎯 Current Status
-**Pre-Production Development** - All core features implemented with comprehensive testing and documentation
+**Legal Compliance Implementation** - All core features implemented with comprehensive testing. Currently implementing feature flag system for legal risk management before production deployment.
 
 ### 📝 Development Notes
 **Data Migration Policy**: Since the application is in pre-production development phase and not yet live, data migrations are not required. LocalStorage data can be purged as needed for structural changes without concern for user data preservation. This allows for more aggressive refactoring and schema evolution during development.
