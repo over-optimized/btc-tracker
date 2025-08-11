@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [20.x, 22.x] # Test 20.x (LTS) and 22.x (Vercel’s version)
 
     steps:
     - name: Checkout repository
@@ -22,18 +22,27 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'pnpm' # Built-in pnpm caching
+        cache: 'pnpm'
 
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
-        version: 10.14.0 # Match your local pnpm version
+        version: 10.14.0
         run_install: false
+
+    - name: Fallback pnpm installation
+      run: |
+        if ! command -v pnpm >/dev/null 2>&1; then
+          echo "pnpm not found, installing via npm..."
+          npm install -g pnpm@10.14.0
+        fi
 
     - name: Debug pnpm version and lockfile
       run: |
         echo "pnpm version:"
         pnpm --version
+        echo "PATH:"
+        echo $PATH
         echo "Lockfile presence:"
         ls -la | grep pnpm-lock.yaml
 
@@ -73,14 +82,21 @@ jobs:
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20.x'
+        node-version: '22.x' # Match Vercel
         cache: 'pnpm'
 
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
-        version: 10.14.0 # Match your local pnpm version
+        version: 10.14.0
         run_install: false
+
+    - name: Fallback pnpm installation
+      run: |
+        if ! command -v pnpm >/dev/null 2>&1; then
+          echo "pnpm not found, installing via npm..."
+          npm install -g pnpm@10.14.0
+        fi
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
@@ -102,14 +118,21 @@ jobs:
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20.x'
+        node-version: '22.x' # Match Vercel
         cache: 'pnpm'
 
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
-        version: 10.14.0 # Match your local pnpm version
+        version: 10.14.0
         run_install: false
+
+    - name: Fallback pnpm installation
+      run: |
+        if ! command -v pnpm >/dev/null 2>&1; then
+          echo "pnpm not found, installing via npm..."
+          npm install -g pnpm@10.14.0
+        fi
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
