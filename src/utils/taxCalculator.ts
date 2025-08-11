@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+// TODO: Replace any types with proper tax calculation interfaces
+// Complex tax logic requires careful type analysis
+
 /**
  * Comprehensive tax calculation engine for Bitcoin DCA tracking
  * Supports FIFO, LIFO, HIFO, and Specific Identification methods
@@ -26,10 +30,7 @@ export class TaxCalculator {
   private acquisitionEvents: TaxEvent[] = [];
   private disposalEvents: TaxEvent[] = [];
 
-  constructor(
-    config: TaxConfiguration,
-    existingLots?: import('../types/TaxTypes').TaxLot[]
-  ) {
+  constructor(config: TaxConfiguration, existingLots?: import('../types/TaxTypes').TaxLot[]) {
     this.configuration = { ...config };
     this.lotManager = new TaxLotManager(existingLots);
   }
@@ -178,9 +179,10 @@ export class TaxCalculator {
    */
   private processDisposal(disposal: DisposalEvent): TaxEvent {
     // Use the configured method for lot selection
-    const method = this.configuration.method === TaxMethod.SPECIFIC_ID 
-      ? 'FIFO' // Default to FIFO for specific ID (would need UI selection)
-      : this.configuration.method;
+    const method =
+      this.configuration.method === TaxMethod.SPECIFIC_ID
+        ? 'FIFO' // Default to FIFO for specific ID (would need UI selection)
+        : this.configuration.method;
 
     const disposalEvent = this.lotManager.processDisposal(disposal, method);
     this.disposalEvents.push(disposalEvent);
@@ -228,7 +230,7 @@ export class TaxCalculator {
     const totalCostBasis = this.lotManager.getTotalCostBasis();
     const remainingBtc = this.lotManager.getTotalRemainingBtc();
     const remainingCostBasis = this.lotManager.getRemainingCostBasis();
-    
+
     // Calculate unrealized gains if current price is provided
     let unrealizedGains = 0;
     if (currentPrice && remainingBtc > 0) {
@@ -260,9 +262,7 @@ export class TaxCalculator {
     const startDate = new Date(this.configuration.taxYear, 0, 1);
     const endDate = new Date(this.configuration.taxYear, 11, 31, 23, 59, 59);
 
-    return transactions.filter(tx => 
-      tx.date >= startDate && tx.date <= endDate
-    );
+    return transactions.filter((tx) => tx.date >= startDate && tx.date <= endDate);
   }
 
   /**
@@ -314,7 +314,7 @@ export class TaxCalculator {
   calculateHypotheticalDisposal(
     btcAmount: number,
     salePrice: number,
-    saleDate: Date = new Date()
+    saleDate: Date = new Date(),
   ): {
     capitalGain: number;
     costBasis: number;
@@ -333,11 +333,10 @@ export class TaxCalculator {
 
     // Create temporary lot manager to avoid modifying state
     const tempLotManager = new TaxLotManager(this.lotManager.getAllLots());
-    
+
     try {
-      const method = this.configuration.method === TaxMethod.SPECIFIC_ID 
-        ? 'FIFO' 
-        : this.configuration.method;
+      const method =
+        this.configuration.method === TaxMethod.SPECIFIC_ID ? 'FIFO' : this.configuration.method;
 
       const disposalEvent = tempLotManager.processDisposal(hypotheticalDisposal, method);
 
@@ -367,7 +366,7 @@ export class TaxCalculator {
     }
 
     // Check for tax-loss harvesting opportunities
-    const losingLots = remainingLots.filter(lot => {
+    const losingLots = remainingLots.filter((lot) => {
       const currentValue = lot.remaining * currentPrice;
       const proportionalCostBasis = (lot.remaining / lot.btcAmount) * lot.costBasis;
       return currentValue < proportionalCostBasis;
@@ -381,19 +380,19 @@ export class TaxCalculator {
       }, 0);
 
       suggestions.push(
-        `Tax-loss harvesting opportunity: ${losingLots.length} lots with potential losses totaling $${totalLoss.toFixed(2)}`
+        `Tax-loss harvesting opportunity: ${losingLots.length} lots with potential losses totaling $${totalLoss.toFixed(2)}`,
       );
     }
 
     // Check for long-term holding opportunities
-    const shortTermLots = remainingLots.filter(lot => {
+    const shortTermLots = remainingLots.filter((lot) => {
       const daysSincePurchase = (Date.now() - lot.purchaseDate.getTime()) / (1000 * 60 * 60 * 24);
       return daysSincePurchase < 365;
     });
 
     if (shortTermLots.length > 0) {
       suggestions.push(
-        `Consider holding ${shortTermLots.length} lots longer for long-term capital gains treatment`
+        `Consider holding ${shortTermLots.length} lots longer for long-term capital gains treatment`,
       );
     }
 
@@ -404,7 +403,7 @@ export class TaxCalculator {
 
     // This is a simplified suggestion - real implementation would need actual disposal scenarios
     suggestions.push(
-      `Current method: ${this.configuration.method}. Consider comparing FIFO, LIFO, and HIFO methods for optimal tax treatment.`
+      `Current method: ${this.configuration.method}. Consider comparing FIFO, LIFO, and HIFO methods for optimal tax treatment.`,
     );
 
     return suggestions;

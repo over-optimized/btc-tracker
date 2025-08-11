@@ -23,10 +23,7 @@ const TaxConfig: React.FC<TaxConfigProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const currentYear = new Date().getFullYear();
-  const availableYears = Array.from(
-    { length: currentYear - 2019 },
-    (_, i) => currentYear - i
-  );
+  const availableYears = Array.from({ length: currentYear - 2019 }, (_, i) => currentYear - i);
 
   const taxMethods = [
     {
@@ -63,7 +60,10 @@ const TaxConfig: React.FC<TaxConfigProps> = ({
     onConfigChange({ ...configuration, taxYear: year });
   };
 
-  const handleAdvancedChange = (field: keyof TaxConfiguration, value: any) => {
+  const handleAdvancedChange = (
+    field: keyof TaxConfiguration,
+    value: TaxConfiguration[keyof TaxConfiguration],
+  ) => {
     onConfigChange({ ...configuration, [field]: value });
   };
 
@@ -77,9 +77,7 @@ const TaxConfig: React.FC<TaxConfigProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Tax Method Selection */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">
-            Tax Calculation Method
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">Tax Calculation Method</h3>
           <div className="space-y-3">
             {taxMethods.map((method) => (
               <label
@@ -103,18 +101,14 @@ const TaxConfig: React.FC<TaxConfigProps> = ({
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-800">
-                      {method.label}
-                    </span>
+                    <span className="font-medium text-gray-800">{method.label}</span>
                     {method.recommended && (
                       <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
                         Recommended
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {method.description}
-                  </p>
+                  <p className="text-sm text-gray-600 mt-1">{method.description}</p>
                 </div>
               </label>
             ))}
@@ -140,9 +134,7 @@ const TaxConfig: React.FC<TaxConfigProps> = ({
                 </option>
               ))}
             </select>
-            <p className="text-sm text-gray-600 mt-1">
-              Select the tax year for report generation
-            </p>
+            <p className="text-sm text-gray-600 mt-1">Select the tax year for report generation</p>
           </div>
 
           {/* Advanced Settings Toggle */}
@@ -169,16 +161,11 @@ const TaxConfig: React.FC<TaxConfigProps> = ({
                     max="730"
                     value={configuration.longTermThresholdDays}
                     onChange={(e) =>
-                      handleAdvancedChange(
-                        'longTermThresholdDays',
-                        parseInt(e.target.value) || 365
-                      )
+                      handleAdvancedChange('longTermThresholdDays', parseInt(e.target.value) || 365)
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
-                  <p className="text-xs text-gray-600 mt-1">
-                    Default: 365 days (IRS standard)
-                  </p>
+                  <p className="text-xs text-gray-600 mt-1">Default: 365 days (IRS standard)</p>
                 </div>
 
                 {/* Display Options */}
@@ -187,28 +174,20 @@ const TaxConfig: React.FC<TaxConfigProps> = ({
                     <input
                       type="checkbox"
                       checked={configuration.showDetailedLots}
-                      onChange={(e) =>
-                        handleAdvancedChange('showDetailedLots', e.target.checked)
-                      }
+                      onChange={(e) => handleAdvancedChange('showDetailedLots', e.target.checked)}
                       className="text-purple-600 focus:ring-purple-500 rounded"
                     />
-                    <span className="text-sm text-gray-700">
-                      Show detailed lot information
-                    </span>
+                    <span className="text-sm text-gray-700">Show detailed lot information</span>
                   </label>
 
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={configuration.roundToCents}
-                      onChange={(e) =>
-                        handleAdvancedChange('roundToCents', e.target.checked)
-                      }
+                      onChange={(e) => handleAdvancedChange('roundToCents', e.target.checked)}
                       className="text-purple-600 focus:ring-purple-500 rounded"
                     />
-                    <span className="text-sm text-gray-700">
-                      Round currency values to cents
-                    </span>
+                    <span className="text-sm text-gray-700">Round currency values to cents</span>
                   </label>
 
                   <label className="flex items-center gap-2">
@@ -220,9 +199,7 @@ const TaxConfig: React.FC<TaxConfigProps> = ({
                       }
                       className="text-purple-600 focus:ring-purple-500 rounded"
                     />
-                    <span className="text-sm text-gray-700">
-                      Include previous year carryovers
-                    </span>
+                    <span className="text-sm text-gray-700">Include previous year carryovers</span>
                   </label>
                 </div>
               </div>
@@ -266,8 +243,9 @@ const TaxConfig: React.FC<TaxConfigProps> = ({
           <div className="text-sm text-blue-800">
             <p className="font-medium mb-1">Tax Calculation Disclaimer</p>
             <p>
-              This tool provides estimates for informational purposes only. Tax laws are complex and vary by jurisdiction. 
-              Always consult with a qualified tax professional before making tax-related decisions or filing returns.
+              This tool provides estimates for informational purposes only. Tax laws are complex and
+              vary by jurisdiction. Always consult with a qualified tax professional before making
+              tax-related decisions or filing returns.
             </p>
           </div>
         </div>

@@ -5,11 +5,12 @@ node_modules
 dist
 .vercel
 
-# Environment variables
+# Environment variables (actual files - examples are tracked)
 .env
 .env.local
-.env.production
-.env.development
+
+# Note: .env.production, .env.staging, .env.development are tracked
+# as they contain the official environment configurations for deployments
 
 # Logs
 *.log

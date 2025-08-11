@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, staging ]
+  pull_request:
+    branches: [ main, staging ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x] # Test 20.x (LTS) and 22.x (Vercel’s version)
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.14.0
+        run_install: false
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run linting
+      run: pnpm lint
+
+    - name: Run tests with coverage
+      run: pnpm test:coverage
+
+    - name: Legal compliance verification
+      run: |
+        echo "🔍 Running legal compliance verification..."
+        NODE_ENV=production ./scripts/verify-compliance.sh
+
+    - name: Build application
+      run: pnpm build
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: matrix.node-version == '20.x'
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+
+  feature-flag-compliance:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.14.0
+        run_install: false
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x' # Match Vercel
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Feature flag compliance verification
+      env:
+        TARGET_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'validation' }}
+      run: |
+        echo "🚨 Feature Flag Compliance Check (Environment: $TARGET_ENV)"
+        ./scripts/verify-compliance.sh
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [test, feature-flag-compliance]
+    if: github.ref == 'refs/heads/staging'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.14.0
+        run_install: false
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x' # Match Vercel
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Staging deployment trigger
+      run: |
+        echo "🚀 Staging deployment triggered"
+        echo "Vercel will automatically deploy this branch to staging environment"
+        echo "Staging URL will be available at: https://btc-tracker-git-staging-[username].vercel.app"

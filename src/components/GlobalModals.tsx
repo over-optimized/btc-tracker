@@ -23,8 +23,8 @@ interface GlobalModalsProps {
   errorModalOpen: boolean;
   onErrorModalClose: () => void;
   recoveryContext?: ErrorRecoveryContext;
-  onRetry: (retryOptions: any) => void;
-  onExportErrors: (data: any) => void;
+  onRetry: (retryOptions: { action: string; data?: unknown }) => void;
+  onExportErrors: (data: ImportError[]) => void;
 
   // Add Withdrawal Modal
   withdrawalModalOpen: boolean;

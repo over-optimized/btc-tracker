@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
-import { X, AlertCircle, CheckCircle, ArrowDown, ArrowUp, Wallet, DollarSign, RefreshCw } from 'lucide-react';
-import { 
-  UnclassifiedTransaction, 
-  TransactionClassification, 
-  ClassificationDecision, 
-  ClassificationPrompt 
+import {
+  X,
+  AlertCircle,
+  CheckCircle,
+  ArrowDown,
+  ArrowUp,
+  Wallet,
+  DollarSign,
+  RefreshCw,
+} from 'lucide-react';
+import {
+  UnclassifiedTransaction,
+  TransactionClassification,
+  ClassificationDecision,
+  ClassificationPrompt,
 } from '../types/TransactionClassification';
 import { formatBTC } from '../utils/formatBTC';
 import { formatCurrency } from '../utils/formatCurrency';
+import { useFeature } from '../hooks/useFeatureFlags';
 
 interface TransactionClassificationModalProps {
   isOpen: boolean;
@@ -30,15 +40,48 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
   const [decisions, setDecisions] = useState<Map<string, TransactionDecision>>(new Map());
   const [showDetails, setShowDetails] = useState<Set<string>>(new Set());
 
+  const hasTransactionGuidance = useFeature('transactionGuidance');
+
   if (!isOpen || prompts.length === 0) return null;
+
+  // If transaction guidance is disabled, show a simplified modal
+  if (!hasTransactionGuidance) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Transaction Processing</h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <X size={20} />
+            </button>
+          </div>
+          <div className="text-center py-4">
+            <AlertCircle size={48} className="mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-600 mb-4">
+              Advanced transaction classification is available in development mode only.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              These features require legal review before production deployment.
+            </p>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentPrompt = prompts[currentPromptIndex];
   const isLastPrompt = currentPromptIndex === prompts.length - 1;
 
   const handleClassificationChange = (
-    transactionId: string, 
+    transactionId: string,
     classification: TransactionClassification,
-    additionalData?: Partial<ClassificationDecision>
+    additionalData?: Partial<ClassificationDecision>,
   ) => {
     const newDecisions = new Map(decisions);
     newDecisions.set(transactionId, {
@@ -50,16 +93,16 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
   };
 
   const handleBulkAction = (
-    transactions: UnclassifiedTransaction[], 
-    classification: TransactionClassification
+    transactions: UnclassifiedTransaction[],
+    classification: TransactionClassification,
   ) => {
     const newDecisions = new Map(decisions);
-    transactions.forEach(tx => {
+    transactions.forEach((tx) => {
       newDecisions.set(tx.id, {
         transactionId: tx.id,
         classification,
         ...(classification === TransactionClassification.SELF_CUSTODY_WITHDRAWAL && {
-          destinationWallet: 'Self-Custody Wallet'
+          destinationWallet: 'Self-Custody Wallet',
         }),
       });
     });
@@ -127,7 +170,9 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
   };
 
   const unclassifiedCount = currentPrompt.transactions.filter(
-    tx => !decisions.has(tx.id) || decisions.get(tx.id)?.classification === TransactionClassification.OTHER
+    (tx) =>
+      !decisions.has(tx.id) ||
+      decisions.get(tx.id)?.classification === TransactionClassification.OTHER,
   ).length;
 
   return (
@@ -141,10 +186,7 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
               Step {currentPromptIndex + 1} of {prompts.length}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-1"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
             <X size={20} />
           </button>
         </div>
@@ -156,7 +198,8 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
               <p className="text-gray-700">{currentPrompt.message}</p>
               {unclassifiedCount > 0 && (
                 <div className="mt-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-md">
-                  {unclassifiedCount} transaction{unclassifiedCount !== 1 ? 's' : ''} still need classification
+                  {unclassifiedCount} transaction{unclassifiedCount !== 1 ? 's' : ''} still need
+                  classification
                 </div>
               )}
             </div>
@@ -170,18 +213,18 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                     const applicableTransactions = action.condition
                       ? currentPrompt.transactions.filter(action.condition)
                       : currentPrompt.transactions;
-                    
+
                     return (
                       <button
                         key={index}
-                        onClick={() => handleBulkAction(applicableTransactions, action.classification)}
+                        onClick={() =>
+                          handleBulkAction(applicableTransactions, action.classification)
+                        }
                         className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
                       >
                         {action.label}
                         {action.condition && (
-                          <span className="ml-1 opacity-75">
-                            ({applicableTransactions.length})
-                          </span>
+                          <span className="ml-1 opacity-75">({applicableTransactions.length})</span>
                         )}
                       </button>
                     );
@@ -195,7 +238,7 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
               {currentPrompt.transactions.map((tx) => {
                 const decision = decisions.get(tx.id);
                 const isDetailsOpen = showDetails.has(tx.id);
-                
+
                 return (
                   <div key={tx.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-start justify-between">
@@ -203,7 +246,9 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                         {getTransactionIcon(tx)}
                         <div>
                           <div className="font-medium text-gray-900">
-                            {Math.abs(tx.btcAmount) > 0 ? formatBTC(Math.abs(tx.btcAmount)) : 'Unknown Amount'}
+                            {Math.abs(tx.btcAmount) > 0
+                              ? formatBTC(Math.abs(tx.btcAmount))
+                              : 'Unknown Amount'}
                             {tx.usdAmount > 0 && (
                               <span className="text-gray-600 ml-2">
                                 ({formatCurrency(tx.usdAmount)})
@@ -218,7 +263,9 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
 
                       <div className="flex items-center gap-2">
                         {decision && (
-                          <div className={`px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 ${getClassificationColor(decision.classification)}`}>
+                          <div
+                            className={`px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 ${getClassificationColor(decision.classification)}`}
+                          >
                             {getClassificationIcon(decision.classification)}
                             {decision.classification.replace('_', ' ')}
                           </div>
@@ -235,7 +282,9 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                     {/* Classification Options */}
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
                       <button
-                        onClick={() => handleClassificationChange(tx.id, TransactionClassification.PURCHASE)}
+                        onClick={() =>
+                          handleClassificationChange(tx.id, TransactionClassification.PURCHASE)
+                        }
                         className={`p-2 text-sm rounded-md border transition-colors ${
                           decision?.classification === TransactionClassification.PURCHASE
                             ? 'bg-green-100 border-green-300 text-green-800'
@@ -244,22 +293,31 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                       >
                         Purchase
                       </button>
-                      
+
                       <button
-                        onClick={() => handleClassificationChange(tx.id, TransactionClassification.SELF_CUSTODY_WITHDRAWAL, {
-                          destinationWallet: 'Self-Custody Wallet'
-                        })}
+                        onClick={() =>
+                          handleClassificationChange(
+                            tx.id,
+                            TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
+                            {
+                              destinationWallet: 'Self-Custody Wallet',
+                            },
+                          )
+                        }
                         className={`p-2 text-sm rounded-md border transition-colors ${
-                          decision?.classification === TransactionClassification.SELF_CUSTODY_WITHDRAWAL
+                          decision?.classification ===
+                          TransactionClassification.SELF_CUSTODY_WITHDRAWAL
                             ? 'bg-blue-100 border-blue-300 text-blue-800'
                             : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-blue-50'
                         }`}
                       >
                         Self-Custody
                       </button>
-                      
+
                       <button
-                        onClick={() => handleClassificationChange(tx.id, TransactionClassification.SALE)}
+                        onClick={() =>
+                          handleClassificationChange(tx.id, TransactionClassification.SALE)
+                        }
                         className={`p-2 text-sm rounded-md border transition-colors ${
                           decision?.classification === TransactionClassification.SALE
                             ? 'bg-red-100 border-red-300 text-red-800'
@@ -268,9 +326,11 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                       >
                         Sale
                       </button>
-                      
+
                       <button
-                        onClick={() => handleClassificationChange(tx.id, TransactionClassification.SKIP)}
+                        onClick={() =>
+                          handleClassificationChange(tx.id, TransactionClassification.SKIP)
+                        }
                         className={`p-2 text-sm rounded-md border transition-colors ${
                           decision?.classification === TransactionClassification.SKIP
                             ? 'bg-gray-100 border-gray-300 text-gray-800'
@@ -282,7 +342,8 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                     </div>
 
                     {/* Additional fields for certain classifications */}
-                    {decision?.classification === TransactionClassification.SELF_CUSTODY_WITHDRAWAL && (
+                    {decision?.classification ===
+                      TransactionClassification.SELF_CUSTODY_WITHDRAWAL && (
                       <div className="mt-3">
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                           Destination Wallet (optional)
@@ -291,10 +352,12 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                           type="text"
                           placeholder="Hardware Wallet, Electrum, etc."
                           value={decision.destinationWallet || ''}
-                          onChange={(e) => handleClassificationChange(tx.id, decision.classification, {
-                            ...decision,
-                            destinationWallet: e.target.value
-                          })}
+                          onChange={(e) =>
+                            handleClassificationChange(tx.id, decision.classification, {
+                              ...decision,
+                              destinationWallet: e.target.value,
+                            })
+                          }
                           className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       </div>

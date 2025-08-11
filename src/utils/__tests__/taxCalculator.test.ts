@@ -6,18 +6,18 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TaxCalculator } from '../taxCalculator';
 import { Transaction } from '../../types/Transaction';
-import { 
-  TaxMethod, 
+import {
+  TaxMethod,
   TaxConfiguration,
   DisposalEvent,
   HoldingPeriod,
-  PriceInfo
+  PriceInfo,
 } from '../../types/TaxTypes';
 
 describe('TaxCalculator', () => {
   let calculator: TaxCalculator;
   let transactions: Transaction[];
-  
+
   const defaultConfig: TaxConfiguration = {
     method: TaxMethod.FIFO,
     taxYear: 2024,
@@ -29,7 +29,7 @@ describe('TaxCalculator', () => {
 
   beforeEach(() => {
     calculator = new TaxCalculator(defaultConfig);
-    
+
     // Create test transactions across different dates and prices
     transactions = [
       {
@@ -65,10 +65,10 @@ describe('TaxCalculator', () => {
   describe('Transaction Processing', () => {
     it('should process transactions for the specified tax year', () => {
       const validation = calculator.processTransactions(transactions);
-      
+
       expect(validation.isValid).toBe(true);
       expect(validation.errors).toHaveLength(0);
-      
+
       const lotManager = calculator.getLotManager();
       expect(lotManager.getAllLots()).toHaveLength(3);
       expect(lotManager.getTotalRemainingBtc()).toBe(0.24);
@@ -100,7 +100,7 @@ describe('TaxCalculator', () => {
 
       const validation = calculator.processTransactions(mixedYearTransactions);
       expect(validation.isValid).toBe(true);
-      
+
       // Should only process 2024 transactions
       const lotManager = calculator.getLotManager();
       expect(lotManager.getAllLots()).toHaveLength(3);
@@ -108,7 +108,7 @@ describe('TaxCalculator', () => {
 
     it('should handle empty transaction list', () => {
       const validation = calculator.processTransactions([]);
-      
+
       expect(validation.isValid).toBe(true);
       expect(validation.warnings).toHaveLength(1);
       expect(validation.warnings[0].code).toBe('NO_TRANSACTIONS');
@@ -130,7 +130,7 @@ describe('TaxCalculator', () => {
 
       const calculatorWithDisposal = new TaxCalculator(configWithDisposal);
       const validation = calculatorWithDisposal.processTransactions(transactions);
-      
+
       expect(validation.isValid).toBe(true);
     });
   });
@@ -160,7 +160,7 @@ describe('TaxCalculator', () => {
       };
 
       const report = calculator.generateTaxReport(currentPrice);
-      
+
       // Should calculate unrealized gains
       expect(report.summary.unrealizedGains).toBeGreaterThan(0);
       expect(report.summary.remainingBtc).toBe(0.24);
@@ -194,15 +194,19 @@ describe('TaxCalculator', () => {
     });
 
     it('should calculate FIFO disposal correctly', () => {
-      const fifoConfig: TaxConfiguration = { ...defaultConfig, method: TaxMethod.FIFO, disposals: [disposalScenario] };
+      const fifoConfig: TaxConfiguration = {
+        ...defaultConfig,
+        method: TaxMethod.FIFO,
+        disposals: [disposalScenario],
+      };
       const fifoCalculator = new TaxCalculator(fifoConfig);
-      
+
       fifoCalculator.processTransactions(transactions);
       const report = fifoCalculator.generateTaxReport();
 
       expect(report.disposals).toHaveLength(1);
       const disposal = report.disposals[0];
-      
+
       // FIFO should use oldest lot first (0.1 BTC at $50,000)
       expect(disposal.costBasis).toBe(5000);
       expect(disposal.capitalGain).toBe(1000); // 6000 - 5000
@@ -210,15 +214,19 @@ describe('TaxCalculator', () => {
     });
 
     it('should calculate LIFO disposal correctly', () => {
-      const lifoConfig: TaxConfiguration = { ...defaultConfig, method: TaxMethod.LIFO, disposals: [disposalScenario] };
+      const lifoConfig: TaxConfiguration = {
+        ...defaultConfig,
+        method: TaxMethod.LIFO,
+        disposals: [disposalScenario],
+      };
       const lifoCalculator = new TaxCalculator(lifoConfig);
-      
+
       lifoCalculator.processTransactions(transactions);
       const report = lifoCalculator.generateTaxReport();
 
       expect(report.disposals).toHaveLength(1);
       const disposal = report.disposals[0];
-      
+
       // LIFO should use newest lot first (0.06 BTC at $45,000 + 0.04 BTC at $55,000)
       // Cost basis: (0.06 * 45000) + (0.04 * 55000) = 2700 + 2200 = 4900
       expect(disposal.costBasis).toBe(4900);
@@ -226,15 +234,19 @@ describe('TaxCalculator', () => {
     });
 
     it('should calculate HIFO disposal correctly', () => {
-      const hifoConfig: TaxConfiguration = { ...defaultConfig, method: TaxMethod.HIFO, disposals: [disposalScenario] };
+      const hifoConfig: TaxConfiguration = {
+        ...defaultConfig,
+        method: TaxMethod.HIFO,
+        disposals: [disposalScenario],
+      };
       const hifoCalculator = new TaxCalculator(hifoConfig);
-      
+
       hifoCalculator.processTransactions(transactions);
       const report = hifoCalculator.generateTaxReport();
 
       expect(report.disposals).toHaveLength(1);
       const disposal = report.disposals[0];
-      
+
       // HIFO should use highest cost lots first (0.08 BTC at $55,000 + 0.02 BTC at $50,000)
       // Cost basis: (0.08 * 55000) + (0.02 * 50000) = 4400 + 1000 = 5400
       expect(disposal.costBasis).toBe(5400);
@@ -261,11 +273,14 @@ describe('TaxCalculator', () => {
       };
 
       // Test short-term
-      const shortTermConfig: TaxConfiguration = { ...defaultConfig, disposals: [shortTermDisposal] };
+      const shortTermConfig: TaxConfiguration = {
+        ...defaultConfig,
+        disposals: [shortTermDisposal],
+      };
       const shortTermCalculator = new TaxCalculator(shortTermConfig);
       shortTermCalculator.processTransactions(transactions);
       const shortTermReport = shortTermCalculator.generateTaxReport();
-      
+
       expect(shortTermReport.disposals[0].holdingPeriod).toBe(HoldingPeriod.SHORT_TERM);
       expect(shortTermReport.summary.shortTermGains).toBeGreaterThan(0);
 
@@ -274,7 +289,7 @@ describe('TaxCalculator', () => {
       const longTermCalculator = new TaxCalculator(longTermConfig);
       longTermCalculator.processTransactions(transactions);
       const longTermReport = longTermCalculator.generateTaxReport();
-      
+
       expect(longTermReport.disposals[0].holdingPeriod).toBe(HoldingPeriod.LONG_TERM);
       expect(longTermReport.summary.longTermGains).toBeGreaterThan(0);
     });
@@ -287,14 +302,14 @@ describe('TaxCalculator', () => {
 
     it('should calculate hypothetical disposal without affecting state', () => {
       const original = calculator.getLotManager().getTotalRemainingBtc();
-      
+
       const hypothetical = calculator.calculateHypotheticalDisposal(0.05, 60000);
-      
+
       expect(hypothetical.capitalGain).toBeGreaterThan(0);
       expect(hypothetical.costBasis).toBeGreaterThan(0);
       expect(hypothetical.proceeds).toBe(3000); // 0.05 * 60000
       expect(hypothetical.holdingPeriod).toBeDefined();
-      
+
       // State should remain unchanged
       expect(calculator.getLotManager().getTotalRemainingBtc()).toBe(original);
     });
@@ -314,9 +329,9 @@ describe('TaxCalculator', () => {
     it('should provide tax-loss harvesting suggestions', () => {
       const currentPrice = 40000; // Below all purchase prices
       const suggestions = calculator.getTaxOptimizationSuggestions(currentPrice);
-      
+
       expect(suggestions.length).toBeGreaterThan(0);
-      expect(suggestions.some(s => s.includes('Tax-loss harvesting'))).toBe(true);
+      expect(suggestions.some((s) => s.includes('Tax-loss harvesting'))).toBe(true);
     });
 
     it('should suggest holding for long-term treatment', () => {
@@ -332,27 +347,29 @@ describe('TaxCalculator', () => {
           price: 50000,
         },
       ];
-      
+
       const recentCalculator = new TaxCalculator(defaultConfig);
       recentCalculator.processTransactions(recentTransactions);
-      
+
       const currentPrice = 70000;
       const suggestions = recentCalculator.getTaxOptimizationSuggestions(currentPrice);
-      
-      expect(suggestions.some(s => s.includes('Consider holding') || s.includes('lots longer'))).toBe(true);
+
+      expect(
+        suggestions.some((s) => s.includes('Consider holding') || s.includes('lots longer')),
+      ).toBe(true);
     });
 
     it('should suggest method comparisons', () => {
       const currentPrice = 60000;
       const suggestions = calculator.getTaxOptimizationSuggestions(currentPrice);
-      
-      expect(suggestions.some(s => s.includes('comparing FIFO, LIFO, and HIFO'))).toBe(true);
+
+      expect(suggestions.some((s) => s.includes('comparing FIFO, LIFO, and HIFO'))).toBe(true);
     });
 
     it('should handle empty portfolio', () => {
       const emptyCalculator = new TaxCalculator(defaultConfig);
       emptyCalculator.processTransactions([]);
-      
+
       const suggestions = emptyCalculator.getTaxOptimizationSuggestions(60000);
       expect(suggestions).toEqual(['No remaining lots to optimize']);
     });
@@ -362,7 +379,7 @@ describe('TaxCalculator', () => {
     it('should allow configuration updates', () => {
       const newConfig = { method: TaxMethod.LIFO };
       calculator.updateConfiguration(newConfig);
-      
+
       const currentConfig = calculator.getConfiguration();
       expect(currentConfig.method).toBe(TaxMethod.LIFO);
     });
@@ -370,7 +387,7 @@ describe('TaxCalculator', () => {
     it('should preserve other configuration values when updating', () => {
       const originalConfig = calculator.getConfiguration();
       calculator.updateConfiguration({ method: TaxMethod.HIFO });
-      
+
       const newConfig = calculator.getConfiguration();
       expect(newConfig.method).toBe(TaxMethod.HIFO);
       expect(newConfig.taxYear).toBe(originalConfig.taxYear);
@@ -399,10 +416,10 @@ describe('TaxCalculator', () => {
 
       const config: TaxConfiguration = { ...defaultConfig, disposals };
       const multiDisposalCalculator = new TaxCalculator(config);
-      
+
       const validation = multiDisposalCalculator.processTransactions(transactions);
       expect(validation.isValid).toBe(true);
-      
+
       const report = multiDisposalCalculator.generateTaxReport();
       expect(report.disposals).toHaveLength(2);
       expect(report.summary.totalDisposals).toBe(2);
@@ -436,13 +453,13 @@ describe('TaxCalculator', () => {
 
       const config: TaxConfiguration = { ...defaultConfig, disposals: smallDisposals };
       const partialCalculator = new TaxCalculator(config);
-      
+
       const validation = partialCalculator.processTransactions(transactions);
       expect(validation.isValid).toBe(true);
-      
+
       const report = partialCalculator.generateTaxReport();
       expect(report.disposals).toHaveLength(3);
-      
+
       // Check that lots have been properly consumed
       const remainingBtc = report.remainingLots.reduce((sum, lot) => sum + lot.remaining, 0);
       expect(remainingBtc).toBe(0.15); // 0.24 - 0.09
@@ -459,12 +476,12 @@ describe('TaxCalculator', () => {
 
       const config: TaxConfiguration = { ...defaultConfig, disposals: [exactDisposal] };
       const exactCalculator = new TaxCalculator(config);
-      
+
       const validation = exactCalculator.processTransactions(transactions);
       expect(validation.isValid).toBe(true);
-      
+
       const report = exactCalculator.generateTaxReport();
-      expect(report.remainingLots.every(lot => lot.remaining <= 0.000001)).toBe(true); // Allow for floating point precision
+      expect(report.remainingLots.every((lot) => lot.remaining <= 0.000001)).toBe(true); // Allow for floating point precision
       expect(report.summary.remainingBtc).toBeCloseTo(0, 6);
       expect(report.summary.remainingCostBasis).toBeCloseTo(0, 2);
     });
@@ -485,28 +502,85 @@ describe('TaxCalculator', () => {
       ];
 
       const validation = calculator.processTransactions(invalidTransactions as Transaction[]);
-      
+
       // Should still attempt to process, lot manager will handle validation
       expect(validation.errors.length).toBeGreaterThanOrEqual(0);
     });
 
     it('should validate lot integrity after processing', () => {
       calculator.processTransactions(transactions);
-      
+
       // Manually corrupt a lot to test validation
       const lotManager = calculator.getLotManager();
       const lots = lotManager.getAllLots();
       if (lots.length > 0) {
         lotManager.updateLot(lots[0].id, { remaining: -0.01 });
       }
-      
+
       // Test validation directly without re-processing
       const validation = lotManager.validate();
-      
+
       // Should detect issues during validation
       expect(validation.isValid).toBe(false);
       expect(validation.errors.length).toBeGreaterThan(0);
       expect(validation.errors[0].code).toBe('NEGATIVE_REMAINING');
+    });
+
+    it('should handle transactions with no data', () => {
+      const result = calculator.processTransactions([]);
+      expect(result.isValid).toBe(true);
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0].code).toBe('NO_TRANSACTIONS');
+    });
+
+    it('should handle withdrawal transactions correctly', () => {
+      const withdrawalTx: Transaction = {
+        id: 'withdrawal-test',
+        date: new Date('2024-02-01'),
+        exchange: 'Strike',
+        type: 'Withdrawal',
+        usdAmount: 0,
+        btcAmount: 0.01,
+        price: 50000,
+        isSelfCustody: true,
+        isTaxable: false,
+      };
+
+      const result = calculator.processTransactions([...transactions, withdrawalTx]);
+
+      expect(result.isValid).toBe(true);
+      expect(result.warnings.some((w) => w.code === 'WITHDRAWAL_SKIPPED')).toBe(true);
+    });
+
+    it('should get configuration', () => {
+      const config = calculator.getConfiguration();
+      expect(config.taxYear).toBe(2024);
+      expect(config.method).toBe(TaxMethod.FIFO);
+    });
+
+    it('should update configuration', () => {
+      calculator.updateConfiguration({ method: TaxMethod.LIFO });
+      const config = calculator.getConfiguration();
+      expect(config.method).toBe(TaxMethod.LIFO);
+    });
+
+    it('should provide tax optimization suggestions', () => {
+      calculator.processTransactions(transactions);
+      const suggestions = calculator.getTaxOptimizationSuggestions(45000);
+
+      expect(Array.isArray(suggestions)).toBe(true);
+      expect(suggestions.length).toBeGreaterThan(0);
+    });
+
+    it('should handle optimization suggestions with no lots', () => {
+      // Calculator with no transactions
+      const emptyCalculator = new TaxCalculator({
+        taxYear: 2024,
+        method: TaxMethod.FIFO,
+      });
+
+      const suggestions = emptyCalculator.getTaxOptimizationSuggestions(50000);
+      expect(suggestions).toEqual(['No remaining lots to optimize']);
     });
   });
 });

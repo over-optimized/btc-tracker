@@ -26,6 +26,7 @@ The Bitcoin DCA Tracker is a modern React + TypeScript web application designed 
 - **ESLint** + **Prettier** for code quality
 - **Vitest** + **Testing Library** for comprehensive testing
 - **PNPM** as package manager
+- **Husky + lint-staged** for git hooks and pre-commit validation
 - **Feature Flag System** for legal compliance and risk management
 
 ### Key Libraries
@@ -42,12 +43,13 @@ src/
 ├── apis/                    # External API integrations
 │   └── fetchBitcoinPrice.ts # CoinGecko price fetching
 ├── components/              # React components
-│   ├── __tests__/          # Component tests  
+│   ├── __tests__/          # Component tests
 │   ├── AdditionalCharts.tsx # Advanced chart visualizations
 │   ├── AddWithdrawalModal.tsx # Manual withdrawal entry interface
 │   ├── AppRoutes.tsx       # Routing component with lazy loading
 │   ├── DashboardOverview.tsx # Main stats dashboard
 │   ├── DataFreshnessCard.tsx # Import reminder dashboard widget
+│   ├── FeatureFlag.tsx     # Feature flag wrapper component
 │   ├── GlobalModals.tsx    # Global modal container component
 │   ├── ImportErrorModal.tsx # CSV import error handling interface
 │   ├── ImportReminderToast.tsx # Smart notification system for stale data
@@ -69,10 +71,12 @@ src/
 ├── hooks/                   # Custom React hooks
 │   ├── __tests__/          # Hook tests
 │   ├── useBitcoinPrice.ts  # Bitcoin price fetching and polling
-│   ├── useImportFlow.ts    # Import flow state management 
+│   ├── useFeatureFlags.ts  # Feature flag system hooks
+│   ├── useImportFlow.ts    # Import flow state management
 │   ├── usePortfolioStats.ts # Portfolio statistics calculations
 │   └── useTransactionManager.ts # Transaction state and persistence
 ├── types/                   # TypeScript type definitions
+│   ├── FeatureFlags.ts     # Feature flag system type definitions
 │   ├── ImportError.ts      # CSV import error handling types
 │   ├── Stats.ts            # Portfolio statistics interface
 │   ├── TaxTypes.ts         # Tax calculation type definitions
@@ -87,7 +91,7 @@ src/
 │   ├── enhancedCsvProcessor.ts # Enhanced CSV processor with classification
 │   ├── enhancedExchangeParsers.ts # Multi-exchange parsers (all transaction types)
 │   ├── errorRecovery.ts    # Import error recovery and help generation
-│   ├── exchangeParsers.ts  # Legacy exchange parsers (⚠️ DEPRECATED) 
+│   ├── exchangeParsers.ts  # Legacy exchange parsers (⚠️ DEPRECATED)
 │   ├── formatBTC.ts        # Bitcoin amount formatting
 │   ├── formatCurrency.ts   # Currency formatting
 │   ├── generateTransactionId.ts # Stable transaction ID generation
@@ -123,7 +127,7 @@ pnpm dev        # Start development server (http://localhost:5173)
 pnpm build      # Build for production
 pnpm preview    # Preview production build locally
 
-# Code Quality  
+# Code Quality
 pnpm lint       # Run ESLint v9 (flat config format)
 pnpm lint:fix   # Auto-fix ESLint issues
 pnpm format     # Format code with Prettier
@@ -155,7 +159,7 @@ When developing new features, ensure comprehensive testing with enforced coverag
 pnpm test --run src/utils/taxCalculator.test.ts
 
 # 2. Create new test files following naming convention
-# ComponentName.test.tsx for React components  
+# ComponentName.test.tsx for React components
 # utilityName.test.ts for utility functions
 # useHookName.test.ts for custom hooks
 
@@ -177,21 +181,24 @@ pnpm ci                         # Full CI pipeline (lint + coverage + build)
 ### Code Quality Standards
 
 #### TypeScript Standards
+
 - **Strict Mode**: Always enabled - no implicit any, null checks required
 - **Explicit Typing**: Avoid `any` - use proper types or `unknown` with type guards
 - **Interface Definitions**: Create comprehensive interfaces in `src/types/`
 
 #### ESLint Rules (Enforced)
+
 ```json
 {
   "@typescript-eslint/no-explicit-any": "error",
-  "@typescript-eslint/prefer-ts-expect-error": "error", 
+  "@typescript-eslint/prefer-ts-expect-error": "error",
   "@typescript-eslint/ban-ts-comment": "error",
   "react-hooks/exhaustive-deps": "error"
 }
 ```
 
 #### Component Standards
+
 - **Props Interfaces**: Always define explicit props interfaces
 - **Error Boundaries**: Wrap complex components in error boundaries
 - **Accessibility**: Include ARIA labels and keyboard navigation
@@ -199,38 +206,68 @@ pnpm ci                         # Full CI pipeline (lint + coverage + build)
 - **Legal Compliance**: All tax-related features must be wrapped with feature flags
 
 #### Legal Compliance Development Standards
-- **Feature Flag Requirements**: ALL tax education and advice features MUST be behind feature flags
-- **Risk Assessment**: Categorize new features as High/Medium/Low legal risk before development
-- **Safe Mode First**: Develop safe mode UI/UX first, then add enhanced features via flags
-- **Disclaimer Integration**: Every tax-related feature requires appropriate disclaimers
-- **Professional Consultation**: Direct users to qualified professionals for tax advice
+
+⚠️ **CRITICAL**: Bitcoin DCA Tracker operates under strict legal compliance requirements to prevent liability from providing financial advice.
+
+**Risk Classification System:**
+
+- **High Risk (Production DISABLED)**: Educational content, tax advice, transaction guidance, expanded classifications
+- **Medium Risk (Enhanced disclaimers)**: Tax calculations, basic guidance with clear limitations
+- **Low Risk (Safe for production)**: Portfolio tracking, mathematical calculations, data visualization
+
+**Development Requirements:**
+
+- **Feature Flag Mandatory**: ALL tax education and advice features MUST be behind feature flags
+- **Risk Assessment Required**: Categorize new features as High/Medium/Low legal risk before development
+- **Safe Mode First**: Develop production-safe UI/UX first, then add enhanced features via flags
+- **Environment-Based Configuration**: Production runs in safe mode by default
+- **Disclaimer Integration**: Every tax-related feature requires appropriate legal disclaimers
+- **Professional Consultation**: Always direct users to qualified tax professionals
 - **Documentation Updates**: Legal compliance documentation must be updated for new tax features
+
+**Production Safety Verification:**
+
+```bash
+# Verify production safety before deployment
+NODE_ENV=production pnpm build
+NODE_ENV=production ./scripts/verify-compliance.sh
+```
+
+**Feature Flag Architecture:**
+
+- Production: High-risk features OFF, safe mode ON, comprehensive disclaimers
+- Development: All features ON for continued development
+- Staging: Selective feature combinations for legal review
+
+See [docs/legal-compliance-plan.md](docs/legal-compliance-plan.md) and [docs/feature-flags.md](docs/feature-flags.md) for complete implementation details.
 
 #### ⚠️ CRITICAL: Dashboard Performance Guidelines
 
 **ALWAYS verify bundle impact before adding components to the main dashboard (app.tsx route "/"):**
 
 1. **Check Bundle Size Impact**:
+
    ```bash
    # Before adding new component
    pnpm build
    # Note main bundle size (index-*.js)
-   
+
    # After adding component - verify bundle size change
    pnpm build
    # Main bundle should stay <300KB, warn if >250KB
    ```
 
 2. **Heavy Components MUST be Lazy Loaded**:
+
    ```tsx
    // ❌ DON'T: Eager loading heavy libraries on main dashboard
    import HeavyChartComponent from './components/HeavyChart';
-   
+
    // ✅ DO: Lazy load with Suspense + skeleton
    const HeavyChartComponent = lazy(() => import('./components/HeavyChart'));
    <Suspense fallback={<ChartSkeleton />}>
      <HeavyChartComponent />
-   </Suspense>
+   </Suspense>;
    ```
 
 3. **Dashboard Component Checklist**:
@@ -238,7 +275,6 @@ pnpm ci                         # Full CI pipeline (lint + coverage + build)
    - [ ] Will this component be visible above the fold?
    - [ ] Can this component be lazy-loaded with skeleton loader?
    - [ ] Does the main bundle size increase by >50KB?
-   
 4. **Bundle Analysis Command**:
    ```bash
    # Generate detailed bundle analysis
@@ -247,11 +283,13 @@ pnpm ci                         # Full CI pipeline (lint + coverage + build)
    ```
 
 **Current Performance Baseline (March 2025)**:
-- Main bundle (index-*.js): ~262KB ✅
-- Charts bundle (lazy): ~347KB (only loads when needed) ✅  
+
+- Main bundle (index-\*.js): ~262KB ✅
+- Charts bundle (lazy): ~347KB (only loads when needed) ✅
 - Individual components: <5KB each ✅
 
 **Performance Violations**:
+
 - Main bundle >300KB = Performance review required
 - Main bundle >400KB = Must lazy load components
 - Any single component >100KB = Must be lazy loaded
@@ -261,6 +299,7 @@ pnpm ci                         # Full CI pipeline (lint + coverage + build)
 When replacing classes, functions, or entire modules:
 
 1. **Mark with JSDoc `@deprecated` tag**:
+
 ```typescript
 /**
  * Legacy CSV processor for basic imports
@@ -271,6 +310,7 @@ export class CSVProcessor { ... }
 ```
 
 2. **Provide Migration Path**:
+
 ```typescript
 /**
  * @deprecated Use enhancedExchangeParsers.ts instead
@@ -290,7 +330,7 @@ export const exchangeParsers = { ... }
 
 - **Mixed CSV Support**: Handles files containing purchases, withdrawals, sales, and transfers
 - **Smart Auto-Classification**: Pattern recognition with 90%+ confidence scoring
-- **Interactive Classification UI**: User-friendly modal for ambiguous transactions  
+- **Interactive Classification UI**: User-friendly modal for ambiguous transactions
 - **Bulk Actions**: One-click classification for common patterns
 - **Tax-Aware Processing**: Properly categorizes transactions for tax implications
 
@@ -432,14 +472,14 @@ interface Transaction {
   usdAmount: number; // USD amount (0 for withdrawals)
   btcAmount: number; // Bitcoin amount (positive for acquisitions)
   price: number; // Bitcoin price at transaction time
-  
+
   // Extended fields for withdrawal tracking (optional for backward compatibility)
   destinationWallet?: string; // Wallet name or address where Bitcoin was sent
   networkFee?: number; // Network fee in BTC for withdrawals
   networkFeeUsd?: number; // Network fee in USD at time of transaction
   isSelfCustody?: boolean; // Flag indicating this is a self-custody movement
   notes?: string; // User notes about the transaction
-  
+
   // Tax treatment flags
   isTaxable?: boolean; // Whether this creates a taxable event (defaults based on type)
 }
@@ -468,36 +508,36 @@ interface Stats {
 
 ```typescript
 interface TaxLot {
-  id: string;                    // Unique identifier for this lot
-  transactionId: string;         // Reference to original transaction
-  purchaseDate: Date;           // Date of acquisition
-  btcAmount: number;            // Original BTC amount in this lot
-  remaining: number;            // Remaining BTC in this lot (after disposals)
-  costBasis: number;            // Original USD cost for this lot
-  pricePerBtc: number;          // Price per BTC at time of purchase
-  exchange: string;             // Exchange where purchased
+  id: string; // Unique identifier for this lot
+  transactionId: string; // Reference to original transaction
+  purchaseDate: Date; // Date of acquisition
+  btcAmount: number; // Original BTC amount in this lot
+  remaining: number; // Remaining BTC in this lot (after disposals)
+  costBasis: number; // Original USD cost for this lot
+  pricePerBtc: number; // Price per BTC at time of purchase
+  exchange: string; // Exchange where purchased
 }
 
 interface TaxEvent {
   id: string;
-  type: TaxEventType;           // ACQUISITION or DISPOSAL
+  type: TaxEventType; // ACQUISITION or DISPOSAL
   date: Date;
   btcAmount: number;
   usdValue: number;
-  costBasis?: number;           // Cost basis for disposed BTC
-  capitalGain?: number;         // Gain or loss (can be negative)
+  costBasis?: number; // Cost basis for disposed BTC
+  capitalGain?: number; // Gain or loss (can be negative)
   holdingPeriod?: HoldingPeriod; // SHORT_TERM or LONG_TERM
   disposedLots?: DisposedLot[]; // Which lots were used for disposal
 }
 
 interface TaxReport {
-  taxYear: number;              // Tax year (e.g., 2024)
-  method: TaxMethod;            // Calculation method used (FIFO/LIFO/HIFO)
-  generatedAt: Date;            // When this report was generated
-  summary: TaxSummary;          // Summary statistics
-  acquisitions: TaxEvent[];     // All purchase events
-  disposals: TaxEvent[];        // All sale/disposal events
-  remainingLots: TaxLot[];      // Lots still held
+  taxYear: number; // Tax year (e.g., 2024)
+  method: TaxMethod; // Calculation method used (FIFO/LIFO/HIFO)
+  generatedAt: Date; // When this report was generated
+  summary: TaxSummary; // Summary statistics
+  acquisitions: TaxEvent[]; // All purchase events
+  disposals: TaxEvent[]; // All sale/disposal events
+  remainingLots: TaxLot[]; // Lots still held
 }
 ```
 
@@ -557,6 +597,7 @@ pnpm ci                         # Full: lint + coverage + build
 ```
 
 **Coverage Thresholds (Enforced)**:
+
 - Overall: 75% minimum
 - `src/hooks/`: 85% minimum (custom hooks require high test coverage)
 - `src/utils/tax*`: 95% minimum (tax calculations must be thoroughly tested)
@@ -565,7 +606,7 @@ pnpm ci                         # Full: lint + coverage + build
 
 ```bash
 pnpm lint      # ESLint checking
-pnpm format    # Prettier formatting  
+pnpm format    # Prettier formatting
 pnpm dev       # Development server
 pnpm build     # Production build
 pnpm typecheck # TypeScript type checking (if available)
@@ -588,8 +629,9 @@ VITE_DEBUG_MODE=true pnpm dev    # Enable feature flag debugging
 ```
 
 **Legal Compliance Checklist (Before Production Deployment):**
+
 - ✅ High-risk features disabled in production environment
-- ✅ Safe mode disclaimers visible throughout application  
+- ✅ Safe mode disclaimers visible throughout application
 - ✅ Professional consultation guidance integrated
 - ✅ No prescriptive tax advice in production build
 - ✅ Feature flag system tested and verified
@@ -599,15 +641,17 @@ VITE_DEBUG_MODE=true pnpm dev    # Enable feature flag debugging
 For budget tracking and development cost analysis, track Claude token usage after completing each task or feature:
 
 **After completing each significant task/feature, ask Claude:**
+
 ```
 Please provide a token usage summary for this task, including:
 - Input tokens used
-- Output tokens generated  
+- Output tokens generated
 - Total tokens for this task
 - Brief description of what was accomplished
 ```
 
 **Manual Tracking Format:**
+
 ```
 Task: [Task/Feature Name]
 Date: [Date Completed]
@@ -618,8 +662,9 @@ Total Cost Estimate: [Based on Sonnet 4 pricing: $3 input + $15 output per 1M to
 ```
 
 **Benefits of Task-Based Tracking:**
+
 - ✅ Captures data before session ends
-- ✅ Links costs directly to deliverables  
+- ✅ Links costs directly to deliverables
 - ✅ Better granularity for budgeting
 - ✅ No risk of losing token data on session exit
 
@@ -644,7 +689,7 @@ vim CLAUDE.md
 
 When completing major features or making significant changes, **ALWAYS** update the following documentation:
 
-1. **CLAUDE.md** (this file): 
+1. **CLAUDE.md** (this file):
    - Add new components to project structure
    - Update core features list and technical highlights
    - Update data models and interfaces
@@ -697,8 +742,9 @@ When adding entries to CHANGELOG.md, include development statistics:
 
 ```markdown
 **Development Stats:**
+
 - Model: Claude Sonnet 4
-- Tokens: [X] input / [Y] output 
+- Tokens: [X] input / [Y] output
 - Estimated Cost: $[Z]
 - Story Points: [N]
 ```
@@ -712,7 +758,7 @@ This ensures the project documentation stays current and accurate for future dev
 The project uses a streamlined documentation approach:
 
 - **[CHANGELOG.md](CHANGELOG.md)** - Complete project history and releases
-- **[docs/tasks.md](docs/tasks.md)** - Current development planning and active tasks  
+- **[docs/tasks.md](docs/tasks.md)** - Current development planning and active tasks
 - **[docs/completed-tasks-archive.md](docs/completed-tasks-archive.md)** - Historical task details (quarterly archives)
 
 ### Development Workflow
@@ -739,6 +785,7 @@ cat CHANGELOG.md
 ## Current Status & Recent Achievements
 
 ### ✅ Recently Completed (Q1 2025 Development Phase)
+
 1. **Stable Transaction ID System** (Development Milestone 1) - Eliminated duplicate import issues
 2. **Comprehensive Error Handling** (Development Milestone 2) - Professional-grade CSV import with recovery options
 3. **Tax Reporting System** (Development Milestone 3) - Complete multi-method tax calculations with professional export capabilities
@@ -746,9 +793,11 @@ cat CHANGELOG.md
 5. **Legal Compliance & Feature Flag System** (Development Milestone 5) - Risk-based feature management with production safety
 
 ### 🎯 Current Status
+
 **Legal Compliance Implementation** - All core features implemented with comprehensive testing. Currently implementing feature flag system for legal risk management before production deployment.
 
 ### 📝 Development Notes
+
 **Data Migration Policy**: Since the application is in pre-production development phase and not yet live, data migrations are not required. LocalStorage data can be purged as needed for structural changes without concern for user data preservation. This allows for more aggressive refactoring and schema evolution during development.
 
 ### 📋 Known Limitations
@@ -783,8 +832,9 @@ cat CHANGELOG.md
 ## Architecture & Design Principles
 
 ### Core Design Philosophy
+
 - **Error-First Design**: Comprehensive error handling throughout the application
-- **User Experience Focus**: Progressive disclosure and recovery options for all failure scenarios  
+- **User Experience Focus**: Progressive disclosure and recovery options for all failure scenarios
 - **Data Integrity**: Zero data loss with automatic backup and migration systems
 - **Type Safety**: Full TypeScript coverage with strict mode enabled
 - **Testing Excellence**: >80% overall coverage, >90% for critical business logic
@@ -793,17 +843,20 @@ cat CHANGELOG.md
 ### Key Architectural Decisions
 
 #### Multi-User Production Architecture
+
 - **Hybrid Client-Server**: Core logic client-side, user data and auth server-side
 - **Supabase Backend**: PostgreSQL database with Row Level Security for user isolation
 - **Progressive Migration**: localStorage → database migration preserving existing functionality
 - **Modular Design**: Clear separation between data processing, UI components, and business logic
 
 #### Robust Data Processing
+
 - **Multi-Stage Validation**: File → Structure → Row-level validation with specific error types
 - **Stable ID Generation**: Content-based IDs that remain consistent across re-imports
 - **Error Recovery**: Context-aware recovery options with user guidance and data export
 
 #### Performance Considerations
+
 - **Streaming Processing**: Large CSV files processed with progress indication
 - **Memory Efficiency**: Proper cleanup and resource management
 - **Caching Strategy**: Intelligent data caching with versioning for fast retrieval
@@ -811,6 +864,7 @@ cat CHANGELOG.md
 ### Technology Choices Rationale
 
 #### Frontend Technologies
+
 - **React 19**: Latest stable with concurrent features for smooth UX
 - **TypeScript**: Strict typing prevents runtime errors and improves maintainability
 - **Vite**: Fast development builds and optimized production bundles
@@ -818,6 +872,7 @@ cat CHANGELOG.md
 - **Tailwind CSS**: Utility-first CSS for rapid, consistent UI development
 
 #### Infrastructure Technologies (Production)
+
 - **Supabase**: Open-source Firebase alternative with PostgreSQL, generous free tier, built-in auth
 - **Vercel**: Zero-config deployments, excellent Vite/React integration, automatic CI/CD
 - **GitHub Actions**: Free for public repos, seamless Vercel integration, automated testing
@@ -831,12 +886,14 @@ cat CHANGELOG.md
 The application includes all essential Bitcoin DCA tracking features and is transitioning from localhost-only to production-ready multi-user platform:
 
 #### ✅ Completed (Q1 2025)
+
 - All core features: transaction tracking, tax reporting, self-custody monitoring
-- Comprehensive testing with >90% coverage for critical calculations  
+- Comprehensive testing with >90% coverage for critical calculations
 - Professional-grade error handling and data validation
 - Advanced features: AI classification, security scoring, export capabilities
 
 #### 🏗️ In Progress (Q2 2025) - Foundation Infrastructure
+
 - **Phase 1 (March)**: Supabase + Vercel deployment with authentication
 - **Phase 2 (April)**: Beta testing with trusted users, security hardening
 - **Phase 3 (May)**: Production launch with professional monitoring
@@ -845,16 +902,19 @@ The application includes all essential Bitcoin DCA tracking features and is tran
 ### Cost-Effective Scaling Strategy
 
 #### Alpha Release: $0/month
+
 - Supabase free tier (500MB DB, 50K requests)
 - Vercel free tier (hobby projects)
 - GitHub Actions free tier (2000 minutes)
 
 #### Beta Release: ~$10-25/month
+
 - Potential Supabase Pro upgrade ($25/month)
 - Custom domain (~$15/year)
 - Sentry error tracking (free tier)
 
 #### Production Scale: Revenue-dependent
+
 - Scale based on actual user growth and usage patterns
 - Monitor unit economics and optimize before tier upgrades
 
@@ -863,6 +923,7 @@ This approach demonstrates modern full-stack development with React frontend and
 ## User Education Standards
 
 ### Mandatory UX Review for All Features
+
 When adding/modifying any user-facing feature, ALWAYS consider:
 
 1. **Decision Clarity**: Can users understand what each option means?
@@ -872,36 +933,42 @@ When adding/modifying any user-facing feature, ALWAYS consider:
 5. **US Tax Focus**: Is US jurisdiction clearly indicated?
 
 ### Pre-Alpha Data Handling
+
 - Breaking changes to data schemas are acceptable
 - Always provide export options before data resets
 - Clear messaging about pre-alpha data reliability expectations
 - Build towards future backwards compatibility
 
 ### Educational Component Requirements
+
 - All modals with user decisions MUST include educational tooltips
 - Tax-related features MUST include tax implication warnings
 - Complex features MUST include "Learn More" sections
 - All financial calculations MUST include educational context
 
 ### Testing Requirements for Educational Features
+
 - Test scenarios must include "confused user" workflows
 - Educational content must be verified by tax research
 - Tooltips and help sections require comprehensive content testing
 - UI components must work with educational framework integration
 
 ### Lightning Network & P2P Transaction Standards
+
 - All transaction types must be covered: gifts, payments, reimbursements, mining/staking
 - Tax implications must be clearly explained for each scenario
 - Real-world examples must be provided for user guidance
 - Common mistakes must be addressed with warnings
 
 ### US Tax Compliance Focus
+
 - All tax calculations assume US tax law compliance
 - Clear jurisdiction notices must be included
 - International users must receive appropriate guidance
 - Professional disclaimers required for tax-related features
 
 ### Educational Component System
+
 The app includes a comprehensive educational framework in `src/components/educational/`:
 
 - **InfoTooltip**: Hover/click explanations with tax implications
@@ -911,6 +978,7 @@ The app includes a comprehensive educational framework in `src/components/educat
 - **USJurisdictionNotice**: Clear US tax law focus messaging
 
 ### Data Validation & Migration System
+
 Pre-alpha status allows breaking changes with user-friendly workflows:
 
 - **Startup Validation**: Automatic data compatibility checking on app launch

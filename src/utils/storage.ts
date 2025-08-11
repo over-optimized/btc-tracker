@@ -41,7 +41,7 @@ export function getTransactions(): StorageLoadResult {
   // Parse existing data
   let transactions: Transaction[];
   try {
-    transactions = JSON.parse(data).map((tx: any) => ({
+    transactions = JSON.parse(data).map((tx: Omit<Transaction, 'date'> & { date: string }) => ({
       ...tx,
       date: new Date(tx.date),
     }));
@@ -61,7 +61,7 @@ export function getTransactions(): StorageLoadResult {
 
     if (migrationResult.success) {
       // Save migrated data
-      const migratedTransactions = transactions.filter((tx) => {
+      const migratedTransactions = transactions.filter((_tx) => {
         // Re-generate IDs for all transactions with the new system
         // This is handled by the migration function
         return true;
@@ -102,6 +102,7 @@ function deduplicateAndMigrate(transactions: Transaction[]): {
   removedCount: number;
 } {
   // Import here to avoid circular dependency
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { generateStableTransactionId } = require('./generateTransactionId');
 
   const txMap = new Map<string, Transaction>();
@@ -291,10 +292,12 @@ export function importTransactions(
       });
     } else {
       // JSON format
-      importedTransactions = JSON.parse(data).map((tx: any) => ({
-        ...tx,
-        date: new Date(tx.date),
-      }));
+      importedTransactions = JSON.parse(data).map(
+        (tx: Omit<Transaction, 'date'> & { date: string }) => ({
+          ...tx,
+          date: new Date(tx.date),
+        }),
+      );
     }
 
     // Merge with existing transactions

@@ -9,7 +9,7 @@ interface MigrationModalProps {
   onRestoreBackup?: () => void;
 }
 
-const MigrationModal: React.FC<MigrationModalProps> = ({
+export const MigrationModal: React.FC<MigrationModalProps> = ({
   open,
   onClose,
   migrationResult,
@@ -68,7 +68,7 @@ const MigrationModal: React.FC<MigrationModalProps> = ({
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="text-sm text-blue-700">
-                <p className="font-medium mb-1">What's new:</p>
+                <p className="font-medium mb-1">What&apos;s new:</p>
                 <ul className="space-y-1 ml-4 list-disc">
                   <li>Improved duplicate detection</li>
                   <li>More reliable CSV re-importing</li>

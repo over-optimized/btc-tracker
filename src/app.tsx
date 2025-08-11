@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppRoutes from './components/AppRoutes';
+import FeatureFlagProvider, { ProductionSafetyWarning } from './components/FeatureFlagProvider';
 import GlobalModals from './components/GlobalModals';
 import ImportReminderToast from './components/ImportReminderToast';
 import NavBar from './components/NavBar';
@@ -12,7 +13,7 @@ import { useTransactionManager } from './hooks/useTransactionManager';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // Custom hooks
   const transactionManager = useTransactionManager();
   const { currentPrice } = useBitcoinPrice();
@@ -21,11 +22,10 @@ const AppContent: React.FC = () => {
     onTransactionsMerged: transactionManager.mergeTransactions,
   });
 
-
   return (
     <>
       <NavBar />
-      
+
       <AppRoutes
         transactions={transactionManager.transactions}
         currentPrice={currentPrice}
@@ -53,20 +53,17 @@ const AppContent: React.FC = () => {
             if (fileInput) fileInput.click();
           }, 100);
         }}
-        
         // Import Error Modal
         errorModalOpen={importFlow.state.errorModalOpen}
         onErrorModalClose={() => importFlow.handlers.setErrorModalOpen(false)}
         recoveryContext={importFlow.state.recoveryContext}
         onRetry={importFlow.handlers.handleRetry}
         onExportErrors={importFlow.handlers.handleExportErrors}
-        
         // Add Withdrawal Modal
         withdrawalModalOpen={importFlow.state.withdrawalModalOpen}
         onWithdrawalModalClose={() => importFlow.handlers.setWithdrawalModalOpen(false)}
         onAddWithdrawal={transactionManager.addTransaction}
         exchanges={transactionManager.getExchangesList()}
-        
         // Transaction Classification Modal
         classificationModalOpen={importFlow.state.classificationModalOpen}
         onClassificationModalClose={() => {
@@ -78,18 +75,21 @@ const AppContent: React.FC = () => {
         onClassify={importFlow.handlers.handleClassificationComplete}
       />
 
-      <ImportReminderToast 
-        transactions={transactionManager.transactions} 
-        onImportClick={() => navigate('/upload')} 
+      <ImportReminderToast
+        transactions={transactionManager.transactions}
+        onImportClick={() => navigate('/upload')}
       />
     </>
   );
 };
 
 const BitcoinTracker: React.FC = () => (
-  <ThemeProvider>
-    <AppContent />
-  </ThemeProvider>
+  <FeatureFlagProvider>
+    <ThemeProvider>
+      <ProductionSafetyWarning />
+      <AppContent />
+    </ThemeProvider>
+  </FeatureFlagProvider>
 );
 
 export default BitcoinTracker;
