@@ -18,7 +18,8 @@
     "test:coverage:html": "vitest --coverage && open coverage/index.html",
     "test:ui": "vitest --ui",
     "quality": "pnpm lint && pnpm test:coverage",
-    "ci": "pnpm lint && pnpm test:coverage && pnpm build"
+    "ci": "pnpm lint && pnpm test:coverage && pnpm build",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -50,7 +51,9 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "husky": "^9.1.7",
     "jsdom": "^26.1.0",
+    "lint-staged": "^16.1.5",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.3",
@@ -58,5 +61,13 @@
     "typescript": "^5.9.2",
     "vite": "^7.0.6",
     "vitest": "^3.2.4"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,css,md}": [
+      "prettier --write"
+    ]
   }
 }
