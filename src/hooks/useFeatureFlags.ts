@@ -53,15 +53,17 @@ export function useFeatureRisk(feature: keyof FeatureFlagConfig) {
 
 /**
  * Detect current environment and return appropriate default flags
+ *
+ * @param testEnv - Optional test environment override for complex test scenarios
+ *                  When not provided, uses import.meta.env (including .env.test in test mode)
  */
 export function getEnvironmentFlags(testEnv?: Record<string, string | undefined>): {
   flags: FeatureFlagConfig;
   environment: FeatureFlagEnvironment;
 } {
-  // Use test environment if provided, otherwise use import.meta.env
+  // Hybrid approach: Use testEnv for complex scenarios, otherwise use import.meta.env
+  // In test mode, import.meta.env includes values from .env.test
   const env = testEnv || import.meta.env;
-
-  // Check environment variables (Vite uses VITE_ prefix)
   const nodeEnv = env.MODE || 'development';
   const safeMode = env.VITE_SAFE_MODE === 'true';
   const debugMode = env.VITE_DEBUG_MODE === 'true';
@@ -154,6 +156,9 @@ export function getEnvironmentFlags(testEnv?: Record<string, string | undefined>
 /**
  * Create feature flag context value
  * Used by FeatureFlagProvider component
+ *
+ * @param initialFlags - Optional initial flag overrides
+ * @param testEnv - Optional test environment override for complex test scenarios
  */
 export function createFeatureFlagContext(
   initialFlags?: Partial<FeatureFlagConfig>,
