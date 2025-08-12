@@ -84,8 +84,8 @@ export function getEnvironmentFlags(): {
       ...DEFAULT_PRODUCTION_FLAGS,
       // Force disable high-risk features in production
       taxEducation: false,
-      transactionGuidance: false,
       expandedClassifications: false,
+      // transactionGuidance removed from hardcoded overrides - can be enabled with proper disclaimers
     };
   } else if (isStaging) {
     flags = { ...DEFAULT_STAGING_FLAGS };
@@ -93,9 +93,9 @@ export function getEnvironmentFlags(): {
     flags = { ...DEFAULT_DEVELOPMENT_FLAGS };
   }
 
-  // Apply environment variable overrides (development/staging only)
+  // Apply environment variable overrides
   if (!isProduction && !safeMode) {
-    // Override specific features based on environment variables
+    // Development/Staging: Allow all environment variable overrides
     if (import.meta.env.VITE_ENABLE_EDUCATIONAL_COMPONENTS !== undefined) {
       flags.taxEducation = import.meta.env.VITE_ENABLE_EDUCATIONAL_COMPONENTS === 'true';
     }
@@ -112,6 +112,16 @@ export function getEnvironmentFlags(): {
     if (import.meta.env.VITE_ENABLE_TAX_OPTIMIZATION !== undefined) {
       flags.taxOptimization = import.meta.env.VITE_ENABLE_TAX_OPTIMIZATION === 'true';
     }
+  } else if (isProduction || safeMode) {
+    // Production: Allow selective overrides for SAFE features only (with proper disclaimers)
+    // High-risk features remain hardcoded to false above
+
+    if (import.meta.env.VITE_ENABLE_DETAILED_TAX_GUIDANCE !== undefined) {
+      flags.transactionGuidance = import.meta.env.VITE_ENABLE_DETAILED_TAX_GUIDANCE === 'true';
+    }
+
+    // Note: taxEducation and expandedClassifications remain hardcoded to false in production
+    // Only transactionGuidance is allowed to be overridden since it has enhanced disclaimers
   }
 
   // Debug logging
