@@ -1,0 +1,38 @@
+name: PR Base Branch Reminder
+
+on:
+  pull_request:
+    types: [opened, reopened]
+    branches: [main]  # Only trigger for PRs targeting main
+
+jobs:
+  base-branch-reminder:
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Comment on PR with base branch reminder
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `👋 Hi! This PR is currently targeting the \`main\` branch.
+              
+              **For our development workflow, feature PRs should typically target \`staging\` instead.**
+              
+              **To change the base branch:**
+              1. Click "Edit" next to the PR title above
+              2. Change base branch from \`main\` to \`staging\` in the dropdown
+              3. Click "Change base"
+              
+              **Why staging first?**
+              - \`staging\` → automated testing and preview deployment
+              - \`staging\` → \`main\` → production deployment
+              - This ensures all changes are tested before reaching production
+              
+              If this PR is intentionally targeting \`main\` (e.g., hotfix, documentation), you can safely ignore this message. 🚀`
+            })
