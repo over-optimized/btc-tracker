@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
-  fetchBitcoinPrice,
   fetchBitcoinPriceWithMetadata,
   getBitcoinPriceCacheStats,
   clearBitcoinPriceCache,
@@ -60,7 +59,7 @@ export const useBitcoinPrice = (options: UseBitcoinPriceOptions = {}): BitcoinPr
 
   // Use ref to track if component is mounted
   const mounted = useRef(true);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
   const updateCacheStats = useCallback(() => {
     setCacheStats(getBitcoinPriceCacheStats());

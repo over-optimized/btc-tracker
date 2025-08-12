@@ -159,7 +159,7 @@ class ApiCache<T> implements ApiCacheInterface<T> {
    */
   cleanup(): number {
     let cleanedCount = 0;
-    const now = Date.now();
+    const _now = Date.now();
 
     // Clean memory cache
     for (const [key, entry] of this.memoryCache.entries()) {

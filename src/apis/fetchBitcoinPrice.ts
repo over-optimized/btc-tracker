@@ -263,7 +263,12 @@ class BitcoinPriceAPI {
    * Main fetch method with comprehensive options
    */
   async fetchPrice(options: FetchBitcoinPriceOptions = {}): Promise<FetchBitcoinPriceResult> {
-    const { forceRefresh = false, strategy = 'cache-first', ttl, useSharedWorker = true } = options;
+    const {
+      forceRefresh = false,
+      strategy = 'cache-first',
+      ttl,
+      useSharedWorker: _useSharedWorker = true,
+    } = options;
 
     // Force refresh bypasses cache
     if (forceRefresh) {
