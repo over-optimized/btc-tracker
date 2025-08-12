@@ -178,6 +178,23 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        {/* Legal Disclaimer Banner */}
+        <div className="bg-yellow-50 border-b border-yellow-200 px-6 py-3">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={16} />
+            <div className="text-sm">
+              <p className="text-yellow-800 font-medium mb-1">Important Legal Notice</p>
+              <p className="text-yellow-700">
+                This tool provides basic transaction categorization for record-keeping purposes
+                only.
+                <strong> This is not financial or tax advice.</strong> Bitcoin transactions may have
+                complex tax implications. Consult IRS Publications 544 & 550 and a qualified tax
+                professional for guidance specific to your situation.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
@@ -280,65 +297,70 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                     </div>
 
                     {/* Classification Options */}
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <button
-                        onClick={() =>
-                          handleClassificationChange(tx.id, TransactionClassification.PURCHASE)
-                        }
-                        className={`p-2 text-sm rounded-md border transition-colors ${
-                          decision?.classification === TransactionClassification.PURCHASE
-                            ? 'bg-green-100 border-green-300 text-green-800'
-                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-green-50'
-                        }`}
-                      >
-                        Purchase
-                      </button>
+                    <div className="mt-4">
+                      <p className="text-xs text-gray-600 mb-2">
+                        Select the category that best describes this transaction:
+                      </p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <button
+                          onClick={() =>
+                            handleClassificationChange(tx.id, TransactionClassification.PURCHASE)
+                          }
+                          className={`p-2 text-sm rounded-md border transition-colors ${
+                            decision?.classification === TransactionClassification.PURCHASE
+                              ? 'bg-green-100 border-green-300 text-green-800'
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-green-50'
+                          }`}
+                        >
+                          Buy Bitcoin
+                        </button>
 
-                      <button
-                        onClick={() =>
-                          handleClassificationChange(
-                            tx.id,
-                            TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
-                            {
-                              destinationWallet: 'Self-Custody Wallet',
-                            },
-                          )
-                        }
-                        className={`p-2 text-sm rounded-md border transition-colors ${
-                          decision?.classification ===
-                          TransactionClassification.SELF_CUSTODY_WITHDRAWAL
-                            ? 'bg-blue-100 border-blue-300 text-blue-800'
-                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-blue-50'
-                        }`}
-                      >
-                        Self-Custody
-                      </button>
+                        <button
+                          onClick={() =>
+                            handleClassificationChange(
+                              tx.id,
+                              TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
+                              {
+                                destinationWallet: 'Self-Custody Wallet',
+                              },
+                            )
+                          }
+                          className={`p-2 text-sm rounded-md border transition-colors ${
+                            decision?.classification ===
+                            TransactionClassification.SELF_CUSTODY_WITHDRAWAL
+                              ? 'bg-blue-100 border-blue-300 text-blue-800'
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-blue-50'
+                          }`}
+                        >
+                          Move to Wallet
+                        </button>
 
-                      <button
-                        onClick={() =>
-                          handleClassificationChange(tx.id, TransactionClassification.SALE)
-                        }
-                        className={`p-2 text-sm rounded-md border transition-colors ${
-                          decision?.classification === TransactionClassification.SALE
-                            ? 'bg-red-100 border-red-300 text-red-800'
-                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-red-50'
-                        }`}
-                      >
-                        Sale
-                      </button>
+                        <button
+                          onClick={() =>
+                            handleClassificationChange(tx.id, TransactionClassification.SALE)
+                          }
+                          className={`p-2 text-sm rounded-md border transition-colors ${
+                            decision?.classification === TransactionClassification.SALE
+                              ? 'bg-red-100 border-red-300 text-red-800'
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-red-50'
+                          }`}
+                        >
+                          Sell Bitcoin
+                        </button>
 
-                      <button
-                        onClick={() =>
-                          handleClassificationChange(tx.id, TransactionClassification.SKIP)
-                        }
-                        className={`p-2 text-sm rounded-md border transition-colors ${
-                          decision?.classification === TransactionClassification.SKIP
-                            ? 'bg-gray-100 border-gray-300 text-gray-800'
-                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        Skip
-                      </button>
+                        <button
+                          onClick={() =>
+                            handleClassificationChange(tx.id, TransactionClassification.SKIP)
+                          }
+                          className={`p-2 text-sm rounded-md border transition-colors ${
+                            decision?.classification === TransactionClassification.SKIP
+                              ? 'bg-gray-100 border-gray-300 text-gray-800'
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Skip This
+                        </button>
+                      </div>
                     </div>
 
                     {/* Additional fields for certain classifications */}
@@ -394,30 +416,61 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t bg-gray-50">
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-600">
-              {currentPromptIndex + 1} of {prompts.length} steps
+        <div className="border-t bg-gray-50">
+          {/* Tax Guidance Section */}
+          <div className="px-6 py-3 border-b border-gray-200 bg-blue-50">
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0">
+                <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">i</span>
+                </div>
+              </div>
+              <div className="text-sm">
+                <p className="text-blue-800 font-medium mb-1">For Tax Reporting Research:</p>
+                <div className="text-blue-700 space-y-1">
+                  <p>• IRS Publication 544 (Sales and Other Dispositions of Assets)</p>
+                  <p>• IRS Publication 550 (Investment Income and Expenses)</p>
+                  <p>
+                    • IRS Virtual Currency FAQ:
+                    <a
+                      href="https://www.irs.gov/individuals/international-taxpayers/frequently-asked-questions-on-virtual-currency-transactions"
+                      className="underline hover:no-underline ml-1"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      irs.gov/virtual-currency
+                    </a>
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                Cancel Import
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={unclassifiedCount > 0}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  unclassifiedCount > 0
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                {isLastPrompt ? 'Import Transactions' : 'Next'}
-                {unclassifiedCount === 0 && <CheckCircle className="inline ml-2" size={16} />}
-              </button>
+          </div>
+
+          <div className="p-6">
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                {currentPromptIndex + 1} of {prompts.length} steps
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Cancel Import
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={unclassifiedCount > 0}
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    unclassifiedCount > 0
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {isLastPrompt ? 'Import Transactions' : 'Next'}
+                  {unclassifiedCount === 0 && <CheckCircle className="inline ml-2" size={16} />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
