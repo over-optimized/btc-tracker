@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   getHighRiskFeatures,
   getEnabledFeaturesByRisk,
@@ -13,17 +13,6 @@ import {
 } from '../../types/FeatureFlags';
 
 describe('useFeatureFlags', () => {
-  beforeEach(() => {
-    // Reset to a clean state before each test
-    // cspell:disable-next-line
-    vi.unstubAllGlobals();
-  });
-
-  afterEach(() => {
-    // cspell:disable-next-line
-    vi.unstubAllGlobals();
-  });
-
   describe('getHighRiskFeatures', () => {
     it('should return all high-risk features', () => {
       const highRiskFeatures = getHighRiskFeatures();
@@ -91,17 +80,93 @@ describe('useFeatureFlags', () => {
   });
 
   describe('getEnvironmentFlags', () => {
-    it('should have environment detection functions', () => {
-      const { environment } = getEnvironmentFlags();
+    it('should detect development environment correctly', () => {
+      // Test development environment
+      const testEnv = {
+        MODE: 'development',
+        VITE_SAFE_MODE: undefined,
+      };
 
-      expect(environment).toHaveProperty('isDevelopment');
-      expect(environment).toHaveProperty('isProduction');
-      expect(environment).toHaveProperty('isStaging');
-      expect(environment).toHaveProperty('safeMode');
+      const { environment, flags } = getEnvironmentFlags(testEnv);
+
+      expect(environment.isDevelopment).toBe(true);
+      expect(environment.isProduction).toBe(false);
+      expect(environment.isStaging).toBe(false);
+      expect(environment.safeMode).toBe(false);
+
+      // Development should enable high-risk features
+      expect(flags.taxEducation).toBe(true);
+      expect(flags.transactionGuidance).toBe(true);
+      expect(flags.expandedClassifications).toBe(true);
+    });
+
+    it('should detect production environment correctly', () => {
+      // Test production environment
+      const testEnv = {
+        MODE: 'production',
+        VITE_SAFE_MODE: undefined,
+      };
+
+      const { environment, flags } = getEnvironmentFlags(testEnv);
+
+      expect(environment.isDevelopment).toBe(false);
+      expect(environment.isProduction).toBe(true);
+      expect(environment.isStaging).toBe(false);
+
+      // Production should disable high-risk features
+      expect(flags.taxEducation).toBe(false);
+      expect(flags.transactionGuidance).toBe(false);
+      expect(flags.expandedClassifications).toBe(false);
+
+      // Medium and low-risk features should be enabled
+      expect(flags.taxCalculations).toBe(true);
+      expect(flags.portfolioTracking).toBe(true);
+    });
+
+    it('should detect safe mode correctly', () => {
+      // Test safe mode environment
+      const testEnv = {
+        MODE: 'development',
+        VITE_SAFE_MODE: 'true',
+      };
+
+      const { environment, flags } = getEnvironmentFlags(testEnv);
+
+      expect(environment.safeMode).toBe(true);
+      expect(environment.isProduction).toBe(true); // Safe mode forces production behavior
+
+      // Safe mode should disable high-risk features even in development
+      expect(flags.taxEducation).toBe(false);
+      expect(flags.expandedClassifications).toBe(false);
+    });
+
+    it('should detect staging environment correctly', () => {
+      // Test staging environment
+      const testEnv = {
+        MODE: 'staging',
+        VITE_SAFE_MODE: undefined,
+      };
+
+      const { environment, flags } = getEnvironmentFlags(testEnv);
+
+      expect(environment.isDevelopment).toBe(false);
+      expect(environment.isProduction).toBe(false);
+      expect(environment.isStaging).toBe(true);
+
+      // Staging should have selective features (per DEFAULT_STAGING_FLAGS)
+      expect(flags.taxEducation).toBe(false);
+      expect(flags.transactionGuidance).toBe(true);
+      expect(flags.expandedClassifications).toBe(true);
     });
 
     it('should return flags object with all required properties', () => {
-      const { flags } = getEnvironmentFlags();
+      // Test with production environment
+      const testEnv = {
+        MODE: 'production',
+        VITE_SAFE_MODE: undefined,
+      };
+
+      const { flags } = getEnvironmentFlags(testEnv);
 
       expect(flags).toHaveProperty('taxEducation');
       expect(flags).toHaveProperty('transactionGuidance');
@@ -111,6 +176,42 @@ describe('useFeatureFlags', () => {
       expect(flags).toHaveProperty('portfolioTracking');
       expect(flags).toHaveProperty('dataVisualization');
       expect(flags).toHaveProperty('importExport');
+    });
+
+    it('should respect environment variable overrides in development', () => {
+      // Test development with specific overrides
+      const testEnv = {
+        MODE: 'development',
+        VITE_SAFE_MODE: undefined,
+        VITE_ENABLE_EDUCATIONAL_COMPONENTS: 'false',
+        VITE_ENABLE_DETAILED_TAX_GUIDANCE: 'false',
+      };
+
+      const { flags } = getEnvironmentFlags(testEnv);
+
+      // Environment variables should override defaults in development
+      expect(flags.taxEducation).toBe(false);
+      expect(flags.transactionGuidance).toBe(false);
+    });
+
+    it('should ignore high-risk overrides in production/safe mode', () => {
+      // Test production with environment variable overrides
+      const testEnv = {
+        MODE: 'production',
+        VITE_SAFE_MODE: undefined,
+        VITE_ENABLE_EDUCATIONAL_COMPONENTS: 'true', // Should be ignored
+        VITE_ENABLE_EXPANDED_CLASSIFICATIONS: 'true', // Should be ignored
+        VITE_ENABLE_DETAILED_TAX_GUIDANCE: 'true', // Should work (medium risk)
+      };
+
+      const { flags } = getEnvironmentFlags(testEnv);
+
+      // High-risk overrides should be ignored in production
+      expect(flags.taxEducation).toBe(false);
+      expect(flags.expandedClassifications).toBe(false);
+
+      // Medium-risk override should work
+      expect(flags.transactionGuidance).toBe(true);
     });
   });
 
@@ -133,7 +234,10 @@ describe('useFeatureFlags', () => {
     });
 
     it('should correctly check if feature is enabled', () => {
-      const context = createFeatureFlagContext({ portfolioTracking: true });
+      const context = createFeatureFlagContext({
+        portfolioTracking: true,
+        taxEducation: false, // Explicitly set for predictable test
+      });
 
       expect(context.isFeatureEnabled('portfolioTracking')).toBe(true);
       expect(context.isFeatureEnabled('taxEducation')).toBe(false);

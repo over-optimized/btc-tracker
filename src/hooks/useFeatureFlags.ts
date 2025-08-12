@@ -54,14 +54,17 @@ export function useFeatureRisk(feature: keyof FeatureFlagConfig) {
 /**
  * Detect current environment and return appropriate default flags
  */
-export function getEnvironmentFlags(): {
+export function getEnvironmentFlags(testEnv?: Record<string, string | undefined>): {
   flags: FeatureFlagConfig;
   environment: FeatureFlagEnvironment;
 } {
+  // Use test environment if provided, otherwise use import.meta.env
+  const env = testEnv || import.meta.env;
+
   // Check environment variables (Vite uses VITE_ prefix)
-  const nodeEnv = import.meta.env.MODE || 'development';
-  const safeMode = import.meta.env.VITE_SAFE_MODE === 'true';
-  const debugMode = import.meta.env.VITE_DEBUG_MODE === 'true';
+  const nodeEnv = env.MODE || 'development';
+  const safeMode = env.VITE_SAFE_MODE === 'true';
+  const debugMode = env.VITE_DEBUG_MODE === 'true';
 
   // Determine environment
   const isDevelopment = nodeEnv === 'development';
@@ -96,28 +99,27 @@ export function getEnvironmentFlags(): {
   // Apply environment variable overrides
   if (!isProduction && !safeMode) {
     // Development/Staging: Allow all environment variable overrides
-    if (import.meta.env.VITE_ENABLE_EDUCATIONAL_COMPONENTS !== undefined) {
-      flags.taxEducation = import.meta.env.VITE_ENABLE_EDUCATIONAL_COMPONENTS === 'true';
+    if (env.VITE_ENABLE_EDUCATIONAL_COMPONENTS !== undefined) {
+      flags.taxEducation = env.VITE_ENABLE_EDUCATIONAL_COMPONENTS === 'true';
     }
 
-    if (import.meta.env.VITE_ENABLE_EXPANDED_CLASSIFICATIONS !== undefined) {
-      flags.expandedClassifications =
-        import.meta.env.VITE_ENABLE_EXPANDED_CLASSIFICATIONS === 'true';
+    if (env.VITE_ENABLE_EXPANDED_CLASSIFICATIONS !== undefined) {
+      flags.expandedClassifications = env.VITE_ENABLE_EXPANDED_CLASSIFICATIONS === 'true';
     }
 
-    if (import.meta.env.VITE_ENABLE_DETAILED_TAX_GUIDANCE !== undefined) {
-      flags.transactionGuidance = import.meta.env.VITE_ENABLE_DETAILED_TAX_GUIDANCE === 'true';
+    if (env.VITE_ENABLE_DETAILED_TAX_GUIDANCE !== undefined) {
+      flags.transactionGuidance = env.VITE_ENABLE_DETAILED_TAX_GUIDANCE === 'true';
     }
 
-    if (import.meta.env.VITE_ENABLE_TAX_OPTIMIZATION !== undefined) {
-      flags.taxOptimization = import.meta.env.VITE_ENABLE_TAX_OPTIMIZATION === 'true';
+    if (env.VITE_ENABLE_TAX_OPTIMIZATION !== undefined) {
+      flags.taxOptimization = env.VITE_ENABLE_TAX_OPTIMIZATION === 'true';
     }
   } else if (isProduction || safeMode) {
     // Production: Allow selective overrides for SAFE features only (with proper disclaimers)
     // High-risk features remain hardcoded to false above
 
-    if (import.meta.env.VITE_ENABLE_DETAILED_TAX_GUIDANCE !== undefined) {
-      flags.transactionGuidance = import.meta.env.VITE_ENABLE_DETAILED_TAX_GUIDANCE === 'true';
+    if (env.VITE_ENABLE_DETAILED_TAX_GUIDANCE !== undefined) {
+      flags.transactionGuidance = env.VITE_ENABLE_DETAILED_TAX_GUIDANCE === 'true';
     }
 
     // Note: taxEducation and expandedClassifications remain hardcoded to false in production
@@ -137,11 +139,11 @@ export function getEnvironmentFlags(): {
       },
       flags,
       envOverrides: {
-        VITE_SAFE_MODE: import.meta.env.VITE_SAFE_MODE,
-        VITE_ENABLE_EDUCATIONAL_COMPONENTS: import.meta.env.VITE_ENABLE_EDUCATIONAL_COMPONENTS,
-        VITE_ENABLE_EXPANDED_CLASSIFICATIONS: import.meta.env.VITE_ENABLE_EXPANDED_CLASSIFICATIONS,
-        VITE_ENABLE_DETAILED_TAX_GUIDANCE: import.meta.env.VITE_ENABLE_DETAILED_TAX_GUIDANCE,
-        VITE_ENABLE_TAX_OPTIMIZATION: import.meta.env.VITE_ENABLE_TAX_OPTIMIZATION,
+        VITE_SAFE_MODE: env.VITE_SAFE_MODE,
+        VITE_ENABLE_EDUCATIONAL_COMPONENTS: env.VITE_ENABLE_EDUCATIONAL_COMPONENTS,
+        VITE_ENABLE_EXPANDED_CLASSIFICATIONS: env.VITE_ENABLE_EXPANDED_CLASSIFICATIONS,
+        VITE_ENABLE_DETAILED_TAX_GUIDANCE: env.VITE_ENABLE_DETAILED_TAX_GUIDANCE,
+        VITE_ENABLE_TAX_OPTIMIZATION: env.VITE_ENABLE_TAX_OPTIMIZATION,
       },
     });
   }
@@ -155,8 +157,9 @@ export function getEnvironmentFlags(): {
  */
 export function createFeatureFlagContext(
   initialFlags?: Partial<FeatureFlagConfig>,
+  testEnv?: Record<string, string | undefined>,
 ): FeatureFlagContext {
-  const { flags: defaultFlags, environment } = getEnvironmentFlags();
+  const { flags: defaultFlags, environment } = getEnvironmentFlags(testEnv);
 
   // Merge with any provided initial flags
   const flags = { ...defaultFlags, ...initialFlags };
