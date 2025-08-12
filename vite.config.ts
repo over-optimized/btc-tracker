@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig(({ mode }) => ({
@@ -53,29 +53,5 @@ export default defineConfig(({ mode }) => ({
   preview: {
     host: true,
     port: 4173,
-  },
-
-  // Testing configuration
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/setupTests.ts',
-    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'], // Only include src tests
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/cypress/**',
-      '**/.{idea,git,cache,output,temp}/**',
-      '**/tests/**', // Exclude all tests directory for Vitest (use src/ only)
-      '**/*.spec.ts', // Exclude .spec.ts files (used by Playwright)
-    ],
-    coverage: {
-      exclude: [
-        'tests/**', // Exclude tests directory from coverage
-        'src/setupTests.ts',
-        '**/*.config.{js,ts}',
-        '**/node_modules/**',
-      ],
-    },
   },
 }));

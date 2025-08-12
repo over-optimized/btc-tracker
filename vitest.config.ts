@@ -7,11 +7,21 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.ts',
+    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'], // Only include src tests
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/cypress/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/tests/**', // Exclude all tests directory for Vitest (use src/ only)
+      '**/*.spec.ts', // Exclude .spec.ts files (used by Playwright)
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       reportsDirectory: './coverage',
       exclude: [
+        'tests/**', // Exclude tests directory from coverage
         'node_modules/',
         'dist/',
         'coverage/',
