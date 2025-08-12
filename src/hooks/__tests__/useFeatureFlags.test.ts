@@ -15,10 +15,12 @@ import {
 describe('useFeatureFlags', () => {
   beforeEach(() => {
     // Reset to a clean state before each test
+    // cspell:disable-next-line
     vi.unstubAllGlobals();
   });
 
   afterEach(() => {
+    // cspell:disable-next-line
     vi.unstubAllGlobals();
   });
 

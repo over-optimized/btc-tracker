@@ -19,7 +19,12 @@
     "test:ui": "vitest --ui",
     "quality": "pnpm lint && pnpm test:coverage",
     "ci": "pnpm lint && pnpm test:coverage && pnpm build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +40,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@playwright/mcp": "^0.0.33",
+    "@playwright/test": "^1.54.2",
     "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
@@ -54,6 +61,7 @@
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "lint-staged": "^16.1.5",
+    "playwright": "^1.54.2",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.3",
