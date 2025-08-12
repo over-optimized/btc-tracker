@@ -28,6 +28,7 @@ The Bitcoin DCA Tracker is a modern React + TypeScript web application designed 
 - **PNPM** as package manager
 - **Husky + lint-staged** for git hooks and pre-commit validation
 - **Feature Flag System** for legal compliance and risk management
+- **GitHub MCP Server** - Enhanced GitHub repository integration for Claude Code
 
 ### Key Libraries
 
@@ -119,6 +120,148 @@ cd btc-tracker
 pnpm install
 ```
 
+### MCP Server Configuration (GitHub Integration)
+
+The project includes configuration for GitHub MCP server integration with Claude Code, providing enhanced repository management capabilities.
+
+#### User-Level Setup (One-time Configuration)
+
+1. **Install GitHub MCP Server** (if not already installed):
+
+   ```bash
+   npm install -g @modelcontextprotocol/server-github
+   ```
+
+2. **Create GitHub Personal Access Token**:
+   - Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+   - Generate new token with `repo` scope (or `public_repo` for public repositories only)
+   - Copy the generated token securely
+
+3. **Configure User Settings** (`~/.claude/settings.json`):
+
+   ```json
+   {
+     "enabledMcpServers": ["github"],
+     "mcpServers": {
+       "github": {
+         "command": "npx",
+         "args": ["-y", "@modelcontextprotocol/server-github"],
+         "env": {
+           "GITHUB_PERSONAL_ACCESS_TOKEN": "your_token_here"
+         }
+       }
+     }
+   }
+   ```
+
+4. **Restart Claude Code** to load the new configuration
+
+#### Project-Level Setup (Per Developer)
+
+Create `.claude/settings.local.json` for project-specific tool permissions:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm build)",
+      "Bash(pnpm quality)",
+      "Bash(pnpm ci)",
+      "Bash(rm:*)"
+    ]
+  }
+}
+```
+
+**Important**: The `.claude/settings.local.json` file is gitignored to keep personal permissions local to each developer.
+
+#### Security Best Practices
+
+- **Never commit tokens**: User-level settings with tokens stay in `~/.claude/settings.json`
+- **Project permissions only**: `.claude/settings.local.json` contains no sensitive data
+- **Token scopes**: Use minimal required scopes (`public_repo` for public repositories)
+- **Regular rotation**: Rotate GitHub tokens periodically for security
+
+### Deployment Workflow (Git-Based Automation)
+
+The project uses **automatic Git-based deployments** through Vercel's GitHub integration. No manual CLI deployment is required.
+
+#### Automatic Deployment Triggers
+
+```bash
+# Staging deployment (automatic)
+git push origin staging           # Triggers staging environment deployment
+
+# Production deployment (automatic)
+git push origin main              # Triggers production environment deployment
+
+# Preview deployments (automatic)
+# Every pull request gets its own preview deployment URL
+```
+
+#### Deployment Status & Monitoring
+
+```bash
+# Check deployment status
+gh run list                       # View GitHub Actions workflow status
+gh run view <run-id>              # View specific workflow run details
+
+# Monitor specific deployments
+gh pr checks                      # Check PR deployment status
+gh pr view --web                  # View PR with deployment links
+
+# Repository status
+gh repo view --web                # View repo with deployment status
+```
+
+#### Environment Configuration
+
+**Production Environment** (`.env.production`):
+
+- ✅ **Safe Mode Enabled**: All high-risk features disabled
+- ✅ **Legal Disclaimers**: Required compliance messaging enabled
+- ✅ **Security Optimized**: Performance and security headers configured
+
+**Staging Environment** (`.env.staging`):
+
+- ✅ **Legal Review Mode**: Medium-risk features enabled for testing
+- ✅ **Debug Tools**: Development tools available for testing
+- ✅ **Feature Flag Testing**: Visual feature flag indicators enabled
+
+#### Deployment Verification
+
+```bash
+# Verify production compliance before deployment
+TARGET_ENV=production ./scripts/verify-compliance.sh
+
+# Test production build locally
+cp .env.production .env.local && pnpm build && rm .env.local
+```
+
+#### Emergency Procedures
+
+```bash
+# Roll back production deployment
+git revert <commit-hash>          # Revert problematic commit
+git push origin main              # Automatic rollback deployment
+
+# Hotfix workflow
+git checkout -b hotfix/urgent-fix # Create hotfix branch
+# ... make fixes ...
+gh pr create --base main          # Create PR to main
+# Merge triggers automatic production deployment
+```
+
+**Key Benefits of Git-Based Deployment:**
+
+- ✅ **Zero Manual Intervention**: Deployments happen automatically on merge
+- ✅ **Quality Gates**: All tests must pass before deployment
+- ✅ **Audit Trail**: Complete deployment history in Git
+- ✅ **Branch Protection**: Code review required before production
+- ✅ **Rollback Safety**: Easy rollbacks through Git revert
+
 ### Development Commands
 
 ```bash
@@ -142,6 +285,11 @@ pnpm test:ui             # Run Vitest interactive UI
 # Quality Gates & CI
 pnpm quality    # Run lint + coverage (quality gate)
 pnpm ci         # Full CI pipeline: lint + test + build
+
+# Deployment Status
+gh run list     # Check GitHub Actions workflow status
+gh pr status    # Check pull request status
+gh repo view    # View repository deployment info
 
 # Specific test commands for new features
 pnpm test src/components/__tests__/ComponentName.test.tsx
