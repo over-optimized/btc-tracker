@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import path from 'path';
 
 test.describe('Transaction Import Flow', () => {
   test.beforeEach(async ({ page }) => {
@@ -24,17 +23,9 @@ test.describe('Transaction Import Flow', () => {
   });
 
   test('should handle CSV file upload with sample transaction data', async ({ page }) => {
-    // Create a test CSV file path
-    const csvContent = `Date & Time (UTC),Transaction Type,Amount USD,Amount BTC,BTC Price,Reference
-2024-01-15 10:30:00,Purchase,$100.00,0.00234567,$42650.00,REF123456
-2024-01-16 15:45:00,Purchase,$50.00,0.00117283,$42650.00,REF123457`;
-
     // Look for upload functionality
     const uploadButton = page.locator('text=Upload CSV file');
     await uploadButton.click();
-
-    // Create a temporary file for testing
-    const testFile = path.join(process.cwd(), 'test-transactions.csv');
 
     // Set up file chooser handler before triggering the file input
     const fileChooserPromise = page.waitForEvent('filechooser');
@@ -54,9 +45,6 @@ test.describe('Transaction Import Flow', () => {
 
     // For this test, we'll check if the legal notice appears when classification is needed
     // In a real scenario, this would happen after file upload
-
-    // Look for legal disclaimer text that should appear in modals
-    const legalText = page.locator('text=This is not financial or tax advice');
 
     // This might not be visible until a CSV is actually processed
     // but we can check the modal structure exists

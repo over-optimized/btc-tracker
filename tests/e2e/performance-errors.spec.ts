@@ -107,11 +107,9 @@ test.describe('Performance and Error Handling', () => {
         'text*=failed',
       ];
 
-      let foundErrorHandling = false;
       for (const selector of errorElements) {
         const element = page.locator(selector);
         if ((await element.count()) > 0) {
-          foundErrorHandling = true;
           console.log(`✓ Found error handling element: ${selector}`);
         }
       }
@@ -155,12 +153,21 @@ test.describe('Performance and Error Handling', () => {
   test('should handle memory constraints efficiently', async ({ page }) => {
     // Monitor memory usage (basic check)
     const performanceMetrics = await page.evaluate(() => {
-      const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const nav = window.performance?.getEntriesByType('navigation')[0] as {
+        domContentLoadedEventEnd?: number;
+        domContentLoadedEventStart?: number;
+        loadEventEnd?: number;
+        loadEventStart?: number;
+      };
       return {
-        domContentLoaded: nav.domContentLoadedEventEnd - nav.domContentLoadedEventStart,
-        loadComplete: nav.loadEventEnd - nav.loadEventStart,
+        domContentLoaded:
+          (nav?.domContentLoadedEventEnd || 0) - (nav?.domContentLoadedEventStart || 0),
+        loadComplete: (nav?.loadEventEnd || 0) - (nav?.loadEventStart || 0),
         // Basic memory info if available
-        memoryInfo: 'memory' in performance ? (performance as any).memory : null,
+        memoryInfo:
+          'memory' in window.performance
+            ? (window.performance as unknown as { memory: unknown }).memory
+            : null,
       };
     });
 

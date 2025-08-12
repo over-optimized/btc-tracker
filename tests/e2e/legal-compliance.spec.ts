@@ -76,11 +76,9 @@ test.describe('Legal Compliance Testing', () => {
       'production deployment',
     ];
 
-    let foundSafeModeIndicators = 0;
     for (const indicator of safeModeIndicators) {
       const element = page.locator(`text*=${indicator}`).first();
       if ((await element.count()) > 0) {
-        foundSafeModeIndicators++;
         console.log(`✓ Found safe mode indicator: "${indicator}"`);
       }
     }
@@ -127,11 +125,9 @@ test.describe('Legal Compliance Testing', () => {
     // Check for US jurisdiction notices
     const jurisdictionIndicators = ['US tax', 'United States', 'IRS', 'US jurisdiction'];
 
-    let foundJurisdictionNotices = 0;
     for (const indicator of jurisdictionIndicators) {
       const element = page.locator(`text*=${indicator}`).first();
       if ((await element.count()) > 0) {
-        foundJurisdictionNotices++;
         console.log(`✓ Found jurisdiction indicator: "${indicator}"`);
       }
     }
