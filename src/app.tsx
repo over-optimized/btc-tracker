@@ -16,7 +16,7 @@ const AppContent: React.FC = () => {
 
   // Custom hooks
   const transactionManager = useTransactionManager();
-  const { currentPrice } = useBitcoinPrice();
+  const { currentPrice, lastUpdated, cached, source, loading, error } = useBitcoinPrice();
   const stats = usePortfolioStats(transactionManager.transactions, currentPrice);
   const importFlow = useImportFlow({
     onTransactionsMerged: transactionManager.mergeTransactions,
@@ -30,6 +30,11 @@ const AppContent: React.FC = () => {
         transactions={transactionManager.transactions}
         currentPrice={currentPrice}
         stats={stats}
+        lastUpdated={lastUpdated}
+        cached={cached}
+        source={source}
+        priceLoading={loading}
+        priceError={error}
         onFileUpload={importFlow.handlers.handleFileUpload}
         loading={importFlow.state.loading}
         clearData={transactionManager.clearAllTransactions}

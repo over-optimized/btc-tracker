@@ -17,6 +17,13 @@ interface AppRoutesProps {
   currentPrice: number | null;
   stats: Stats;
 
+  // Bitcoin price metadata
+  lastUpdated?: Date | null;
+  cached?: boolean;
+  source?: 'cache' | 'api' | 'sharedWorker' | null;
+  priceLoading?: boolean;
+  priceError?: string | null;
+
   // Upload handlers
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   loading: boolean;
@@ -30,6 +37,11 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
   transactions,
   currentPrice,
   stats,
+  lastUpdated,
+  cached,
+  source,
+  priceLoading,
+  priceError,
   onFileUpload,
   loading,
   clearData,
@@ -44,11 +56,16 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
             transactions={transactions}
             currentPrice={currentPrice}
             stats={stats}
+            lastUpdated={lastUpdated}
+            cached={cached}
+            source={source}
+            priceLoading={priceLoading}
+            priceError={priceError}
             onAddWithdrawal={onAddWithdrawal}
           />
         }
       />
-      
+
       <Route
         path="/transactions"
         element={
@@ -59,7 +76,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           </div>
         }
       />
-      
+
       <Route
         path="/upload"
         element={
@@ -75,7 +92,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           </div>
         }
       />
-      
+
       <Route
         path="/charts"
         element={
@@ -97,7 +114,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           </div>
         }
       />
-      
+
       <Route
         path="/tax"
         element={
