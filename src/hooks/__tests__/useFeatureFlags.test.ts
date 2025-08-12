@@ -14,6 +14,7 @@ import {
 
 // Helper function to mock environment variables for legacy tests
 // NOTE: Most tests should use testEnv parameter or .env.test defaults instead
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function mockEnvironment(envVars: Record<string, string | undefined>) {
   Object.keys(envVars).forEach((key) => {
     vi.stubGlobal(`import.meta.env.${key}`, envVars[key]);
