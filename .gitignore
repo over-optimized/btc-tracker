@@ -41,4 +41,7 @@ Thumbs.db
 *.swp
 *.swo
 
+# Claude Code project-specific permissions (local to each developer)
+.claude/settings.local.json
+
 debug
