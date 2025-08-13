@@ -6,19 +6,20 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     // Only generate bundle analysis in development
-    mode === 'development' && visualizer({
-      filename: 'bundle-analysis.html',
-      open: false,
-      gzipSize: true,
-      brotliSize: true,
-    }),
+    mode === 'development' &&
+      visualizer({
+        filename: 'bundle-analysis.html',
+        open: false,
+        gzipSize: true,
+        brotliSize: true,
+      }),
   ].filter(Boolean),
-  
+
   // Environment variables that start with VITE_ will be exposed to client
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },
-  
+
   build: {
     outDir: 'dist',
     sourcemap: false, // Disable source maps for smaller bundle
@@ -41,13 +42,13 @@ export default defineConfig(({ mode }) => ({
     },
     chunkSizeWarningLimit: 500, // Set warning limit to 500KB
   },
-  
+
   // Development server options
   server: {
     host: true, // Needed for Docker/containers
     port: 5173,
   },
-  
+
   // Preview server options
   preview: {
     host: true,
