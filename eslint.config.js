@@ -38,6 +38,9 @@ export default [
         File: 'readonly',
         FileReader: 'readonly',
         FormData: 'readonly',
+        Response: 'readonly',
+        Request: 'readonly',
+        Headers: 'readonly',
         HTMLElement: 'readonly',
         HTMLDivElement: 'readonly',
         HTMLInputElement: 'readonly',
@@ -50,14 +53,22 @@ export default [
         KeyboardEvent: 'readonly',
         MediaQueryList: 'readonly',
         MediaQueryListEvent: 'readonly',
+        MessageEvent: 'readonly',
+        // SharedWorker and Web Worker globals
+        SharedWorker: 'readonly',
+        Worker: 'readonly',
+        self: 'readonly',
         // Node.js globals
         process: 'readonly',
+        NodeJS: 'readonly',
         Buffer: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
         require: 'readonly',
         // React globals (when React is imported globally)
         React: 'readonly',
+        // Test globals
+        global: 'readonly',
         // Vitest globals
         describe: 'readonly',
         it: 'readonly',
