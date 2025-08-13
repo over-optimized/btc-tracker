@@ -29,8 +29,9 @@ const mockSharedWorker = {
   },
 };
 
-// Mock SharedWorker constructor
-global.SharedWorker = vi.fn().mockImplementation(() => mockSharedWorker);
+// Mock SharedWorker constructor - track calls
+const mockSharedWorkerConstructor = vi.fn().mockImplementation(() => mockSharedWorker);
+global.SharedWorker = mockSharedWorkerConstructor;
 
 // Mock import.meta.env
 Object.defineProperty(import.meta, 'env', {
@@ -450,7 +451,7 @@ describe('Enhanced Bitcoin Price API', () => {
   describe('SharedWorker Integration', () => {
     it('should initialize SharedWorker when enabled', () => {
       // SharedWorker should be created during module initialization
-      expect(SharedWorker).toHaveBeenCalledWith('/price-worker.js');
+      expect(mockSharedWorkerConstructor).toHaveBeenCalledWith('/price-worker.js');
     });
 
     it('should configure SharedWorker with environment variables', () => {
