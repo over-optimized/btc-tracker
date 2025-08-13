@@ -19,7 +19,6 @@ import {
 } from '../types/TransactionClassification';
 import { formatBTC } from '../utils/formatBTC';
 import { formatCurrency } from '../utils/formatCurrency';
-import { useFeature } from '../hooks/useFeatureFlags';
 
 interface TransactionClassificationModalProps {
   isOpen: boolean;
@@ -43,40 +42,7 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
   const [showDetails, setShowDetails] = useState<Set<string>>(new Set());
   const [isDisclaimerCollapsed, setIsDisclaimerCollapsed] = useState(false);
 
-  const hasTransactionGuidance = useFeature('transactionGuidance');
-
   if (!isOpen || prompts.length === 0) return null;
-
-  // If transaction guidance is disabled, show a simplified modal
-  if (!hasTransactionGuidance) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Transaction Processing</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-              <X size={20} />
-            </button>
-          </div>
-          <div className="text-center py-4">
-            <AlertCircle size={48} className="mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600 mb-4">
-              Advanced transaction classification is available in development mode only.
-            </p>
-            <p className="text-sm text-gray-500 mb-6">
-              These features require legal review before production deployment.
-            </p>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Continue
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const currentPrompt = prompts[currentPromptIndex];
   const isLastPrompt = currentPromptIndex === prompts.length - 1;

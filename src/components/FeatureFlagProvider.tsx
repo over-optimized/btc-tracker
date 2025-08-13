@@ -88,8 +88,8 @@ export function FeatureFlagProvider({
     isFeatureEnabled: (feature: keyof FeatureFlagConfig) => {
       const enabled = Boolean(flags[feature]);
 
-      // Additional safety check for production
-      if (environment.isProduction && !environment.safeMode) {
+      // Additional safety check for production (simplified)
+      if (environment.isProduction && !environment.isStaging) {
         const riskLevel = FEATURE_RISK_LEVELS[feature];
         if (riskLevel === 'HIGH' && enabled) {
           console.warn(`⚠️  High-risk feature '${feature}' accessed in production`);
