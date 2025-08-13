@@ -69,8 +69,8 @@ export function getEnvironmentFlags(testEnv?: Record<string, string | undefined>
   const debugMode = env.VITE_DEBUG_MODE === 'true';
 
   // Determine environment
-  const isDevelopment = nodeEnv === 'development';
-  const isProduction = nodeEnv === 'production' || safeMode;
+  const isDevelopment = nodeEnv === 'development' || nodeEnv === 'test';
+  const isProduction = nodeEnv === 'production';
   const isStaging = nodeEnv === 'staging';
 
   const environment: FeatureFlagEnvironment = {
@@ -83,7 +83,7 @@ export function getEnvironmentFlags(testEnv?: Record<string, string | undefined>
   // Build flags from environment variables and base configuration
   let flags: FeatureFlagConfig;
 
-  if (isProduction || safeMode) {
+  if (isProduction && !isStaging) {
     // Production: Safe mode - only low risk features, all high/medium disabled
     flags = {
       ...DEFAULT_PRODUCTION_FLAGS,
@@ -93,13 +93,15 @@ export function getEnvironmentFlags(testEnv?: Record<string, string | undefined>
       // transactionGuidance removed from hardcoded overrides - can be enabled with proper disclaimers
     };
   } else if (isStaging) {
+    // Staging: Use staging defaults even with safe mode enabled
     flags = { ...DEFAULT_STAGING_FLAGS };
   } else {
+    // Development: All features enabled
     flags = { ...DEFAULT_DEVELOPMENT_FLAGS };
   }
 
   // Apply environment variable overrides
-  if (!isProduction && !safeMode) {
+  if (isDevelopment || isStaging) {
     // Development/Staging: Allow all environment variable overrides
     if (env.VITE_ENABLE_EDUCATIONAL_COMPONENTS !== undefined) {
       flags.taxEducation = env.VITE_ENABLE_EDUCATIONAL_COMPONENTS === 'true';
@@ -116,7 +118,7 @@ export function getEnvironmentFlags(testEnv?: Record<string, string | undefined>
     if (env.VITE_ENABLE_TAX_OPTIMIZATION !== undefined) {
       flags.taxOptimization = env.VITE_ENABLE_TAX_OPTIMIZATION === 'true';
     }
-  } else if (isProduction || safeMode) {
+  } else if (isProduction && !isStaging) {
     // Production: Allow selective overrides for SAFE features only (with proper disclaimers)
     // High-risk features remain hardcoded to false above
 
