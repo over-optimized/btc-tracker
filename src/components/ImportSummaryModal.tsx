@@ -39,8 +39,8 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 dark:bg-black dark:bg-opacity-60 p-2 sm:p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-4 sm:p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header with status */}
         <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
           {isSuccess ? (
@@ -49,37 +49,37 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
             <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 flex-shrink-0" />
           )}
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
               {isSuccess ? 'Import Completed' : 'Import Issues'}
             </h2>
-            <p className="text-xs sm:text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
               {isSuccess ? 'Your transactions have been processed' : 'Some issues were encountered'}
             </p>
           </div>
         </div>
 
         {/* Statistics */}
-        <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div className="text-center">
               <div className="text-xl sm:text-2xl font-bold text-green-600">{importedCount}</div>
-              <div className="text-xs sm:text-sm text-gray-600">Imported</div>
+              <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Imported</div>
             </div>
             <div className="text-center">
               <div className="text-xl sm:text-2xl font-bold text-gray-500">{ignoredCount}</div>
-              <div className="text-xs sm:text-sm text-gray-600">Skipped</div>
+              <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Skipped</div>
             </div>
           </div>
 
           {hasIssues && (
-            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-600">
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {errors.length > 0 && (
                   <div className="text-center">
                     <div className="text-base sm:text-lg font-semibold text-red-600">
                       {errors.length}
                     </div>
-                    <div className="text-xs text-gray-600">Errors</div>
+                    <div className="text-xs text-gray-700 dark:text-gray-300">Errors</div>
                   </div>
                 )}
                 {warnings.length > 0 && (
@@ -87,7 +87,7 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
                     <div className="text-base sm:text-lg font-semibold text-yellow-600">
                       {warnings.length}
                     </div>
-                    <div className="text-xs text-gray-600">Warnings</div>
+                    <div className="text-xs text-gray-700 dark:text-gray-300">Warnings</div>
                   </div>
                 )}
               </div>
@@ -97,11 +97,11 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
 
         {/* Summary message */}
         <div className="mb-6">
-          <p className="text-gray-700 leading-relaxed">{summary}</p>
+          <p className="text-gray-800 dark:text-gray-200 leading-relaxed">{summary}</p>
 
           {hasIssues && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
                 <span className="font-medium">💡 Need help?</span> Click &quot;View Details&quot; to
                 see specific issues and get suggestions on how to fix them.
               </p>
@@ -116,25 +116,27 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
               {criticalErrors.slice(0, 2).map((error, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-2 p-2 bg-red-50 border border-red-200 rounded text-sm"
+                  className="flex items-start gap-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-sm"
                 >
                   <span className="text-red-500 text-xs mt-0.5">●</span>
-                  <span className="text-red-700 flex-1">{error.message}</span>
+                  <span className="text-red-700 dark:text-red-300 flex-1">{error.message}</span>
                 </div>
               ))}
 
               {warnings.slice(0, 1).map((warning, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm"
+                  className="flex items-start gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-sm"
                 >
                   <span className="text-yellow-500 text-xs mt-0.5">●</span>
-                  <span className="text-yellow-700 flex-1">{warning.message}</span>
+                  <span className="text-yellow-700 dark:text-yellow-300 flex-1">
+                    {warning.message}
+                  </span>
                 </div>
               ))}
 
               {errors.length + warnings.length > 3 && (
-                <div className="text-center text-sm text-gray-500 py-1">
+                <div className="text-center text-sm text-gray-700 dark:text-gray-300 py-1">
                   ... and {errors.length + warnings.length - 3} more issues
                 </div>
               )}
@@ -146,7 +148,7 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <button
             onClick={onClose}
-            className="order-3 sm:order-1 flex-1 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-center text-sm sm:text-base"
+            className="order-3 sm:order-1 flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors text-center text-sm sm:text-base"
           >
             Close
           </button>
@@ -154,7 +156,7 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
           {hasIssues && onViewDetails && (
             <button
               onClick={onViewDetails}
-              className="order-2 flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm sm:text-base"
+              className="order-2 flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors text-sm sm:text-base"
             >
               <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
               View Details
@@ -163,7 +165,7 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
 
           <button
             onClick={handleUploadAnother}
-            className="order-1 sm:order-3 flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
+            className="order-1 sm:order-3 flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors text-sm sm:text-base"
           >
             <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
             Upload Another
@@ -174,7 +176,9 @@ const ImportSummaryModal: React.FC<ImportSummaryModalProps> = ({
         {isSuccess && importedCount > 0 && !hasIssues && (
           <div className="mt-4 text-center">
             <div className="text-4xl mb-2">🎉</div>
-            <p className="text-sm text-gray-600">All transactions imported successfully!</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              All transactions imported successfully!
+            </p>
           </div>
         )}
       </div>

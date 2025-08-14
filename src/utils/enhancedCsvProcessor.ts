@@ -161,7 +161,10 @@ export class EnhancedCSVProcessor {
         if (unclassifiedTx) {
           const classifiedTx = this.classifier.applyClassification(unclassifiedTx, decision);
           if (classifiedTx) {
+            console.log(`✅ Valid transaction created:`, classifiedTx);
             finalTransactions.push(classifiedTx);
+          } else {
+            console.log(`❌ Transaction rejected by validation - not adding to final list`);
           }
         }
       }

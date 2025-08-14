@@ -52,7 +52,9 @@ export class TransactionClassifier {
             classified.push(transaction);
           }
         } else {
-          // Low confidence - needs user input
+          // Low confidence - needs user input, but set suggested classification
+          unclassified.suggestedClassification = autoClassification.classification;
+          unclassified.confidence = autoClassification.confidence;
           needsClassification.push(unclassified);
         }
       } catch (error) {
@@ -105,7 +107,7 @@ export class TransactionClassifier {
       usdAmount,
       price,
       confidence: 0, // Will be set by classification
-      suggestedClassification: TransactionClassification.OTHER, // Will be set by classification
+      suggestedClassification: TransactionClassification.SKIP, // Will be set by classification
       destinationAddress: this.extractDestinationAddress(rawData),
       txHash: this.extractTxHash(rawData),
     };
@@ -133,6 +135,26 @@ export class TransactionClassifier {
       };
     }
 
+    // High confidence deposits/receives (positive BTC, could be from external source)
+    if (this.matchesPatterns(type, TRANSACTION_TYPE_PATTERNS.deposits) && tx.btcAmount > 0) {
+      // If there's a USD value, it's likely a purchase, otherwise could be a receive
+      if (tx.usdAmount > 0) {
+        return {
+          classification: TransactionClassification.PURCHASE,
+          confidence: 0.9,
+          reason: `Receive transaction with USD value - likely a purchase`,
+        };
+      } else {
+        // No USD value - could be receiving Bitcoin from external wallet
+        // For now, classify as purchase but with lower confidence for user confirmation
+        return {
+          classification: TransactionClassification.PURCHASE,
+          confidence: 0.6,
+          reason: `Receive transaction without USD value - needs user confirmation`,
+        };
+      }
+    }
+
     // High confidence sales (negative BTC, positive USD)
     if (
       this.matchesPatterns(type, TRANSACTION_TYPE_PATTERNS.sales) &&
@@ -154,11 +176,17 @@ export class TransactionClassifier {
     ) {
       // Check if amount matches common self-custody patterns
       const isSelfCustodyAmount = this.isCommonSelfCustodyAmount(amount);
+      // Check if it has a destination address (strong indicator of self-custody)
+      const hasDestinationAddress = tx.destinationAddress && tx.destinationAddress.length > 10;
+
+      let confidence = 0.7; // Base confidence
+      if (isSelfCustodyAmount) confidence = 0.85;
+      if (hasDestinationAddress) confidence = Math.max(confidence, 0.9); // Boost confidence for destination address
 
       return {
         classification: TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
-        confidence: isSelfCustodyAmount ? 0.85 : 0.7,
-        reason: `Withdrawal pattern detected${isSelfCustodyAmount ? ' with common self-custody amount' : ''}`,
+        confidence,
+        reason: `Withdrawal pattern detected${isSelfCustodyAmount ? ' with common self-custody amount' : ''}${hasDestinationAddress ? ' to external address' : ''}`,
       };
     }
 
@@ -173,10 +201,137 @@ export class TransactionClassifier {
 
     // Low confidence - needs user input
     return {
-      classification: TransactionClassification.OTHER,
+      classification: TransactionClassification.SKIP,
       confidence: 0.1,
       reason: `Unable to automatically classify transaction type "${tx.detectedType}"`,
     };
+  }
+
+  /**
+   * Get available classification options for a transaction based on its data
+   */
+  getAvailableClassifications(unclassified: UnclassifiedTransaction): {
+    available: TransactionClassification[];
+    disabled: Array<{ classification: TransactionClassification; reason: string }>;
+  } {
+    const { btcAmount, usdAmount, price } = unclassified;
+    const available: TransactionClassification[] = [];
+    const disabled: Array<{ classification: TransactionClassification; reason: string }> = [];
+
+    // Always allow SKIP
+    available.push(TransactionClassification.SKIP);
+
+    // Check PURCHASE (positive BTC + USD/price required)
+    if (btcAmount > 0 && (usdAmount > 0 || (price && price > 0))) {
+      available.push(TransactionClassification.PURCHASE);
+      available.push(TransactionClassification.GIFT_RECEIVED);
+      available.push(TransactionClassification.PAYMENT_RECEIVED);
+      available.push(TransactionClassification.REIMBURSEMENT_RECEIVED);
+      available.push(TransactionClassification.MINING_INCOME);
+      available.push(TransactionClassification.STAKING_INCOME);
+    } else {
+      disabled.push({
+        classification: TransactionClassification.PURCHASE,
+        reason:
+          btcAmount <= 0
+            ? 'Bitcoin amount must be positive for acquisitions'
+            : 'USD amount or price required for purchases',
+      });
+    }
+
+    // Check SALE (negative BTC + positive USD required)
+    if (btcAmount < 0 && usdAmount > 0) {
+      available.push(TransactionClassification.SALE);
+      available.push(TransactionClassification.GIFT_SENT);
+      available.push(TransactionClassification.PAYMENT_SENT);
+    } else {
+      disabled.push({
+        classification: TransactionClassification.SALE,
+        reason:
+          btcAmount >= 0
+            ? 'Bitcoin amount must be negative (outgoing) for sales'
+            : 'USD proceeds required for sales',
+      });
+    }
+
+    // Check WITHDRAWALS (negative BTC, no USD required)
+    if (btcAmount < 0) {
+      available.push(TransactionClassification.SELF_CUSTODY_WITHDRAWAL);
+      available.push(TransactionClassification.EXCHANGE_TRANSFER);
+    } else {
+      disabled.push({
+        classification: TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
+        reason: 'Bitcoin amount must be negative (outgoing) for withdrawals',
+      });
+    }
+
+    return { available, disabled };
+  }
+
+  /**
+   * Validate that a classification decision is logically possible for the transaction data
+   */
+  private validateClassificationDecision(
+    unclassified: UnclassifiedTransaction,
+    decision: ClassificationDecision,
+  ): { isValid: boolean; reason?: string } {
+    const { btcAmount, usdAmount, price } = unclassified;
+    const { classification } = decision;
+
+    console.log(`🔍 Validating classification decision:`, {
+      btcAmount,
+      usdAmount,
+      price,
+      classification,
+      detectedType: unclassified.detectedType,
+    });
+
+    // Purchases require positive BTC and non-zero USD/price (USD can be negative for outflows)
+    if (classification === TransactionClassification.PURCHASE) {
+      if (btcAmount <= 0) {
+        console.log(`❌ Validation FAILED: Purchase with negative/zero BTC amount (${btcAmount})`);
+        return { isValid: false, reason: 'Purchases require positive Bitcoin amount' };
+      }
+      if (usdAmount === 0 && (!price || price <= 0)) {
+        console.log(
+          `❌ Validation FAILED: Purchase with no USD amount (${usdAmount}) or price (${price})`,
+        );
+        return { isValid: false, reason: 'Purchases require USD amount or valid price' };
+      }
+      console.log(`✅ Purchase validation passed`);
+    }
+
+    // Sales require negative BTC (outgoing) and positive USD
+    if (classification === TransactionClassification.SALE) {
+      if (btcAmount >= 0) {
+        return { isValid: false, reason: 'Sales require negative Bitcoin amount (outgoing)' };
+      }
+      if (usdAmount <= 0) {
+        return { isValid: false, reason: 'Sales require positive USD proceeds' };
+      }
+    }
+
+    // Withdrawals should have negative BTC and no/minimal USD
+    if (classification === TransactionClassification.SELF_CUSTODY_WITHDRAWAL) {
+      if (btcAmount >= 0) {
+        return { isValid: false, reason: 'Withdrawals require negative Bitcoin amount (outgoing)' };
+      }
+    }
+
+    // Transfers should have no USD component
+    if (classification === TransactionClassification.EXCHANGE_TRANSFER) {
+      if (usdAmount > 0) {
+        return { isValid: false, reason: 'Exchange transfers should not have USD amounts' };
+      }
+    }
+
+    // All classifications except SKIP require non-zero BTC
+    if (classification !== TransactionClassification.SKIP && btcAmount === 0) {
+      return { isValid: false, reason: 'Transaction requires Bitcoin movement' };
+    }
+
+    console.log(`✅ Validation PASSED for classification: ${classification}`);
+    return { isValid: true };
   }
 
   /**
@@ -186,6 +341,16 @@ export class TransactionClassifier {
     unclassified: UnclassifiedTransaction,
     decision: ClassificationDecision,
   ): Transaction | null {
+    // Validate the classification decision first
+    const validation = this.validateClassificationDecision(unclassified, decision);
+    if (!validation.isValid) {
+      console.error(`Invalid classification decision: ${validation.reason}`, {
+        transaction: unclassified,
+        decision,
+      });
+      return null; // Reject invalid classification
+    }
+
     const baseTransaction = {
       id: unclassified.id,
       date: unclassified.date,
