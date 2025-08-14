@@ -117,6 +117,15 @@ export default [
 
   // Ignore patterns
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.config.js', '*.config.ts'],
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
+      '*.config.js',
+      '*.config.ts',
+      'playwright-report/**',
+      'test-results/**',
+      '.playwright/**',
+    ],
   },
 ];
