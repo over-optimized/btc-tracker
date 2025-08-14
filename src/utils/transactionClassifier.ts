@@ -209,60 +209,138 @@ export class TransactionClassifier {
 
   /**
    * Get available classification options for a transaction based on its data
+   * Supports feature flag filtering for 4-option vs 12-option display
    */
-  getAvailableClassifications(unclassified: UnclassifiedTransaction): {
+  getAvailableClassifications(
+    unclassified: UnclassifiedTransaction,
+    options: { expandedClassifications?: boolean } = {},
+  ): {
     available: TransactionClassification[];
     disabled: Array<{ classification: TransactionClassification; reason: string }>;
   } {
     const { btcAmount, usdAmount, price } = unclassified;
+    const { expandedClassifications = false } = options;
     const available: TransactionClassification[] = [];
     const disabled: Array<{ classification: TransactionClassification; reason: string }> = [];
 
     // Always allow SKIP
     available.push(TransactionClassification.SKIP);
 
-    // Check PURCHASE (positive BTC + USD/price required)
+    // INCOME EVENTS - Positive BTC required
     if (btcAmount > 0 && (usdAmount > 0 || (price && price > 0))) {
+      // Core 4-option system: always include PURCHASE
       available.push(TransactionClassification.PURCHASE);
-      available.push(TransactionClassification.GIFT_RECEIVED);
-      available.push(TransactionClassification.PAYMENT_RECEIVED);
-      available.push(TransactionClassification.REIMBURSEMENT_RECEIVED);
-      available.push(TransactionClassification.MINING_INCOME);
-      available.push(TransactionClassification.STAKING_INCOME);
+
+      // Extended 12-option system: add specialized income types
+      if (expandedClassifications) {
+        available.push(TransactionClassification.GIFT_RECEIVED);
+        available.push(TransactionClassification.PAYMENT_RECEIVED);
+        available.push(TransactionClassification.REIMBURSEMENT_RECEIVED);
+        available.push(TransactionClassification.MINING_INCOME);
+        available.push(TransactionClassification.STAKING_INCOME);
+      }
     } else {
+      // Provide detailed reasons for why income events are disabled
+      const baseReason =
+        btcAmount <= 0
+          ? 'Bitcoin amount must be positive for acquisitions'
+          : 'USD amount or price required for purchases';
+
       disabled.push({
         classification: TransactionClassification.PURCHASE,
-        reason:
-          btcAmount <= 0
-            ? 'Bitcoin amount must be positive for acquisitions'
-            : 'USD amount or price required for purchases',
+        reason: baseReason,
       });
+
+      if (expandedClassifications) {
+        disabled.push({
+          classification: TransactionClassification.GIFT_RECEIVED,
+          reason: 'Bitcoin gifts received require positive Bitcoin amount and fair market value',
+        });
+        disabled.push({
+          classification: TransactionClassification.PAYMENT_RECEIVED,
+          reason: 'Bitcoin payments received require positive Bitcoin amount and fair market value',
+        });
+        disabled.push({
+          classification: TransactionClassification.REIMBURSEMENT_RECEIVED,
+          reason: 'Bitcoin reimbursements require positive Bitcoin amount and fair market value',
+        });
+        disabled.push({
+          classification: TransactionClassification.MINING_INCOME,
+          reason: 'Mining rewards require positive Bitcoin amount and fair market value',
+        });
+        disabled.push({
+          classification: TransactionClassification.STAKING_INCOME,
+          reason: 'Staking rewards require positive Bitcoin amount and fair market value',
+        });
+      }
     }
 
-    // Check SALE (negative BTC + positive USD required)
+    // DISPOSAL EVENTS - Negative BTC required
     if (btcAmount < 0 && usdAmount > 0) {
+      // Core 4-option system: always include SALE
       available.push(TransactionClassification.SALE);
+
+      // Extended 12-option system: add specialized disposal types
+      if (expandedClassifications) {
+        available.push(TransactionClassification.GIFT_SENT);
+        available.push(TransactionClassification.PAYMENT_SENT);
+      }
+    } else if (btcAmount < 0 && expandedClassifications) {
+      // Special case: negative BTC but no USD - allow disposal events that don't require USD proceeds
+      // (these will need fair market value provided by user)
       available.push(TransactionClassification.GIFT_SENT);
       available.push(TransactionClassification.PAYMENT_SENT);
-    } else {
+
+      // Still disable SALE since it specifically requires USD proceeds from exchange
       disabled.push({
         classification: TransactionClassification.SALE,
-        reason:
-          btcAmount >= 0
-            ? 'Bitcoin amount must be negative (outgoing) for sales'
-            : 'USD proceeds required for sales',
+        reason: 'Sales require positive USD proceeds to calculate capital gains/losses',
       });
+    } else {
+      // Positive BTC or other invalid combinations
+      const baseReason =
+        btcAmount >= 0
+          ? 'Bitcoin amount must be negative (outgoing) for sales'
+          : 'USD proceeds required for sales';
+
+      disabled.push({
+        classification: TransactionClassification.SALE,
+        reason: baseReason,
+      });
+
+      if (expandedClassifications) {
+        disabled.push({
+          classification: TransactionClassification.GIFT_SENT,
+          reason: 'Bitcoin gifts sent require negative Bitcoin amount (outgoing)',
+        });
+        disabled.push({
+          classification: TransactionClassification.PAYMENT_SENT,
+          reason: 'Bitcoin payments sent require negative Bitcoin amount (outgoing)',
+        });
+      }
     }
 
-    // Check WITHDRAWALS (negative BTC, no USD required)
+    // NON-TAXABLE MOVEMENTS - Negative BTC required
     if (btcAmount < 0) {
+      // Core 4-option system: always include SELF_CUSTODY_WITHDRAWAL
       available.push(TransactionClassification.SELF_CUSTODY_WITHDRAWAL);
-      available.push(TransactionClassification.EXCHANGE_TRANSFER);
+
+      // Extended 12-option system: add EXCHANGE_TRANSFER
+      if (expandedClassifications) {
+        available.push(TransactionClassification.EXCHANGE_TRANSFER);
+      }
     } else {
       disabled.push({
         classification: TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
         reason: 'Bitcoin amount must be negative (outgoing) for withdrawals',
       });
+
+      if (expandedClassifications) {
+        disabled.push({
+          classification: TransactionClassification.EXCHANGE_TRANSFER,
+          reason: 'Bitcoin amount must be negative (outgoing) for exchange transfers',
+        });
+      }
     }
 
     return { available, disabled };

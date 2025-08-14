@@ -447,4 +447,168 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
       expect(result).toBeNull(); // SKIP should return null (don't create transaction)
     });
   });
+
+  describe('getAvailableClassifications - Feature Flag Integration', () => {
+    const createMockTransaction = (
+      btcAmount: number,
+      usdAmount: number,
+      price?: number,
+    ): UnclassifiedTransaction => ({
+      id: 'test-tx-1',
+      rawData: {},
+      detectedType: 'test',
+      exchange: 'test-exchange',
+      date: new Date('2024-01-01'),
+      btcAmount,
+      usdAmount,
+      price,
+      confidence: 0.8,
+      suggestedClassification: TransactionClassification.SKIP,
+    });
+
+    describe('4-option system (expandedClassifications: false)', () => {
+      test('should return basic classifications for positive BTC with USD', () => {
+        const tx = createMockTransaction(0.001, 50);
+        const result = classifier.getAvailableClassifications(tx, {
+          expandedClassifications: false,
+        });
+
+        expect(result.available).toContain(TransactionClassification.PURCHASE);
+        expect(result.available).toContain(TransactionClassification.SKIP);
+
+        // SELF_CUSTODY_WITHDRAWAL should NOT be available for positive BTC (incoming)
+        expect(result.available).not.toContain(TransactionClassification.SELF_CUSTODY_WITHDRAWAL);
+
+        // Should NOT contain expanded classifications
+        expect(result.available).not.toContain(TransactionClassification.GIFT_RECEIVED);
+        expect(result.available).not.toContain(TransactionClassification.PAYMENT_RECEIVED);
+        expect(result.available).not.toContain(TransactionClassification.MINING_INCOME);
+        expect(result.available).not.toContain(TransactionClassification.STAKING_INCOME);
+        expect(result.available).not.toContain(TransactionClassification.EXCHANGE_TRANSFER);
+      });
+
+      test('should return basic classifications for negative BTC with USD', () => {
+        const tx = createMockTransaction(-0.001, 50);
+        const result = classifier.getAvailableClassifications(tx, {
+          expandedClassifications: false,
+        });
+
+        expect(result.available).toContain(TransactionClassification.SALE);
+        expect(result.available).toContain(TransactionClassification.SELF_CUSTODY_WITHDRAWAL);
+        expect(result.available).toContain(TransactionClassification.SKIP);
+
+        // Should NOT contain expanded classifications
+        expect(result.available).not.toContain(TransactionClassification.GIFT_SENT);
+        expect(result.available).not.toContain(TransactionClassification.PAYMENT_SENT);
+        expect(result.available).not.toContain(TransactionClassification.EXCHANGE_TRANSFER);
+      });
+    });
+
+    describe('12-option system (expandedClassifications: true)', () => {
+      test('should return all income classifications for positive BTC with USD', () => {
+        const tx = createMockTransaction(0.001, 50);
+        const result = classifier.getAvailableClassifications(tx, {
+          expandedClassifications: true,
+        });
+
+        // Basic classifications
+        expect(result.available).toContain(TransactionClassification.PURCHASE);
+        expect(result.available).toContain(TransactionClassification.SKIP);
+
+        // Expanded income classifications
+        expect(result.available).toContain(TransactionClassification.GIFT_RECEIVED);
+        expect(result.available).toContain(TransactionClassification.PAYMENT_RECEIVED);
+        expect(result.available).toContain(TransactionClassification.REIMBURSEMENT_RECEIVED);
+        expect(result.available).toContain(TransactionClassification.MINING_INCOME);
+        expect(result.available).toContain(TransactionClassification.STAKING_INCOME);
+      });
+
+      test('should return all disposal classifications for negative BTC with USD', () => {
+        const tx = createMockTransaction(-0.001, 50);
+        const result = classifier.getAvailableClassifications(tx, {
+          expandedClassifications: true,
+        });
+
+        // Basic classifications
+        expect(result.available).toContain(TransactionClassification.SALE);
+        expect(result.available).toContain(TransactionClassification.SELF_CUSTODY_WITHDRAWAL);
+        expect(result.available).toContain(TransactionClassification.SKIP);
+
+        // Expanded disposal classifications
+        expect(result.available).toContain(TransactionClassification.GIFT_SENT);
+        expect(result.available).toContain(TransactionClassification.PAYMENT_SENT);
+
+        // Expanded non-taxable classifications
+        expect(result.available).toContain(TransactionClassification.EXCHANGE_TRANSFER);
+      });
+
+      test('should allow disposal events for negative BTC without USD (Lightning payments)', () => {
+        const tx = createMockTransaction(-0.0001, 0, 80000); // Lightning payment
+        const result = classifier.getAvailableClassifications(tx, {
+          expandedClassifications: true,
+        });
+
+        // Should allow disposal events that accept fair market value
+        expect(result.available).toContain(TransactionClassification.GIFT_SENT);
+        expect(result.available).toContain(TransactionClassification.PAYMENT_SENT);
+        expect(result.available).toContain(TransactionClassification.SELF_CUSTODY_WITHDRAWAL);
+        expect(result.available).toContain(TransactionClassification.EXCHANGE_TRANSFER);
+
+        // Should disable SALE since it requires USD proceeds
+        expect(
+          result.disabled.find((d) => d.classification === TransactionClassification.SALE),
+        ).toBeDefined();
+        expect(
+          result.disabled.find((d) => d.classification === TransactionClassification.SALE)?.reason,
+        ).toContain('positive USD proceeds');
+      });
+
+      test('should provide detailed disabled reasons for expanded classifications', () => {
+        const tx = createMockTransaction(0.001, 0); // Positive BTC, no USD/price
+        const result = classifier.getAvailableClassifications(tx, {
+          expandedClassifications: true,
+        });
+
+        // Should have detailed reasons for all disabled income events
+        const disabledTypes = result.disabled.map((d) => d.classification);
+        expect(disabledTypes).toContain(TransactionClassification.GIFT_RECEIVED);
+        expect(disabledTypes).toContain(TransactionClassification.PAYMENT_RECEIVED);
+        expect(disabledTypes).toContain(TransactionClassification.MINING_INCOME);
+        expect(disabledTypes).toContain(TransactionClassification.STAKING_INCOME);
+
+        // Check that reasons mention fair market value
+        result.disabled.forEach((disabled) => {
+          if (
+            [
+              TransactionClassification.GIFT_RECEIVED,
+              TransactionClassification.PAYMENT_RECEIVED,
+              TransactionClassification.MINING_INCOME,
+              TransactionClassification.STAKING_INCOME,
+            ].includes(disabled.classification)
+          ) {
+            expect(disabled.reason).toContain('fair market value');
+          }
+        });
+      });
+    });
+
+    describe('default behavior', () => {
+      test('should default to 4-option system when no options provided', () => {
+        const tx = createMockTransaction(0.001, 50);
+        const result = classifier.getAvailableClassifications(tx);
+
+        expect(result.available).toContain(TransactionClassification.PURCHASE);
+        expect(result.available).not.toContain(TransactionClassification.GIFT_RECEIVED);
+        expect(result.available).not.toContain(TransactionClassification.PAYMENT_RECEIVED);
+      });
+
+      test('should default to false when expandedClassifications not specified', () => {
+        const tx = createMockTransaction(0.001, 50);
+        const result = classifier.getAvailableClassifications(tx, {});
+
+        expect(result.available).toContain(TransactionClassification.PURCHASE);
+        expect(result.available).not.toContain(TransactionClassification.GIFT_RECEIVED);
+      });
+    });
+  });
 });

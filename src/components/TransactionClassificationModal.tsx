@@ -20,6 +20,7 @@ import {
 import { formatBTC } from '../utils/formatBTC';
 import { formatCurrency } from '../utils/formatCurrency';
 import { TransactionClassifier } from '../utils/transactionClassifier';
+import { useFeature } from '../hooks/useFeatureFlags';
 
 // Utility functions for transaction display
 const getTransactionIdSnippet = (id: string): string => {
@@ -55,13 +56,18 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
   const [showDetails, setShowDetails] = useState<Set<string>>(new Set());
   const [isDisclaimerCollapsed, setIsDisclaimerCollapsed] = useState(false);
 
+  // Feature flag for expanded classification system
+  const expandedClassifications = useFeature('expandedClassifications');
+
   // Create classifier instance for smart UI logic
   const classifier = new TransactionClassifier();
 
   // Function to render smart classification buttons based on transaction data
   const renderClassificationButtons = (tx: UnclassifiedTransaction) => {
     const decision = decisions.get(tx.id);
-    const { available, disabled } = classifier.getAvailableClassifications(tx);
+    const { available, disabled } = classifier.getAvailableClassifications(tx, {
+      expandedClassifications,
+    });
 
     // Define all possible classifications with their UI properties
     const classificationOptions = [
