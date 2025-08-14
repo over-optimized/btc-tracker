@@ -6,11 +6,21 @@ import {
   ClassificationDecision,
 } from '../../types/TransactionClassification';
 
+// Type for accessing private methods in tests
+interface TransactionClassifierWithPrivateMethods extends TransactionClassifier {
+  validateClassificationDecision: (
+    unclassified: UnclassifiedTransaction,
+    decision: ClassificationDecision,
+  ) => { isValid: boolean; reason?: string };
+}
+
 describe('TransactionClassifier - Enhanced Validation Logic', () => {
   let classifier: TransactionClassifier;
+  let classifierWithPrivate: TransactionClassifierWithPrivateMethods;
 
   beforeEach(() => {
     classifier = new TransactionClassifier();
+    classifierWithPrivate = classifier as TransactionClassifierWithPrivateMethods;
   });
 
   describe('validateClassificationDecision', () => {
@@ -46,7 +56,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const validTx = createMockTransaction(0.001, 50);
         const validDecision = createDecision(TransactionClassification.PURCHASE);
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -54,7 +64,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: negative BTC
         const invalidTx1 = createMockTransaction(-0.001, 50);
-        const validation1 = (classifier as any).validateClassificationDecision(
+        const validation1 = classifierWithPrivate.validateClassificationDecision(
           invalidTx1,
           validDecision,
         );
@@ -63,7 +73,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: no USD or price
         const invalidTx2 = createMockTransaction(0.001, 0);
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           invalidTx2,
           validDecision,
         );
@@ -78,7 +88,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
           usdValue: 50,
         });
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -88,7 +98,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const validTxWithPrice = createMockTransaction(0.001, 0, 50000);
         const validDecisionWithPrice = createDecision(TransactionClassification.GIFT_RECEIVED);
 
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           validTxWithPrice,
           validDecisionWithPrice,
         );
@@ -96,7 +106,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: negative BTC
         const invalidTx1 = createMockTransaction(-0.001, 0);
-        const validation3 = (classifier as any).validateClassificationDecision(
+        const validation3 = classifierWithPrivate.validateClassificationDecision(
           invalidTx1,
           validDecision,
         );
@@ -106,7 +116,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         // Invalid: no fair market value
         const invalidTx2 = createMockTransaction(0.001, 0);
         const invalidDecision = createDecision(TransactionClassification.GIFT_RECEIVED);
-        const validation4 = (classifier as any).validateClassificationDecision(
+        const validation4 = classifierWithPrivate.validateClassificationDecision(
           invalidTx2,
           invalidDecision,
         );
@@ -121,7 +131,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
           usdValue: 50,
         });
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -129,7 +139,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: no fair market value
         const invalidDecision = createDecision(TransactionClassification.PAYMENT_RECEIVED);
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           validTx,
           invalidDecision,
         );
@@ -142,7 +152,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const validTx = createMockTransaction(0.000625, 0, 80000); // Mining reward with price
         const validDecision = createDecision(TransactionClassification.MINING_INCOME);
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -150,7 +160,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: negative BTC
         const invalidTx = createMockTransaction(-0.000625, 0);
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           invalidTx,
           validDecision,
         );
@@ -164,7 +174,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
           usdValue: 8,
         });
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -172,7 +182,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: no fair market value
         const invalidDecision = createDecision(TransactionClassification.STAKING_INCOME);
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           validTx,
           invalidDecision,
         );
@@ -187,7 +197,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const validTx = createMockTransaction(-0.001, 60);
         const validDecision = createDecision(TransactionClassification.SALE);
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -196,7 +206,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         // Valid with usdValue instead of usdAmount
         const validTx2 = createMockTransaction(-0.001, 0);
         const validDecision2 = createDecision(TransactionClassification.SALE, { usdValue: 60 });
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           validTx2,
           validDecision2,
         );
@@ -204,7 +214,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: positive BTC
         const invalidTx1 = createMockTransaction(0.001, 60);
-        const validation3 = (classifier as any).validateClassificationDecision(
+        const validation3 = classifierWithPrivate.validateClassificationDecision(
           invalidTx1,
           validDecision,
         );
@@ -214,7 +224,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         // Invalid: no USD proceeds
         const invalidTx2 = createMockTransaction(-0.001, 0);
         const invalidDecision = createDecision(TransactionClassification.SALE);
-        const validation4 = (classifier as any).validateClassificationDecision(
+        const validation4 = classifierWithPrivate.validateClassificationDecision(
           invalidTx2,
           invalidDecision,
         );
@@ -226,7 +236,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const validTx = createMockTransaction(-0.001, 0);
         const validDecision = createDecision(TransactionClassification.GIFT_SENT, { usdValue: 50 });
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -234,7 +244,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: positive BTC
         const invalidTx = createMockTransaction(0.001, 0);
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           invalidTx,
           validDecision,
         );
@@ -243,7 +253,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: no fair market value
         const invalidDecision = createDecision(TransactionClassification.GIFT_SENT);
-        const validation3 = (classifier as any).validateClassificationDecision(
+        const validation3 = classifierWithPrivate.validateClassificationDecision(
           validTx,
           invalidDecision,
         );
@@ -255,7 +265,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const validTx = createMockTransaction(-0.0001, 0, 80000); // Lightning payment
         const validDecision = createDecision(TransactionClassification.PAYMENT_SENT);
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -264,7 +274,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         // Invalid: no fair market value
         const invalidTx = createMockTransaction(-0.0001, 0);
         const invalidDecision = createDecision(TransactionClassification.PAYMENT_SENT);
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           invalidTx,
           invalidDecision,
         );
@@ -279,7 +289,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const validTx = createMockTransaction(-0.01, 0);
         const validDecision = createDecision(TransactionClassification.SELF_CUSTODY_WITHDRAWAL);
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -287,7 +297,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: positive BTC
         const invalidTx1 = createMockTransaction(0.01, 0);
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           invalidTx1,
           validDecision,
         );
@@ -296,7 +306,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: USD amount present
         const invalidTx2 = createMockTransaction(-0.01, 50);
-        const validation3 = (classifier as any).validateClassificationDecision(
+        const validation3 = classifierWithPrivate.validateClassificationDecision(
           invalidTx2,
           validDecision,
         );
@@ -309,7 +319,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const validTx = createMockTransaction(-0.01, 0);
         const validDecision = createDecision(TransactionClassification.EXCHANGE_TRANSFER);
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           validTx,
           validDecision,
         );
@@ -317,7 +327,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
         // Invalid: USD amount present
         const invalidTx = createMockTransaction(-0.01, 50);
-        const validation2 = (classifier as any).validateClassificationDecision(
+        const validation2 = classifierWithPrivate.validateClassificationDecision(
           invalidTx,
           validDecision,
         );
@@ -331,13 +341,13 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const tx3 = createMockTransaction(0, 0);
         const decision = createDecision(TransactionClassification.SKIP);
 
-        expect((classifier as any).validateClassificationDecision(tx1, decision).isValid).toBe(
+        expect(classifierWithPrivate.validateClassificationDecision(tx1, decision).isValid).toBe(
           true,
         );
-        expect((classifier as any).validateClassificationDecision(tx2, decision).isValid).toBe(
+        expect(classifierWithPrivate.validateClassificationDecision(tx2, decision).isValid).toBe(
           true,
         );
-        expect((classifier as any).validateClassificationDecision(tx3, decision).isValid).toBe(
+        expect(classifierWithPrivate.validateClassificationDecision(tx3, decision).isValid).toBe(
           true,
         );
       });
@@ -348,7 +358,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const zeroBtcTx = createMockTransaction(0, 50);
         const nonSkipDecision = createDecision(TransactionClassification.PURCHASE);
 
-        const validation = (classifier as any).validateClassificationDecision(
+        const validation = classifierWithPrivate.validateClassificationDecision(
           zeroBtcTx,
           nonSkipDecision,
         );
@@ -360,7 +370,10 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         const tx = createMockTransaction(0.001, 50);
         const invalidDecision = createDecision('UNKNOWN_TYPE' as TransactionClassification);
 
-        const validation = (classifier as any).validateClassificationDecision(tx, invalidDecision);
+        const validation = classifierWithPrivate.validateClassificationDecision(
+          tx,
+          invalidDecision,
+        );
         expect(validation.isValid).toBe(false);
         expect(validation.reason).toContain('Unknown classification type');
       });
