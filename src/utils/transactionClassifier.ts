@@ -110,6 +110,7 @@ export class TransactionClassifier {
       suggestedClassification: TransactionClassification.SKIP, // Will be set by classification
       destinationAddress: this.extractDestinationAddress(rawData),
       txHash: this.extractTxHash(rawData),
+      originalId: this.extractOriginalId(rawData, exchange), // Extract exchange's original reference
     };
 
     return unclassified;
@@ -599,7 +600,7 @@ export class TransactionClassifier {
           type: 'Gift Received',
           isTaxable: true,
           usdAmount:
-            decision.usdValue || unclassified.price * Math.abs(unclassified.btcAmount) || 0,
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
           price: decision.usdValue
             ? decision.usdValue / Math.abs(unclassified.btcAmount)
             : unclassified.price || 0,
@@ -612,7 +613,7 @@ export class TransactionClassifier {
           type: 'Payment Received',
           isTaxable: true,
           usdAmount:
-            decision.usdValue || unclassified.price * Math.abs(unclassified.btcAmount) || 0,
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
           price: decision.usdValue
             ? decision.usdValue / Math.abs(unclassified.btcAmount)
             : unclassified.price || 0,
@@ -626,7 +627,7 @@ export class TransactionClassifier {
           type: 'Reimbursement Received',
           isTaxable: true,
           usdAmount:
-            decision.usdValue || unclassified.price * Math.abs(unclassified.btcAmount) || 0,
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
           price: decision.usdValue
             ? decision.usdValue / Math.abs(unclassified.btcAmount)
             : unclassified.price || 0,
@@ -640,7 +641,7 @@ export class TransactionClassifier {
           type: 'Mining Income',
           isTaxable: true,
           usdAmount:
-            decision.usdValue || unclassified.price * Math.abs(unclassified.btcAmount) || 0,
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
           price: decision.usdValue
             ? decision.usdValue / Math.abs(unclassified.btcAmount)
             : unclassified.price || 0,
@@ -652,7 +653,7 @@ export class TransactionClassifier {
           type: 'Staking Income',
           isTaxable: true,
           usdAmount:
-            decision.usdValue || unclassified.price * Math.abs(unclassified.btcAmount) || 0,
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
           price: decision.usdValue
             ? decision.usdValue / Math.abs(unclassified.btcAmount)
             : unclassified.price || 0,
@@ -676,7 +677,7 @@ export class TransactionClassifier {
           type: 'Gift Sent',
           isTaxable: true,
           usdAmount:
-            decision.usdValue || unclassified.price * Math.abs(unclassified.btcAmount) || 0,
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
           price: decision.usdValue
             ? decision.usdValue / Math.abs(unclassified.btcAmount)
             : unclassified.price || 0,
@@ -689,7 +690,7 @@ export class TransactionClassifier {
           type: 'Payment Sent',
           isTaxable: true,
           usdAmount:
-            decision.usdValue || unclassified.price * Math.abs(unclassified.btcAmount) || 0,
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
           price: decision.usdValue
             ? decision.usdValue / Math.abs(unclassified.btcAmount)
             : unclassified.price || 0,
@@ -904,6 +905,36 @@ export class TransactionClassifier {
     const hashFields = ['Transaction Hash', 'Hash', 'TX Hash', 'TXID', 'Transaction ID'];
 
     for (const field of hashFields) {
+      if (rawData[field] && typeof rawData[field] === 'string') {
+        return rawData[field];
+      }
+    }
+
+    return undefined;
+  }
+
+  private extractOriginalId(rawData: any, exchange: string): string | undefined {
+    // Exchange-specific original ID extraction
+    const exchangeLower = exchange.toLowerCase();
+
+    if (exchangeLower.includes('strike')) {
+      // Strike provides 'Reference' field with clean UUIDs
+      return rawData['Reference'] || rawData['reference'];
+    }
+
+    if (exchangeLower.includes('coinbase')) {
+      // Coinbase may use 'Transaction ID' or 'ID'
+      return rawData['Transaction ID'] || rawData['ID'];
+    }
+
+    if (exchangeLower.includes('kraken')) {
+      // Kraken uses 'txid' or 'refid'
+      return rawData['txid'] || rawData['refid'];
+    }
+
+    // Generic fallback
+    const idFields = ['Reference', 'ID', 'Transaction ID', 'Ref ID', 'Order ID'];
+    for (const field of idFields) {
       if (rawData[field] && typeof rawData[field] === 'string') {
         return rawData[field];
       }

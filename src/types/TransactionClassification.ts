@@ -9,6 +9,7 @@ export interface UnclassifiedTransaction {
   price?: number;
   destinationAddress?: string; // If available in CSV
   txHash?: string; // If available in CSV
+  originalId?: string; // Exchange's original reference (e.g., Strike Reference, Coinbase Transaction ID)
   confidence: number; // 0-1, how confident we are about the type
   suggestedClassification: TransactionClassification;
 }

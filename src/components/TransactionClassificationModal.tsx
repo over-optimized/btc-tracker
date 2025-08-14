@@ -34,6 +34,29 @@ const getDirectionIndicator = (btcAmount: number): { icon: string; label: string
   return { icon: '↔️', label: 'Transfer' };
 };
 
+const truncateAddress = (
+  address: string,
+  maxLength: number = 80,
+): { truncated: string; needsTruncation: boolean } => {
+  if (address.length <= maxLength) {
+    return { truncated: address, needsTruncation: false };
+  }
+
+  // For Lightning invoices, show first 20 and last 20 characters
+  if (address.startsWith('lnbc')) {
+    return {
+      truncated: `${address.slice(0, 20)}...${address.slice(-20)}`,
+      needsTruncation: true,
+    };
+  }
+
+  // For other addresses, show first part + ellipsis
+  return {
+    truncated: `${address.slice(0, maxLength)}...`,
+    needsTruncation: true,
+  };
+};
+
 interface TransactionClassificationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -55,6 +78,7 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
   const [decisions, setDecisions] = useState<Map<string, TransactionDecision>>(new Map());
   const [showDetails, setShowDetails] = useState<Set<string>>(new Set());
   const [isDisclaimerCollapsed, setIsDisclaimerCollapsed] = useState(false);
+  const [expandedAddresses, setExpandedAddresses] = useState<Set<string>>(new Set());
 
   // Feature flag for expanded classification system
   const expandedClassifications = useFeature('expandedClassifications');
@@ -69,61 +93,184 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
       expandedClassifications,
     });
 
+    // Debug logging for feature flag verification
+    if (import.meta.env.VITE_DEBUG_MODE === 'true') {
+      console.log('🔧 Classification Debug:', {
+        transactionId: tx.id,
+        expandedClassifications,
+        available,
+        disabled,
+        btcAmount: tx.btcAmount,
+        usdAmount: tx.usdAmount,
+        price: tx.price,
+      });
+    }
+
     // Define all possible classifications with their UI properties
-    const classificationOptions = [
+    const getAllClassificationOptions = () => [
+      // INCOME EVENTS (Acquisition/Income)
       {
         classification: TransactionClassification.PURCHASE,
         label: 'Buy Bitcoin',
         icon: '💰',
+        category: 'income',
         colors: {
           active: 'bg-green-100 border-green-300 text-green-800',
-          enabled: 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-green-50',
+          enabled:
+            'bg-white border-gray-400 text-gray-900 hover:bg-green-50 hover:border-green-300',
           disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
         },
       },
       {
+        classification: TransactionClassification.GIFT_RECEIVED,
+        label: 'Gift Received',
+        icon: '🎁',
+        category: 'income',
+        colors: {
+          active: 'bg-green-100 border-green-300 text-green-800',
+          enabled:
+            'bg-white border-gray-400 text-gray-900 hover:bg-green-50 hover:border-green-300',
+          disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
+        },
+      },
+      {
+        classification: TransactionClassification.PAYMENT_RECEIVED,
+        label: 'Payment Received',
+        icon: '💸',
+        category: 'income',
+        colors: {
+          active: 'bg-green-100 border-green-300 text-green-800',
+          enabled:
+            'bg-white border-gray-400 text-gray-900 hover:bg-green-50 hover:border-green-300',
+          disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
+        },
+      },
+      {
+        classification: TransactionClassification.REIMBURSEMENT_RECEIVED,
+        label: 'Reimbursement',
+        icon: '💼',
+        category: 'income',
+        colors: {
+          active: 'bg-green-100 border-green-300 text-green-800',
+          enabled:
+            'bg-white border-gray-400 text-gray-900 hover:bg-green-50 hover:border-green-300',
+          disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
+        },
+      },
+      {
+        classification: TransactionClassification.MINING_INCOME,
+        label: 'Mining Reward',
+        icon: '⛏️',
+        category: 'income',
+        colors: {
+          active: 'bg-green-100 border-green-300 text-green-800',
+          enabled:
+            'bg-white border-gray-400 text-gray-900 hover:bg-green-50 hover:border-green-300',
+          disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
+        },
+      },
+      {
+        classification: TransactionClassification.STAKING_INCOME,
+        label: 'Staking Reward',
+        icon: '🏦',
+        category: 'income',
+        colors: {
+          active: 'bg-green-100 border-green-300 text-green-800',
+          enabled:
+            'bg-white border-gray-400 text-gray-900 hover:bg-green-50 hover:border-green-300',
+          disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
+        },
+      },
+
+      // DISPOSAL EVENTS (Capital Gains/Loss)
+      {
+        classification: TransactionClassification.SALE,
+        label: 'Sell Bitcoin',
+        icon: '💵',
+        category: 'disposal',
+        colors: {
+          active: 'bg-red-100 border-red-300 text-red-800',
+          enabled: 'bg-white border-gray-400 text-gray-900 hover:bg-red-50 hover:border-red-300',
+          disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
+        },
+      },
+      {
+        classification: TransactionClassification.GIFT_SENT,
+        label: 'Gift Sent',
+        icon: '🎁',
+        category: 'disposal',
+        colors: {
+          active: 'bg-red-100 border-red-300 text-red-800',
+          enabled: 'bg-white border-gray-400 text-gray-900 hover:bg-red-50 hover:border-red-300',
+          disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
+        },
+      },
+      {
+        classification: TransactionClassification.PAYMENT_SENT,
+        label: 'Payment Sent',
+        icon: '💳',
+        category: 'disposal',
+        colors: {
+          active: 'bg-red-100 border-red-300 text-red-800',
+          enabled: 'bg-white border-gray-400 text-gray-900 hover:bg-red-50 hover:border-red-300',
+          disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
+        },
+      },
+
+      // NON-TAXABLE MOVEMENTS
+      {
         classification: TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
         label: 'Move to Wallet',
         icon: '🔒',
+        category: 'non-taxable',
         colors: {
           active: 'bg-blue-100 border-blue-300 text-blue-800',
-          enabled: 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-blue-50',
+          enabled: 'bg-white border-gray-400 text-gray-900 hover:bg-blue-50 hover:border-blue-300',
           disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
         },
         additionalData: { destinationWallet: 'Self-Custody Wallet' },
       },
       {
-        classification: TransactionClassification.SALE,
-        label: 'Sell Bitcoin',
-        icon: '💵',
+        classification: TransactionClassification.EXCHANGE_TRANSFER,
+        label: 'Exchange Transfer',
+        icon: '🔄',
+        category: 'non-taxable',
         colors: {
-          active: 'bg-red-100 border-red-300 text-red-800',
-          enabled: 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-red-50',
+          active: 'bg-blue-100 border-blue-300 text-blue-800',
+          enabled: 'bg-white border-gray-400 text-gray-900 hover:bg-blue-50 hover:border-blue-300',
           disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
         },
       },
+
+      // SYSTEM OPTIONS
       {
         classification: TransactionClassification.SKIP,
         label: 'Skip',
         icon: '⏭️',
+        category: 'system',
         colors: {
           active: 'bg-gray-100 border-gray-300 text-gray-800',
-          enabled: 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-50',
+          enabled: 'bg-white border-gray-400 text-gray-900 hover:bg-gray-50 hover:border-gray-500',
           disabled: 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed',
         },
       },
     ];
 
-    return classificationOptions.map((option) => {
+    const allOptions = getAllClassificationOptions();
+
+    // Filter options to only show available + suggested disabled ones
+    const optionsToShow = allOptions.filter((option) => {
+      const isAvailable = available.includes(option.classification);
+      const isRecommended = tx.suggestedClassification === option.classification;
+      // Show if available OR if it's the recommended option (for context)
+      return isAvailable || isRecommended;
+    });
+
+    return optionsToShow.map((option) => {
       const isSelected = decision?.classification === option.classification;
       const isAvailable = available.includes(option.classification);
       const disabledInfo = disabled.find((d) => d.classification === option.classification);
       const isRecommended = tx.suggestedClassification === option.classification;
-
-      // Only render available options + one recommended disabled option for context
-      if (!isAvailable && !isRecommended) {
-        return null; // Hide completely unavailable options
-      }
 
       const buttonClass = isSelected
         ? `px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm rounded-lg border-2 font-medium transition-all ${option.colors.active} min-h-[44px]`
@@ -153,6 +300,165 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
         </button>
       );
     });
+  };
+
+  // Function to render additional input fields based on classification type
+  const renderAdditionalFields = (tx: UnclassifiedTransaction, decision: TransactionDecision) => {
+    const { classification } = decision;
+    const needsFairMarketValue = [
+      TransactionClassification.GIFT_RECEIVED,
+      TransactionClassification.PAYMENT_RECEIVED,
+      TransactionClassification.REIMBURSEMENT_RECEIVED,
+      TransactionClassification.MINING_INCOME,
+      TransactionClassification.STAKING_INCOME,
+      TransactionClassification.GIFT_SENT,
+      TransactionClassification.PAYMENT_SENT,
+    ].includes(classification);
+
+    const needsCounterparty = [
+      TransactionClassification.GIFT_RECEIVED,
+      TransactionClassification.PAYMENT_RECEIVED,
+      TransactionClassification.REIMBURSEMENT_RECEIVED,
+      TransactionClassification.GIFT_SENT,
+      TransactionClassification.PAYMENT_SENT,
+    ].includes(classification);
+
+    const needsGoodsServices = [
+      TransactionClassification.PAYMENT_RECEIVED,
+      TransactionClassification.REIMBURSEMENT_RECEIVED,
+      TransactionClassification.PAYMENT_SENT,
+    ].includes(classification);
+
+    return (
+      <div className="mt-3 space-y-3">
+        {/* Fair Market Value for income/disposal events without USD */}
+        {needsFairMarketValue && !tx.usdAmount && !tx.price && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              <span className="text-red-500">*</span> Fair Market Value (USD)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Enter USD value at time of transaction"
+              value={decision.usdValue || ''}
+              onChange={(e) =>
+                handleClassificationChange(tx.id, classification, {
+                  ...decision,
+                  usdValue: parseFloat(e.target.value) || undefined,
+                })
+              }
+              className="w-full px-3 py-2 text-sm border-2 border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] bg-white text-gray-900 placeholder-gray-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Required for tax reporting. Use the Bitcoin price at the time of transaction.
+            </p>
+          </div>
+        )}
+
+        {/* Counterparty for interpersonal transactions */}
+        {needsCounterparty && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Counterparty (optional)
+            </label>
+            <input
+              type="text"
+              placeholder="Person or entity involved"
+              value={decision.counterparty || ''}
+              onChange={(e) =>
+                handleClassificationChange(tx.id, classification, {
+                  ...decision,
+                  counterparty: e.target.value,
+                })
+              }
+              className="w-full px-3 py-2 text-sm border-2 border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] bg-white text-gray-900 placeholder-gray-500"
+            />
+          </div>
+        )}
+
+        {/* Goods/Services for payment transactions */}
+        {needsGoodsServices && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Goods/Services (optional)
+            </label>
+            <input
+              type="text"
+              placeholder="What was purchased or provided"
+              value={decision.goodsServices || ''}
+              onChange={(e) =>
+                handleClassificationChange(tx.id, classification, {
+                  ...decision,
+                  goodsServices: e.target.value,
+                })
+              }
+              className="w-full px-3 py-2 text-sm border-2 border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] bg-white text-gray-900 placeholder-gray-500"
+            />
+          </div>
+        )}
+
+        {/* Destination Wallet for self-custody withdrawals */}
+        {classification === TransactionClassification.SELF_CUSTODY_WITHDRAWAL && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Destination Wallet (optional)
+            </label>
+            <input
+              type="text"
+              placeholder="Hardware Wallet, Electrum, etc."
+              value={decision.destinationWallet || ''}
+              onChange={(e) =>
+                handleClassificationChange(tx.id, classification, {
+                  ...decision,
+                  destinationWallet: e.target.value,
+                })
+              }
+              className="w-full px-3 py-2 text-sm border-2 border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] bg-white text-gray-900 placeholder-gray-500"
+            />
+          </div>
+        )}
+
+        {/* Exchange information for transfers */}
+        {classification === TransactionClassification.EXCHANGE_TRANSFER && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Destination Exchange (optional)
+            </label>
+            <input
+              type="text"
+              placeholder="Coinbase, Kraken, etc."
+              value={decision.destinationExchange || decision.transferExchange || ''}
+              onChange={(e) =>
+                handleClassificationChange(tx.id, classification, {
+                  ...decision,
+                  destinationExchange: e.target.value,
+                })
+              }
+              className="w-full px-3 py-2 text-sm border-2 border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] bg-white text-gray-900 placeholder-gray-500"
+            />
+          </div>
+        )}
+
+        {/* General notes for all transactions */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Notes (optional)</label>
+          <textarea
+            rows={2}
+            placeholder="Additional details about this transaction"
+            value={decision.notes || ''}
+            onChange={(e) =>
+              handleClassificationChange(tx.id, classification, {
+                ...decision,
+                notes: e.target.value,
+              })
+            }
+            className="w-full px-3 py-2 text-sm border-2 border-gray-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500 resize-none"
+          />
+        </div>
+      </div>
+    );
   };
 
   if (!isOpen || prompts.length === 0) return null;
@@ -211,6 +517,16 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
     setShowDetails(newShowDetails);
   };
 
+  const toggleAddressExpansion = (transactionId: string) => {
+    const newExpandedAddresses = new Set(expandedAddresses);
+    if (newExpandedAddresses.has(transactionId)) {
+      newExpandedAddresses.delete(transactionId);
+    } else {
+      newExpandedAddresses.add(transactionId);
+    }
+    setExpandedAddresses(newExpandedAddresses);
+  };
+
   const handleNext = () => {
     if (isLastPrompt) {
       // Finalize and submit all decisions
@@ -246,18 +562,39 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
 
   const getClassificationColor = (classification: TransactionClassification) => {
     switch (classification) {
+      // INCOME EVENTS (Green family)
       case TransactionClassification.PURCHASE:
         return 'bg-green-100 text-green-800';
-      case TransactionClassification.SELF_CUSTODY_WITHDRAWAL:
-        return 'bg-blue-100 text-blue-800';
+      case TransactionClassification.GIFT_RECEIVED:
+        return 'bg-green-100 text-green-800';
+      case TransactionClassification.PAYMENT_RECEIVED:
+        return 'bg-green-100 text-green-800';
+      case TransactionClassification.REIMBURSEMENT_RECEIVED:
+        return 'bg-green-100 text-green-800';
+      case TransactionClassification.MINING_INCOME:
+        return 'bg-emerald-100 text-emerald-800';
+      case TransactionClassification.STAKING_INCOME:
+        return 'bg-emerald-100 text-emerald-800';
+
+      // DISPOSAL EVENTS (Red family)
       case TransactionClassification.SALE:
         return 'bg-red-100 text-red-800';
+      case TransactionClassification.GIFT_SENT:
+        return 'bg-red-100 text-red-800';
+      case TransactionClassification.PAYMENT_SENT:
+        return 'bg-red-100 text-red-800';
+
+      // NON-TAXABLE MOVEMENTS (Blue family)
+      case TransactionClassification.SELF_CUSTODY_WITHDRAWAL:
+        return 'bg-blue-100 text-blue-800';
       case TransactionClassification.EXCHANGE_TRANSFER:
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-blue-100 text-blue-800';
+
+      // SYSTEM OPTIONS
       case TransactionClassification.SKIP:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-900';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-900';
     }
   };
 
@@ -300,7 +637,7 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
         {/* Header */}
         <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b flex-shrink-0">
           <div>
-            <h2 className="text-lg md:text-xl font-semibold text-gray-800">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-900">
               {currentPrompt.title}
             </h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -317,7 +654,7 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
           <div className="p-3 sm:p-4 md:p-6">
             {/* Prompt Message */}
             <div className="mb-6">
-              <p className="text-gray-700">{currentPrompt.message}</p>
+              <p className="text-gray-900">{currentPrompt.message}</p>
               {unclassifiedCount > 0 && (
                 <div className="mt-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-md">
                   {unclassifiedCount} transaction{unclassifiedCount !== 1 ? 's' : ''} still need
@@ -385,7 +722,9 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                           <div className="text-xs sm:text-sm text-gray-600 space-y-1">
                             <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                               <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                                {getTransactionIdSnippet(tx.id)}
+                                {tx.originalId
+                                  ? getTransactionIdSnippet(tx.originalId)
+                                  : getTransactionIdSnippet(tx.id)}
                               </span>
                               <span className="hidden sm:inline">•</span>
                               <span>{tx.date.toLocaleDateString()}</span>
@@ -437,9 +776,11 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <span className="font-medium text-gray-700">
-                                Full Transaction ID:
+                                {tx.originalId ? 'Exchange Reference:' : 'Generated ID:'}
                               </span>
-                              <div className="font-mono text-gray-600 break-all mt-1">{tx.id}</div>
+                              <div className="font-mono text-gray-600 break-all mt-1">
+                                {tx.originalId || tx.id}
+                              </div>
                             </div>
                             <div>
                               <span className="font-medium text-gray-700">Direction:</span>
@@ -450,14 +791,28 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                             </div>
                           </div>
 
+                          {tx.originalId && (
+                            <div>
+                              <span className="font-medium text-gray-700">Internal ID:</span>
+                              <div className="font-mono text-gray-600 break-all mt-1">{tx.id}</div>
+                            </div>
+                          )}
+
                           {tx.destinationAddress && (
                             <div>
                               <span className="font-medium text-gray-700">
-                                Destination Address:
+                                {tx.destinationAddress.startsWith('lnbc')
+                                  ? 'Lightning Invoice:'
+                                  : 'Destination Address:'}
                               </span>
-                              <div className="font-mono text-gray-600 break-all mt-1">
+                              <div className="font-mono text-gray-600 break-all mt-1 text-xs overflow-hidden">
                                 {tx.destinationAddress}
                               </div>
+                              {tx.destinationAddress.startsWith('lnbc') && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Lightning Network payment request
+                                </p>
+                              )}
                             </div>
                           )}
 
@@ -505,7 +860,7 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                     {/* Smart Classification Options */}
                     <div className="mt-4">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 mb-2">
-                        <p className="text-xs sm:text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-800">
                           Select the category that best describes this transaction:
                         </p>
                         <span className="text-xs text-green-600 font-medium">✨ = Recommended</span>
@@ -515,46 +870,82 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
                       </div>
                     </div>
 
-                    {/* Additional fields for certain classifications */}
-                    {decision?.classification ===
-                      TransactionClassification.SELF_CUSTODY_WITHDRAWAL && (
-                      <div className="mt-3">
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Destination Wallet (optional)
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Hardware Wallet, Electrum, etc."
-                          value={decision.destinationWallet || ''}
-                          onChange={(e) =>
-                            handleClassificationChange(tx.id, decision.classification, {
-                              ...decision,
-                              destinationWallet: e.target.value,
-                            })
-                          }
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
-                      </div>
-                    )}
+                    {/* Enhanced conditional input fields for expanded classifications */}
+                    {decision && renderAdditionalFields(tx, decision)}
 
                     {/* Details Panel */}
                     {isDetailsOpen && (
                       <div className="mt-4 pt-4 border-t border-gray-100">
-                        <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div className="grid grid-cols-2 gap-4 text-xs text-gray-900">
                           <div>
-                            <span className="font-medium">Raw Type:</span> {tx.detectedType}
+                            <span className="font-medium text-gray-900">Raw Type:</span>{' '}
+                            {tx.detectedType}
                           </div>
                           <div>
-                            <span className="font-medium">Amount:</span> {tx.btcAmount} BTC
+                            <span className="font-medium text-gray-900">Amount:</span>{' '}
+                            {tx.btcAmount} BTC
                           </div>
                           {tx.destinationAddress && (
                             <div className="col-span-2">
-                              <span className="font-medium">Address:</span> {tx.destinationAddress}
+                              <span className="font-medium text-gray-900">Address:</span>
+                              <div className="mt-1">
+                                {(() => {
+                                  const { truncated, needsTruncation } = truncateAddress(
+                                    tx.destinationAddress,
+                                  );
+                                  const isExpanded = expandedAddresses.has(tx.id);
+                                  const displayText = isExpanded
+                                    ? tx.destinationAddress
+                                    : truncated;
+
+                                  return (
+                                    <div className="font-mono text-xs break-all">
+                                      <div className="bg-gray-50 p-2 rounded border">
+                                        {displayText}
+                                      </div>
+                                      {needsTruncation && (
+                                        <button
+                                          onClick={() => toggleAddressExpansion(tx.id)}
+                                          className="mt-1 text-xs text-blue-600 hover:text-blue-800 underline"
+                                        >
+                                          {isExpanded ? 'Show less' : 'Show more'}
+                                        </button>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
                             </div>
                           )}
                           {tx.txHash && (
                             <div className="col-span-2">
-                              <span className="font-medium">TX Hash:</span> {tx.txHash}
+                              <span className="font-medium text-gray-900">TX Hash:</span>
+                              <div className="mt-1">
+                                {(() => {
+                                  const { truncated, needsTruncation } = truncateAddress(
+                                    tx.txHash,
+                                    60,
+                                  );
+                                  const isExpanded = expandedAddresses.has(`${tx.id}-hash`);
+                                  const displayText = isExpanded ? tx.txHash : truncated;
+
+                                  return (
+                                    <div className="font-mono text-xs break-all">
+                                      <div className="bg-gray-50 p-2 rounded border">
+                                        {displayText}
+                                      </div>
+                                      {needsTruncation && (
+                                        <button
+                                          onClick={() => toggleAddressExpansion(`${tx.id}-hash`)}
+                                          className="mt-1 text-xs text-blue-600 hover:text-blue-800 underline"
+                                        >
+                                          {isExpanded ? 'Show less' : 'Show more'}
+                                        </button>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
                             </div>
                           )}
                         </div>
