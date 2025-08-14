@@ -227,11 +227,13 @@ export class TransactionClassifier {
     available.push(TransactionClassification.SKIP);
 
     // INCOME EVENTS - Positive BTC required
-    if (btcAmount > 0 && (usdAmount > 0 || (price && price > 0))) {
-      // Core 4-option system: always include PURCHASE
-      available.push(TransactionClassification.PURCHASE);
+    if (btcAmount > 0) {
+      // Core 4-option system: PURCHASE requires USD amount or price
+      if (usdAmount > 0 || (price && price > 0)) {
+        available.push(TransactionClassification.PURCHASE);
+      }
 
-      // Extended 12-option system: add specialized income types
+      // Extended 12-option system: add specialized income types (can provide fair market value manually)
       if (expandedClassifications) {
         available.push(TransactionClassification.GIFT_RECEIVED);
         available.push(TransactionClassification.PAYMENT_RECEIVED);
@@ -239,40 +241,44 @@ export class TransactionClassifier {
         available.push(TransactionClassification.MINING_INCOME);
         available.push(TransactionClassification.STAKING_INCOME);
       }
-    } else {
-      // Provide detailed reasons for why income events are disabled
-      const baseReason =
-        btcAmount <= 0
-          ? 'Bitcoin amount must be positive for acquisitions'
-          : 'USD amount or price required for purchases';
+    }
 
+    // Add disabled reasons for income events that can't be used
+    if (btcAmount <= 0) {
+      // All income events disabled for negative/zero BTC
       disabled.push({
         classification: TransactionClassification.PURCHASE,
-        reason: baseReason,
+        reason: 'Bitcoin amount must be positive for acquisitions',
       });
 
       if (expandedClassifications) {
         disabled.push({
           classification: TransactionClassification.GIFT_RECEIVED,
-          reason: 'Bitcoin gifts received require positive Bitcoin amount and fair market value',
+          reason: 'Bitcoin gifts received require positive Bitcoin amount',
         });
         disabled.push({
           classification: TransactionClassification.PAYMENT_RECEIVED,
-          reason: 'Bitcoin payments received require positive Bitcoin amount and fair market value',
+          reason: 'Bitcoin payments received require positive Bitcoin amount',
         });
         disabled.push({
           classification: TransactionClassification.REIMBURSEMENT_RECEIVED,
-          reason: 'Bitcoin reimbursements require positive Bitcoin amount and fair market value',
+          reason: 'Bitcoin reimbursements require positive Bitcoin amount',
         });
         disabled.push({
           classification: TransactionClassification.MINING_INCOME,
-          reason: 'Mining rewards require positive Bitcoin amount and fair market value',
+          reason: 'Mining rewards require positive Bitcoin amount',
         });
         disabled.push({
           classification: TransactionClassification.STAKING_INCOME,
-          reason: 'Staking rewards require positive Bitcoin amount and fair market value',
+          reason: 'Staking rewards require positive Bitcoin amount',
         });
       }
+    } else if (!(usdAmount > 0 || (price && price > 0))) {
+      // PURCHASE is disabled if no USD/price (but other income events can be manually valued)
+      disabled.push({
+        classification: TransactionClassification.PURCHASE,
+        reason: 'Purchases require USD amount or price to establish cost basis',
+      });
     }
 
     // DISPOSAL EVENTS - Negative BTC required

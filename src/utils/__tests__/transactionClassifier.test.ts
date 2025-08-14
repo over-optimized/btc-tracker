@@ -576,32 +576,27 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
         ).toContain('positive USD proceeds');
       });
 
-      test('should provide detailed disabled reasons for expanded classifications', () => {
-        const tx = createMockTransaction(0.001, 0); // Positive BTC, no USD/price
+      test('should allow expanded income classifications for positive BTC without USD (Lightning/manual entry)', () => {
+        const tx = createMockTransaction(0.001, 0); // Positive BTC, no USD/price (like Lightning receive)
         const result = classifier.getAvailableClassifications(tx, {
           expandedClassifications: true,
         });
 
-        // Should have detailed reasons for all disabled income events
-        const disabledTypes = result.disabled.map((d) => d.classification);
-        expect(disabledTypes).toContain(TransactionClassification.GIFT_RECEIVED);
-        expect(disabledTypes).toContain(TransactionClassification.PAYMENT_RECEIVED);
-        expect(disabledTypes).toContain(TransactionClassification.MINING_INCOME);
-        expect(disabledTypes).toContain(TransactionClassification.STAKING_INCOME);
+        // Should allow expanded income classifications (user can provide fair market value manually)
+        expect(result.available).toContain(TransactionClassification.GIFT_RECEIVED);
+        expect(result.available).toContain(TransactionClassification.PAYMENT_RECEIVED);
+        expect(result.available).toContain(TransactionClassification.MINING_INCOME);
+        expect(result.available).toContain(TransactionClassification.STAKING_INCOME);
+        expect(result.available).toContain(TransactionClassification.SKIP);
 
-        // Check that reasons mention fair market value
-        result.disabled.forEach((disabled) => {
-          if (
-            [
-              TransactionClassification.GIFT_RECEIVED,
-              TransactionClassification.PAYMENT_RECEIVED,
-              TransactionClassification.MINING_INCOME,
-              TransactionClassification.STAKING_INCOME,
-            ].includes(disabled.classification)
-          ) {
-            expect(disabled.reason).toContain('fair market value');
-          }
-        });
+        // PURCHASE should be disabled (requires USD/price for direct cost basis)
+        const disabledTypes = result.disabled.map((d) => d.classification);
+        expect(disabledTypes).toContain(TransactionClassification.PURCHASE);
+
+        const purchaseDisabled = result.disabled.find(
+          (d) => d.classification === TransactionClassification.PURCHASE,
+        );
+        expect(purchaseDisabled?.reason).toContain('USD amount or price to establish cost basis');
       });
     });
 
