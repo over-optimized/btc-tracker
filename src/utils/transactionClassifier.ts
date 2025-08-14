@@ -52,7 +52,9 @@ export class TransactionClassifier {
             classified.push(transaction);
           }
         } else {
-          // Low confidence - needs user input
+          // Low confidence - needs user input, but set suggested classification
+          unclassified.suggestedClassification = autoClassification.classification;
+          unclassified.confidence = autoClassification.confidence;
           needsClassification.push(unclassified);
         }
       } catch (error) {
@@ -133,6 +135,26 @@ export class TransactionClassifier {
       };
     }
 
+    // High confidence deposits/receives (positive BTC, could be from external source)
+    if (this.matchesPatterns(type, TRANSACTION_TYPE_PATTERNS.deposits) && tx.btcAmount > 0) {
+      // If there's a USD value, it's likely a purchase, otherwise could be a receive
+      if (tx.usdAmount > 0) {
+        return {
+          classification: TransactionClassification.PURCHASE,
+          confidence: 0.9,
+          reason: `Receive transaction with USD value - likely a purchase`,
+        };
+      } else {
+        // No USD value - could be receiving Bitcoin from external wallet
+        // For now, classify as purchase but with lower confidence for user confirmation
+        return {
+          classification: TransactionClassification.PURCHASE,
+          confidence: 0.6,
+          reason: `Receive transaction without USD value - needs user confirmation`,
+        };
+      }
+    }
+
     // High confidence sales (negative BTC, positive USD)
     if (
       this.matchesPatterns(type, TRANSACTION_TYPE_PATTERNS.sales) &&
@@ -154,11 +176,17 @@ export class TransactionClassifier {
     ) {
       // Check if amount matches common self-custody patterns
       const isSelfCustodyAmount = this.isCommonSelfCustodyAmount(amount);
+      // Check if it has a destination address (strong indicator of self-custody)
+      const hasDestinationAddress = tx.destinationAddress && tx.destinationAddress.length > 10;
+
+      let confidence = 0.7; // Base confidence
+      if (isSelfCustodyAmount) confidence = 0.85;
+      if (hasDestinationAddress) confidence = Math.max(confidence, 0.9); // Boost confidence for destination address
 
       return {
         classification: TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
-        confidence: isSelfCustodyAmount ? 0.85 : 0.7,
-        reason: `Withdrawal pattern detected${isSelfCustodyAmount ? ' with common self-custody amount' : ''}`,
+        confidence,
+        reason: `Withdrawal pattern detected${isSelfCustodyAmount ? ' with common self-custody amount' : ''}${hasDestinationAddress ? ' to external address' : ''}`,
       };
     }
 
