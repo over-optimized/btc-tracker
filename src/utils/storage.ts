@@ -11,6 +11,37 @@ import {
 
 const STORAGE_KEY = 'btc-tracker:transactions';
 
+/**
+ * Validate that a transaction has valid, non-corrupted data
+ */
+function validateTransactionIntegrity(tx: Transaction): boolean {
+  // Check for required fields
+  if (!tx.id || !tx.date || !tx.exchange || !tx.type) {
+    return false;
+  }
+
+  // Check for NaN values
+  if (isNaN(tx.usdAmount) || isNaN(tx.btcAmount) || isNaN(tx.price)) {
+    return false;
+  }
+
+  // Check for impossible combinations
+  if (tx.type === 'Purchase' && tx.usdAmount === 0 && tx.price === 0) {
+    return false; // Impossible purchase with no USD value
+  }
+
+  if (tx.type === 'Sale' && tx.usdAmount === 0) {
+    return false; // Impossible sale with no USD proceeds
+  }
+
+  // Check for zero amounts in transactions that should have movement
+  if (tx.btcAmount === 0 && tx.type !== 'Deposit') {
+    return false; // No Bitcoin movement
+  }
+
+  return true;
+}
+
 export interface StorageLoadResult {
   transactions: Transaction[];
   migrationResult?: MigrationResult;
@@ -41,10 +72,26 @@ export function getTransactions(): StorageLoadResult {
   // Parse existing data
   let transactions: Transaction[];
   try {
-    transactions = JSON.parse(data).map((tx: Omit<Transaction, 'date'> & { date: string }) => ({
-      ...tx,
-      date: new Date(tx.date),
-    }));
+    const rawTransactions = JSON.parse(data);
+    transactions = rawTransactions
+      .map((tx: Omit<Transaction, 'date'> & { date: string }) => ({
+        ...tx,
+        date: new Date(tx.date),
+      }))
+      .filter((tx: Transaction) => {
+        // Validate transaction integrity
+        const isValid = validateTransactionIntegrity(tx);
+        if (!isValid) {
+          console.warn('Filtering out corrupted transaction:', tx);
+        }
+        return isValid;
+      });
+
+    // Log if we filtered out corrupted data
+    const filteredCount = rawTransactions.length - transactions.length;
+    if (filteredCount > 0) {
+      console.warn(`Filtered out ${filteredCount} corrupted transactions during load`);
+    }
   } catch (error) {
     console.error('Failed to parse transaction data:', error);
     return {
@@ -60,12 +107,7 @@ export function getTransactions(): StorageLoadResult {
     const migrationResult = migrateTransactionData(transactions);
 
     if (migrationResult.success) {
-      // Save migrated data
-      const migratedTransactions = transactions.filter((_tx) => {
-        // Re-generate IDs for all transactions with the new system
-        // This is handled by the migration function
-        return true;
-      });
+      // Save migrated data - use the migration function's output
 
       // Actually perform the migration and get the results
       const { deduplicated } = deduplicateAndMigrate(transactions);
@@ -276,7 +318,7 @@ export function importTransactions(
     if (format === 'csv') {
       // Basic CSV parsing (would use Papa Parse in real implementation)
       const lines = data.trim().split('\n');
-      const headers = lines[0].split(',');
+      const _headers = lines[0].split(','); // Headers for reference if needed
 
       importedTransactions = lines.slice(1).map((line) => {
         const values = line.split(',');

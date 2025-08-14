@@ -47,6 +47,16 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
   const currentPrompt = prompts[currentPromptIndex];
   const isLastPrompt = currentPromptIndex === prompts.length - 1;
 
+  // Safety check: ensure currentPrompt exists and has valid data
+  if (!currentPrompt || !currentPrompt.transactions || currentPrompt.transactions.length === 0) {
+    console.error('Invalid currentPrompt state:', {
+      currentPromptIndex,
+      promptsLength: prompts.length,
+      currentPrompt,
+    });
+    return null;
+  }
+
   const handleClassificationChange = (
     transactionId: string,
     classification: TransactionClassification,
@@ -138,7 +148,8 @@ const TransactionClassificationModal: React.FC<TransactionClassificationModalPro
     }
   };
 
-  const unclassifiedCount = currentPrompt.transactions.filter((tx) => !decisions.has(tx.id)).length;
+  const unclassifiedCount =
+    currentPrompt?.transactions?.filter((tx) => !decisions.has(tx.id)).length || 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
