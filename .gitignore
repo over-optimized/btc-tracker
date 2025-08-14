@@ -24,7 +24,7 @@ data/*
 coverage
 
 # Test results and artifacts
-# test-results/
+test-results/
 playwright-report/
 
 # Bundle analysis (generated during dev builds)
