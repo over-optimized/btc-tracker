@@ -110,6 +110,7 @@ export class TransactionClassifier {
       suggestedClassification: TransactionClassification.SKIP, // Will be set by classification
       destinationAddress: this.extractDestinationAddress(rawData),
       txHash: this.extractTxHash(rawData),
+      originalId: this.extractOriginalId(rawData, exchange), // Extract exchange's original reference
     };
 
     return unclassified;
@@ -209,60 +210,144 @@ export class TransactionClassifier {
 
   /**
    * Get available classification options for a transaction based on its data
+   * Supports feature flag filtering for 4-option vs 12-option display
    */
-  getAvailableClassifications(unclassified: UnclassifiedTransaction): {
+  getAvailableClassifications(
+    unclassified: UnclassifiedTransaction,
+    options: { expandedClassifications?: boolean } = {},
+  ): {
     available: TransactionClassification[];
     disabled: Array<{ classification: TransactionClassification; reason: string }>;
   } {
     const { btcAmount, usdAmount, price } = unclassified;
+    const { expandedClassifications = false } = options;
     const available: TransactionClassification[] = [];
     const disabled: Array<{ classification: TransactionClassification; reason: string }> = [];
 
     // Always allow SKIP
     available.push(TransactionClassification.SKIP);
 
-    // Check PURCHASE (positive BTC + USD/price required)
-    if (btcAmount > 0 && (usdAmount > 0 || (price && price > 0))) {
-      available.push(TransactionClassification.PURCHASE);
-      available.push(TransactionClassification.GIFT_RECEIVED);
-      available.push(TransactionClassification.PAYMENT_RECEIVED);
-      available.push(TransactionClassification.REIMBURSEMENT_RECEIVED);
-      available.push(TransactionClassification.MINING_INCOME);
-      available.push(TransactionClassification.STAKING_INCOME);
-    } else {
+    // INCOME EVENTS - Positive BTC required
+    if (btcAmount > 0) {
+      // Core 4-option system: PURCHASE requires USD amount or price
+      if (usdAmount > 0 || (price && price > 0)) {
+        available.push(TransactionClassification.PURCHASE);
+      }
+
+      // Extended 12-option system: add specialized income types (can provide fair market value manually)
+      if (expandedClassifications) {
+        available.push(TransactionClassification.GIFT_RECEIVED);
+        available.push(TransactionClassification.PAYMENT_RECEIVED);
+        available.push(TransactionClassification.REIMBURSEMENT_RECEIVED);
+        available.push(TransactionClassification.MINING_INCOME);
+        available.push(TransactionClassification.STAKING_INCOME);
+      }
+    }
+
+    // Add disabled reasons for income events that can't be used
+    if (btcAmount <= 0) {
+      // All income events disabled for negative/zero BTC
       disabled.push({
         classification: TransactionClassification.PURCHASE,
-        reason:
-          btcAmount <= 0
-            ? 'Bitcoin amount must be positive for acquisitions'
-            : 'USD amount or price required for purchases',
+        reason: 'Bitcoin amount must be positive for acquisitions',
+      });
+
+      if (expandedClassifications) {
+        disabled.push({
+          classification: TransactionClassification.GIFT_RECEIVED,
+          reason: 'Bitcoin gifts received require positive Bitcoin amount',
+        });
+        disabled.push({
+          classification: TransactionClassification.PAYMENT_RECEIVED,
+          reason: 'Bitcoin payments received require positive Bitcoin amount',
+        });
+        disabled.push({
+          classification: TransactionClassification.REIMBURSEMENT_RECEIVED,
+          reason: 'Bitcoin reimbursements require positive Bitcoin amount',
+        });
+        disabled.push({
+          classification: TransactionClassification.MINING_INCOME,
+          reason: 'Mining rewards require positive Bitcoin amount',
+        });
+        disabled.push({
+          classification: TransactionClassification.STAKING_INCOME,
+          reason: 'Staking rewards require positive Bitcoin amount',
+        });
+      }
+    } else if (!(usdAmount > 0 || (price && price > 0))) {
+      // PURCHASE is disabled if no USD/price (but other income events can be manually valued)
+      disabled.push({
+        classification: TransactionClassification.PURCHASE,
+        reason: 'Purchases require USD amount or price to establish cost basis',
       });
     }
 
-    // Check SALE (negative BTC + positive USD required)
+    // DISPOSAL EVENTS - Negative BTC required
     if (btcAmount < 0 && usdAmount > 0) {
+      // Core 4-option system: always include SALE
       available.push(TransactionClassification.SALE);
+
+      // Extended 12-option system: add specialized disposal types
+      if (expandedClassifications) {
+        available.push(TransactionClassification.GIFT_SENT);
+        available.push(TransactionClassification.PAYMENT_SENT);
+      }
+    } else if (btcAmount < 0 && expandedClassifications) {
+      // Special case: negative BTC but no USD - allow disposal events that don't require USD proceeds
+      // (these will need fair market value provided by user)
       available.push(TransactionClassification.GIFT_SENT);
       available.push(TransactionClassification.PAYMENT_SENT);
-    } else {
+
+      // Still disable SALE since it specifically requires USD proceeds from exchange
       disabled.push({
         classification: TransactionClassification.SALE,
-        reason:
-          btcAmount >= 0
-            ? 'Bitcoin amount must be negative (outgoing) for sales'
-            : 'USD proceeds required for sales',
+        reason: 'Sales require positive USD proceeds to calculate capital gains/losses',
       });
+    } else {
+      // Positive BTC or other invalid combinations
+      const baseReason =
+        btcAmount >= 0
+          ? 'Bitcoin amount must be negative (outgoing) for sales'
+          : 'USD proceeds required for sales';
+
+      disabled.push({
+        classification: TransactionClassification.SALE,
+        reason: baseReason,
+      });
+
+      if (expandedClassifications) {
+        disabled.push({
+          classification: TransactionClassification.GIFT_SENT,
+          reason: 'Bitcoin gifts sent require negative Bitcoin amount (outgoing)',
+        });
+        disabled.push({
+          classification: TransactionClassification.PAYMENT_SENT,
+          reason: 'Bitcoin payments sent require negative Bitcoin amount (outgoing)',
+        });
+      }
     }
 
-    // Check WITHDRAWALS (negative BTC, no USD required)
+    // NON-TAXABLE MOVEMENTS - Negative BTC required
     if (btcAmount < 0) {
+      // Core 4-option system: always include SELF_CUSTODY_WITHDRAWAL
       available.push(TransactionClassification.SELF_CUSTODY_WITHDRAWAL);
-      available.push(TransactionClassification.EXCHANGE_TRANSFER);
+
+      // Extended 12-option system: add EXCHANGE_TRANSFER
+      if (expandedClassifications) {
+        available.push(TransactionClassification.EXCHANGE_TRANSFER);
+      }
     } else {
       disabled.push({
         classification: TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
         reason: 'Bitcoin amount must be negative (outgoing) for withdrawals',
       });
+
+      if (expandedClassifications) {
+        disabled.push({
+          classification: TransactionClassification.EXCHANGE_TRANSFER,
+          reason: 'Bitcoin amount must be negative (outgoing) for exchange transfers',
+        });
+      }
     }
 
     return { available, disabled };
@@ -270,67 +355,206 @@ export class TransactionClassifier {
 
   /**
    * Validate that a classification decision is logically possible for the transaction data
+   * Enhanced validation for all 12 classification types with user-friendly error messages
    */
   private validateClassificationDecision(
     unclassified: UnclassifiedTransaction,
     decision: ClassificationDecision,
   ): { isValid: boolean; reason?: string } {
     const { btcAmount, usdAmount, price } = unclassified;
-    const { classification } = decision;
-
-    console.log(`🔍 Validating classification decision:`, {
-      btcAmount,
-      usdAmount,
-      price,
-      classification,
-      detectedType: unclassified.detectedType,
-    });
-
-    // Purchases require positive BTC and non-zero USD/price (USD can be negative for outflows)
-    if (classification === TransactionClassification.PURCHASE) {
-      if (btcAmount <= 0) {
-        console.log(`❌ Validation FAILED: Purchase with negative/zero BTC amount (${btcAmount})`);
-        return { isValid: false, reason: 'Purchases require positive Bitcoin amount' };
-      }
-      if (usdAmount === 0 && (!price || price <= 0)) {
-        console.log(
-          `❌ Validation FAILED: Purchase with no USD amount (${usdAmount}) or price (${price})`,
-        );
-        return { isValid: false, reason: 'Purchases require USD amount or valid price' };
-      }
-      console.log(`✅ Purchase validation passed`);
-    }
-
-    // Sales require negative BTC (outgoing) and positive USD
-    if (classification === TransactionClassification.SALE) {
-      if (btcAmount >= 0) {
-        return { isValid: false, reason: 'Sales require negative Bitcoin amount (outgoing)' };
-      }
-      if (usdAmount <= 0) {
-        return { isValid: false, reason: 'Sales require positive USD proceeds' };
-      }
-    }
-
-    // Withdrawals should have negative BTC and no/minimal USD
-    if (classification === TransactionClassification.SELF_CUSTODY_WITHDRAWAL) {
-      if (btcAmount >= 0) {
-        return { isValid: false, reason: 'Withdrawals require negative Bitcoin amount (outgoing)' };
-      }
-    }
-
-    // Transfers should have no USD component
-    if (classification === TransactionClassification.EXCHANGE_TRANSFER) {
-      if (usdAmount > 0) {
-        return { isValid: false, reason: 'Exchange transfers should not have USD amounts' };
-      }
-    }
+    const { classification, usdValue } = decision;
 
     // All classifications except SKIP require non-zero BTC
     if (classification !== TransactionClassification.SKIP && btcAmount === 0) {
       return { isValid: false, reason: 'Transaction requires Bitcoin movement' };
     }
 
-    console.log(`✅ Validation PASSED for classification: ${classification}`);
+    // Group validations by tax event type for better organization
+    switch (classification) {
+      // INCOME EVENTS - Require positive BTC (incoming) + fair market value
+      case TransactionClassification.PURCHASE:
+        if (btcAmount <= 0) {
+          return {
+            isValid: false,
+            reason: 'Bitcoin purchases require positive Bitcoin amount (incoming)',
+          };
+        }
+        if (usdAmount === 0 && (!price || price <= 0)) {
+          return {
+            isValid: false,
+            reason: 'Purchases require USD amount or valid price to establish cost basis',
+          };
+        }
+        break;
+
+      case TransactionClassification.GIFT_RECEIVED:
+        if (btcAmount <= 0) {
+          return {
+            isValid: false,
+            reason: 'Bitcoin gifts received require positive Bitcoin amount (incoming)',
+          };
+        }
+        if (!usdValue && (!price || price <= 0)) {
+          return {
+            isValid: false,
+            reason:
+              'Gifts received require fair market value for tax reporting - this is taxable income',
+          };
+        }
+        break;
+
+      case TransactionClassification.PAYMENT_RECEIVED:
+        if (btcAmount <= 0) {
+          return {
+            isValid: false,
+            reason: 'Bitcoin payments received require positive Bitcoin amount (incoming)',
+          };
+        }
+        if (!usdValue && (!price || price <= 0)) {
+          return {
+            isValid: false,
+            reason: 'Payments received require fair market value - this is taxable income',
+          };
+        }
+        break;
+
+      case TransactionClassification.REIMBURSEMENT_RECEIVED:
+        if (btcAmount <= 0) {
+          return {
+            isValid: false,
+            reason: 'Bitcoin reimbursements require positive Bitcoin amount (incoming)',
+          };
+        }
+        if (!usdValue && (!price || price <= 0)) {
+          return {
+            isValid: false,
+            reason:
+              'Reimbursements require fair market value to calculate taxable gain/loss vs cash amount spent',
+          };
+        }
+        break;
+
+      case TransactionClassification.MINING_INCOME:
+        if (btcAmount <= 0) {
+          return {
+            isValid: false,
+            reason: 'Mining rewards require positive Bitcoin amount (incoming)',
+          };
+        }
+        if (!usdValue && (!price || price <= 0)) {
+          return {
+            isValid: false,
+            reason:
+              'Mining income requires fair market value - this is taxable income at time of receipt',
+          };
+        }
+        break;
+
+      case TransactionClassification.STAKING_INCOME:
+        if (btcAmount <= 0) {
+          return {
+            isValid: false,
+            reason: 'Staking rewards require positive Bitcoin amount (incoming)',
+          };
+        }
+        if (!usdValue && (!price || price <= 0)) {
+          return {
+            isValid: false,
+            reason:
+              'Staking income requires fair market value - this is taxable income at time of receipt',
+          };
+        }
+        break;
+
+      // DISPOSAL EVENTS - Require negative BTC (outgoing) + sale proceeds/fair market value
+      case TransactionClassification.SALE:
+        if (btcAmount >= 0) {
+          return {
+            isValid: false,
+            reason: 'Bitcoin sales require negative Bitcoin amount (outgoing)',
+          };
+        }
+        if (usdAmount <= 0 && (!usdValue || usdValue <= 0)) {
+          return {
+            isValid: false,
+            reason: 'Sales require positive USD proceeds to calculate capital gains/losses',
+          };
+        }
+        break;
+
+      case TransactionClassification.GIFT_SENT:
+        if (btcAmount >= 0) {
+          return {
+            isValid: false,
+            reason: 'Bitcoin gifts sent require negative Bitcoin amount (outgoing)',
+          };
+        }
+        if (!usdValue && (!price || price <= 0)) {
+          return {
+            isValid: false,
+            reason:
+              'Gifts sent require fair market value - you owe tax on any gains since purchase',
+          };
+        }
+        break;
+
+      case TransactionClassification.PAYMENT_SENT:
+        if (btcAmount >= 0) {
+          return {
+            isValid: false,
+            reason: 'Bitcoin payments sent require negative Bitcoin amount (outgoing)',
+          };
+        }
+        if (!usdValue && (!price || price <= 0)) {
+          return {
+            isValid: false,
+            reason:
+              'Payments sent require fair market value - this creates taxable capital gains/losses',
+          };
+        }
+        break;
+
+      // NON-TAXABLE MOVEMENTS - Require negative BTC (outgoing) + minimal/no USD
+      case TransactionClassification.SELF_CUSTODY_WITHDRAWAL:
+        if (btcAmount >= 0) {
+          return {
+            isValid: false,
+            reason: 'Self-custody withdrawals require negative Bitcoin amount (outgoing)',
+          };
+        }
+        if (usdAmount > 0) {
+          return {
+            isValid: false,
+            reason:
+              'Self-custody withdrawals should not have USD amounts - you still own the Bitcoin',
+          };
+        }
+        break;
+
+      case TransactionClassification.EXCHANGE_TRANSFER:
+        if (btcAmount >= 0) {
+          return {
+            isValid: false,
+            reason: 'Exchange transfers require negative Bitcoin amount (outgoing)',
+          };
+        }
+        if (usdAmount > 0) {
+          return {
+            isValid: false,
+            reason:
+              'Exchange transfers should not have USD amounts - this is just moving Bitcoin between exchanges',
+          };
+        }
+        break;
+
+      case TransactionClassification.SKIP:
+        // SKIP is always valid - user chooses not to import this transaction
+        break;
+
+      default:
+        return { isValid: false, reason: `Unknown classification type: ${classification}` };
+    }
+
     return { isValid: true };
   }
 
@@ -362,6 +586,7 @@ export class TransactionClassifier {
     };
 
     switch (decision.classification) {
+      // INCOME EVENTS - Taxable acquisitions
       case TransactionClassification.PURCHASE:
         return {
           ...baseTransaction,
@@ -369,6 +594,111 @@ export class TransactionClassifier {
           isTaxable: true,
         };
 
+      case TransactionClassification.GIFT_RECEIVED:
+        return {
+          ...baseTransaction,
+          type: 'Gift Received',
+          isTaxable: true,
+          usdAmount:
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
+          price: decision.usdValue
+            ? decision.usdValue / Math.abs(unclassified.btcAmount)
+            : unclassified.price || 0,
+          counterparty: decision.counterparty,
+        };
+
+      case TransactionClassification.PAYMENT_RECEIVED:
+        return {
+          ...baseTransaction,
+          type: 'Payment Received',
+          isTaxable: true,
+          usdAmount:
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
+          price: decision.usdValue
+            ? decision.usdValue / Math.abs(unclassified.btcAmount)
+            : unclassified.price || 0,
+          counterparty: decision.counterparty,
+          goodsServices: decision.goodsServices,
+        };
+
+      case TransactionClassification.REIMBURSEMENT_RECEIVED:
+        return {
+          ...baseTransaction,
+          type: 'Reimbursement Received',
+          isTaxable: true,
+          usdAmount:
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
+          price: decision.usdValue
+            ? decision.usdValue / Math.abs(unclassified.btcAmount)
+            : unclassified.price || 0,
+          counterparty: decision.counterparty,
+          goodsServices: decision.goodsServices,
+        };
+
+      case TransactionClassification.MINING_INCOME:
+        return {
+          ...baseTransaction,
+          type: 'Mining Income',
+          isTaxable: true,
+          usdAmount:
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
+          price: decision.usdValue
+            ? decision.usdValue / Math.abs(unclassified.btcAmount)
+            : unclassified.price || 0,
+        };
+
+      case TransactionClassification.STAKING_INCOME:
+        return {
+          ...baseTransaction,
+          type: 'Staking Income',
+          isTaxable: true,
+          usdAmount:
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
+          price: decision.usdValue
+            ? decision.usdValue / Math.abs(unclassified.btcAmount)
+            : unclassified.price || 0,
+        };
+
+      // DISPOSAL EVENTS - Taxable disposals
+      case TransactionClassification.SALE:
+        return {
+          ...baseTransaction,
+          type: 'Sale',
+          isTaxable: true,
+          usdAmount: decision.usdValue || decision.salePrice || Math.abs(unclassified.usdAmount),
+          price: decision.usdValue
+            ? decision.usdValue / Math.abs(unclassified.btcAmount)
+            : decision.salePrice || unclassified.price || 0,
+        };
+
+      case TransactionClassification.GIFT_SENT:
+        return {
+          ...baseTransaction,
+          type: 'Gift Sent',
+          isTaxable: true,
+          usdAmount:
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
+          price: decision.usdValue
+            ? decision.usdValue / Math.abs(unclassified.btcAmount)
+            : unclassified.price || 0,
+          counterparty: decision.counterparty,
+        };
+
+      case TransactionClassification.PAYMENT_SENT:
+        return {
+          ...baseTransaction,
+          type: 'Payment Sent',
+          isTaxable: true,
+          usdAmount:
+            decision.usdValue || (unclassified.price || 0) * Math.abs(unclassified.btcAmount) || 0,
+          price: decision.usdValue
+            ? decision.usdValue / Math.abs(unclassified.btcAmount)
+            : unclassified.price || 0,
+          counterparty: decision.counterparty,
+          goodsServices: decision.goodsServices,
+        };
+
+      // NON-TAXABLE MOVEMENTS
       case TransactionClassification.SELF_CUSTODY_WITHDRAWAL:
         return {
           ...baseTransaction,
@@ -379,20 +709,14 @@ export class TransactionClassifier {
           usdAmount: 0, // Withdrawals don't have USD value
         };
 
-      case TransactionClassification.SALE:
-        return {
-          ...baseTransaction,
-          type: 'Sale',
-          isTaxable: true,
-          price: decision.salePrice || unclassified.price || 0,
-        };
-
       case TransactionClassification.EXCHANGE_TRANSFER:
         return {
           ...baseTransaction,
           type: 'Transfer',
           isTaxable: false,
-          destinationWallet: decision.transferExchange || 'Another Exchange',
+          destinationWallet:
+            decision.destinationExchange || decision.transferExchange || 'Another Exchange',
+          sourceExchange: decision.sourceExchange,
           usdAmount: 0, // Transfers don't have USD value
         };
 
@@ -400,6 +724,7 @@ export class TransactionClassifier {
         return null; // Don't create transaction
 
       default:
+        console.error(`Unknown classification type: ${decision.classification}`);
         return null;
     }
   }
@@ -580,6 +905,36 @@ export class TransactionClassifier {
     const hashFields = ['Transaction Hash', 'Hash', 'TX Hash', 'TXID', 'Transaction ID'];
 
     for (const field of hashFields) {
+      if (rawData[field] && typeof rawData[field] === 'string') {
+        return rawData[field];
+      }
+    }
+
+    return undefined;
+  }
+
+  private extractOriginalId(rawData: any, exchange: string): string | undefined {
+    // Exchange-specific original ID extraction
+    const exchangeLower = exchange.toLowerCase();
+
+    if (exchangeLower.includes('strike')) {
+      // Strike provides 'Reference' field with clean UUIDs
+      return rawData['Reference'] || rawData['reference'];
+    }
+
+    if (exchangeLower.includes('coinbase')) {
+      // Coinbase may use 'Transaction ID' or 'ID'
+      return rawData['Transaction ID'] || rawData['ID'];
+    }
+
+    if (exchangeLower.includes('kraken')) {
+      // Kraken uses 'txid' or 'refid'
+      return rawData['txid'] || rawData['refid'];
+    }
+
+    // Generic fallback
+    const idFields = ['Reference', 'ID', 'Transaction ID', 'Ref ID', 'Order ID'];
+    for (const field of idFields) {
       if (rawData[field] && typeof rawData[field] === 'string') {
         return rawData[field];
       }

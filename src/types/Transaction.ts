@@ -1,7 +1,11 @@
-export type TransactionType = 
-  | 'Purchase' | 'Buy' | 'Trade'  // Acquisition transactions
-  | 'Withdrawal' | 'Transfer'      // Self-custody movements
-  | 'Sale' | 'Sell';               // Disposal transactions
+export type TransactionType =
+  | 'Purchase'
+  | 'Buy'
+  | 'Trade' // Acquisition transactions
+  | 'Withdrawal'
+  | 'Transfer' // Self-custody movements
+  | 'Sale'
+  | 'Sell'; // Disposal transactions
 
 export interface Transaction {
   id: string;
@@ -11,16 +15,22 @@ export interface Transaction {
   usdAmount: number;
   btcAmount: number;
   price: number;
-  
+
   // Extended fields for withdrawal tracking (optional for backward compatibility)
-  destinationWallet?: string;     // Wallet name or address where Bitcoin was sent
-  networkFee?: number;           // Network fee in BTC for withdrawals
-  networkFeeUsd?: number;        // Network fee in USD at time of transaction
-  isSelfCustody?: boolean;       // Flag indicating this is a self-custody movement
-  notes?: string;                // User notes about the transaction
-  
+  destinationWallet?: string; // Wallet name or address where Bitcoin was sent
+  networkFee?: number; // Network fee in BTC for withdrawals
+  networkFeeUsd?: number; // Network fee in USD at time of transaction
+  isSelfCustody?: boolean; // Flag indicating this is a self-custody movement
+  notes?: string; // User notes about the transaction
+
+  // Classification fields for enhanced transaction types
+  counterparty?: string; // Person or entity involved in the transaction
+  goodsServices?: string; // What was purchased or provided
+  sourceExchange?: string; // Source exchange for transfers
+  destinationExchange?: string; // Destination exchange for transfers
+
   // Tax treatment flags
-  isTaxable?: boolean;           // Whether this creates a taxable event (defaults based on type)
+  isTaxable?: boolean; // Whether this creates a taxable event (defaults based on type)
 }
 
 export interface WithdrawalTransaction extends Transaction {
