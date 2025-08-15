@@ -162,7 +162,6 @@ class ApiCache<T> implements ApiCacheInterface<T> {
    */
   cleanup(): number {
     let cleanedCount = 0;
-    const _now = Date.now();
 
     // Clean memory cache
     for (const [key, entry] of this.memoryCache.entries()) {
@@ -262,16 +261,19 @@ class ApiCache<T> implements ApiCacheInterface<T> {
           const parsed = JSON.parse(event.newValue) as CacheEntry<T>;
 
           // Hydrate date fields for the storage listener
+          const timestampDate = safeDateConversion(parsed.timestamp) || new Date();
+          const expiresAtDate =
+            safeDateConversion(parsed.expiresAt) || new Date(Date.now() + this.config.defaultTtl);
+
           const entry = {
             ...parsed,
-            timestamp: safeDateConversion(parsed.timestamp) || new Date(),
-            expiresAt:
-              safeDateConversion(parsed.expiresAt) || new Date(Date.now() + this.config.defaultTTL),
+            timestamp: timestampDate.getTime(),
+            expiresAt: expiresAtDate.getTime(),
           };
 
           // Hydrate any date fields in the cached data itself
           if (entry.data && typeof entry.data === 'object') {
-            entry.data = hydrateCacheEntry(entry.data as any);
+            entry.data = hydrateCacheEntry(entry.data as Record<string, unknown>);
           }
 
           if (!this.isExpired(entry)) {
@@ -316,16 +318,19 @@ class ApiCache<T> implements ApiCacheInterface<T> {
       const parsed = JSON.parse(item) as CacheEntry<T>;
 
       // Hydrate date fields that were serialized as strings
+      const timestampDate = safeDateConversion(parsed.timestamp) || new Date();
+      const expiresAtDate =
+        safeDateConversion(parsed.expiresAt) || new Date(Date.now() + this.config.defaultTtl);
+
       const hydratedEntry = {
         ...parsed,
-        timestamp: safeDateConversion(parsed.timestamp) || new Date(),
-        expiresAt:
-          safeDateConversion(parsed.expiresAt) || new Date(Date.now() + this.config.defaultTTL),
+        timestamp: timestampDate.getTime(),
+        expiresAt: expiresAtDate.getTime(),
       };
 
       // Hydrate any date fields in the cached data itself
       if (hydratedEntry.data && typeof hydratedEntry.data === 'object') {
-        hydratedEntry.data = hydrateCacheEntry(hydratedEntry.data as any);
+        hydratedEntry.data = hydrateCacheEntry(hydratedEntry.data as Record<string, unknown>);
       }
 
       return hydratedEntry;

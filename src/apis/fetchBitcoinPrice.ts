@@ -107,8 +107,8 @@ class BitcoinPriceAPI {
         }
       };
 
-      this.sharedWorker.port.addEventListener('message', handleMessage);
-      this.sharedWorker.port.postMessage({ type: 'get-price' });
+      this.sharedWorker!.port.addEventListener('message', handleMessage);
+      this.sharedWorker!.port.postMessage({ type: 'get-price' });
     });
   }
 
@@ -305,10 +305,7 @@ class BitcoinPriceAPI {
         // Safely extract timestamp from cache entry
         if (cacheEntry?.timestamp) {
           try {
-            const cacheTimestamp =
-              cacheEntry.timestamp instanceof Date
-                ? cacheEntry.timestamp
-                : new Date(cacheEntry.timestamp);
+            const cacheTimestamp = new Date(cacheEntry.timestamp);
 
             if (!isNaN(cacheTimestamp.getTime())) {
               timestamp = cacheTimestamp;
@@ -338,10 +335,7 @@ class BitcoinPriceAPI {
           // Safely handle stale timestamp
           let staleTimestamp = new Date();
           try {
-            const timestamp =
-              staleEntry.timestamp instanceof Date
-                ? staleEntry.timestamp
-                : new Date(staleEntry.timestamp);
+            const timestamp = new Date(staleEntry.timestamp);
 
             if (!isNaN(timestamp.getTime())) {
               staleTimestamp = timestamp;

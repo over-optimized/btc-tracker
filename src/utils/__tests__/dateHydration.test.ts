@@ -66,12 +66,15 @@ describe('dateHydration', () => {
 
     it('should handle missing date fields gracefully', () => {
       const entry = {
+        timestamp: Date.now(),
         data: { value: 123 },
         someOtherField: 'test',
       };
 
       const hydrated = hydrateCacheEntry(entry);
-      expect(hydrated).toEqual(entry);
+      expect(hydrated.timestamp).toBeInstanceOf(Date);
+      expect(hydrated.data).toEqual({ value: 123 });
+      expect(hydrated.someOtherField).toBe('test');
     });
 
     it('should preserve original object structure', () => {
