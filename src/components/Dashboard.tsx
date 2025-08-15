@@ -67,10 +67,22 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                   <span>
                     Updated{' '}
-                    {new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
-                      Math.round((lastUpdated.getTime() - Date.now()) / (1000 * 60)),
-                      'minute',
-                    )}
+                    {(() => {
+                      try {
+                        // Ensure lastUpdated is a valid Date object
+                        const date =
+                          lastUpdated instanceof Date ? lastUpdated : new Date(lastUpdated);
+                        if (isNaN(date.getTime())) {
+                          return 'recently';
+                        }
+                        return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
+                          Math.round((date.getTime() - Date.now()) / (1000 * 60)),
+                          'minute',
+                        );
+                      } catch {
+                        return 'recently';
+                      }
+                    })()}
                   </span>
                   {cached && (
                     <>

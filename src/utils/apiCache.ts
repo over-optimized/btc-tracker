@@ -7,7 +7,10 @@
  * - Multiple cache strategies
  * - Automatic cleanup of expired entries
  * - Cache statistics and debugging
+ * - Date field hydration for localStorage compatibility
  */
+
+import { hydrateCacheEntry, safeDateConversion } from './dateHydration';
 
 import {
   ApiCacheInterface,
@@ -256,7 +259,21 @@ class ApiCache<T> implements ApiCacheInterface<T> {
         this.memoryCache.delete(key);
       } else {
         try {
-          const entry = JSON.parse(event.newValue) as CacheEntry<T>;
+          const parsed = JSON.parse(event.newValue) as CacheEntry<T>;
+
+          // Hydrate date fields for the storage listener
+          const entry = {
+            ...parsed,
+            timestamp: safeDateConversion(parsed.timestamp) || new Date(),
+            expiresAt:
+              safeDateConversion(parsed.expiresAt) || new Date(Date.now() + this.config.defaultTTL),
+          };
+
+          // Hydrate any date fields in the cached data itself
+          if (entry.data && typeof entry.data === 'object') {
+            entry.data = hydrateCacheEntry(entry.data as any);
+          }
+
           if (!this.isExpired(entry)) {
             this.memoryCache.set(key, entry);
           }
@@ -296,8 +313,24 @@ class ApiCache<T> implements ApiCacheInterface<T> {
       const item = localStorage.getItem(this.storageKeyPrefix + key);
       if (!item) return null;
 
-      return JSON.parse(item) as CacheEntry<T>;
-    } catch {
+      const parsed = JSON.parse(item) as CacheEntry<T>;
+
+      // Hydrate date fields that were serialized as strings
+      const hydratedEntry = {
+        ...parsed,
+        timestamp: safeDateConversion(parsed.timestamp) || new Date(),
+        expiresAt:
+          safeDateConversion(parsed.expiresAt) || new Date(Date.now() + this.config.defaultTTL),
+      };
+
+      // Hydrate any date fields in the cached data itself
+      if (hydratedEntry.data && typeof hydratedEntry.data === 'object') {
+        hydratedEntry.data = hydrateCacheEntry(hydratedEntry.data as any);
+      }
+
+      return hydratedEntry;
+    } catch (error) {
+      console.warn('Failed to parse cache entry from localStorage:', error);
       return null;
     }
   }

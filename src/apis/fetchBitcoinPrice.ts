@@ -300,10 +300,29 @@ class BitcoinPriceAPI {
       // If result is from cache, mark it as cached
       if (typeof result === 'number') {
         const cacheEntry = bitcoinPriceCache.get('bitcoin-price-usd');
+        let timestamp = new Date();
+
+        // Safely extract timestamp from cache entry
+        if (cacheEntry?.timestamp) {
+          try {
+            const cacheTimestamp =
+              cacheEntry.timestamp instanceof Date
+                ? cacheEntry.timestamp
+                : new Date(cacheEntry.timestamp);
+
+            if (!isNaN(cacheTimestamp.getTime())) {
+              timestamp = cacheTimestamp;
+            }
+          } catch {
+            // Fall back to current time if timestamp is invalid
+            timestamp = new Date();
+          }
+        }
+
         return {
           price: result,
           cached: true,
-          timestamp: cacheEntry ? new Date(cacheEntry.timestamp) : new Date(),
+          timestamp,
           source: 'cache',
         };
       }
@@ -315,10 +334,27 @@ class BitcoinPriceAPI {
         const staleEntry = bitcoinPriceCache.get('bitcoin-price-usd');
         if (staleEntry) {
           console.warn('Using stale cache data due to fetch error:', error);
+
+          // Safely handle stale timestamp
+          let staleTimestamp = new Date();
+          try {
+            const timestamp =
+              staleEntry.timestamp instanceof Date
+                ? staleEntry.timestamp
+                : new Date(staleEntry.timestamp);
+
+            if (!isNaN(timestamp.getTime())) {
+              staleTimestamp = timestamp;
+            }
+          } catch {
+            // Fall back to current time if stale timestamp is invalid
+            staleTimestamp = new Date();
+          }
+
           return {
             price: staleEntry.data,
             cached: true,
-            timestamp: new Date(staleEntry.timestamp),
+            timestamp: staleTimestamp,
             source: 'cache',
           };
         }
