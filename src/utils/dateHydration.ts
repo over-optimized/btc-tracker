@@ -72,14 +72,15 @@ export function deepHydrateDates<T extends Record<string, unknown>>(obj: T): T {
     return obj;
   }
 
-  const hydrated = { ...obj };
+  // Create a mutable copy that allows property assignment
+  const hydrated: Record<string, unknown> = { ...obj };
 
   for (const [key, value] of Object.entries(hydrated)) {
     // Check if this looks like a date field
     if (isDateField(key)) {
       const converted = safeDateConversion(value);
       if (converted !== null) {
-        (hydrated as any)[key] = converted;
+        hydrated[key] = converted;
       }
     }
     // Recursively process nested objects
@@ -88,7 +89,7 @@ export function deepHydrateDates<T extends Record<string, unknown>>(obj: T): T {
     }
   }
 
-  return hydrated;
+  return hydrated as T;
 }
 
 /**
