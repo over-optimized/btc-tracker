@@ -7,7 +7,7 @@ import {
 } from '../../types/TransactionClassification';
 
 // Type for accessing private methods in tests
-interface TransactionClassifierWithPrivateMethods extends TransactionClassifier {
+interface TransactionClassifierWithPrivateMethods {
   validateClassificationDecision: (
     unclassified: UnclassifiedTransaction,
     decision: ClassificationDecision,
@@ -20,7 +20,7 @@ describe('TransactionClassifier - Enhanced Validation Logic', () => {
 
   beforeEach(() => {
     classifier = new TransactionClassifier();
-    classifierWithPrivate = classifier as TransactionClassifierWithPrivateMethods;
+    classifierWithPrivate = classifier as unknown as TransactionClassifierWithPrivateMethods;
   });
 
   describe('validateClassificationDecision', () => {

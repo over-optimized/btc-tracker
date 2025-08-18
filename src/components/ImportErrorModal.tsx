@@ -42,7 +42,7 @@ export default function ImportErrorModal({
 
   const criticalErrors = errors.filter((error) => !error.recoverable);
   const recoverableErrors = errors.filter((error) => error.recoverable);
-  const hasRecoveryOptions = recoveryContext?.recoveryOptions?.length > 0;
+  const hasRecoveryOptions = (recoveryContext?.recoveryOptions?.length ?? 0) > 0;
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

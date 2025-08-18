@@ -577,6 +577,10 @@ describe('TaxCalculator', () => {
       const emptyCalculator = new TaxCalculator({
         taxYear: 2024,
         method: TaxMethod.FIFO,
+        longTermThresholdDays: 365,
+        includePreviousYears: false,
+        showDetailedLots: true,
+        roundToCents: true,
       });
 
       const suggestions = emptyCalculator.getTaxOptimizationSuggestions(50000);

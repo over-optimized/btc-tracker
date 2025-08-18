@@ -7,7 +7,10 @@
  * - Multiple cache strategies
  * - Automatic cleanup of expired entries
  * - Cache statistics and debugging
+ * - Date field hydration for localStorage compatibility
  */
+
+import { hydrateCacheEntry, safeDateConversion, CacheEntryWithDates } from './dateHydration';
 
 import {
   ApiCacheInterface,
@@ -159,7 +162,6 @@ class ApiCache<T> implements ApiCacheInterface<T> {
    */
   cleanup(): number {
     let cleanedCount = 0;
-    const _now = Date.now();
 
     // Clean memory cache
     for (const [key, entry] of this.memoryCache.entries()) {
@@ -256,7 +258,24 @@ class ApiCache<T> implements ApiCacheInterface<T> {
         this.memoryCache.delete(key);
       } else {
         try {
-          const entry = JSON.parse(event.newValue) as CacheEntry<T>;
+          const parsed = JSON.parse(event.newValue) as CacheEntry<T>;
+
+          // Hydrate date fields for the storage listener
+          const timestampDate = safeDateConversion(parsed.timestamp) || new Date();
+          const expiresAtDate =
+            safeDateConversion(parsed.expiresAt) || new Date(Date.now() + this.config.defaultTtl);
+
+          const entry = {
+            ...parsed,
+            timestamp: timestampDate.getTime(),
+            expiresAt: expiresAtDate.getTime(),
+          };
+
+          // Hydrate any date fields in the cached data itself
+          if (entry.data && typeof entry.data === 'object') {
+            entry.data = hydrateCacheEntry(entry.data as unknown as CacheEntryWithDates) as T;
+          }
+
           if (!this.isExpired(entry)) {
             this.memoryCache.set(key, entry);
           }
@@ -296,8 +315,29 @@ class ApiCache<T> implements ApiCacheInterface<T> {
       const item = localStorage.getItem(this.storageKeyPrefix + key);
       if (!item) return null;
 
-      return JSON.parse(item) as CacheEntry<T>;
-    } catch {
+      const parsed = JSON.parse(item) as CacheEntry<T>;
+
+      // Hydrate date fields that were serialized as strings
+      const timestampDate = safeDateConversion(parsed.timestamp) || new Date();
+      const expiresAtDate =
+        safeDateConversion(parsed.expiresAt) || new Date(Date.now() + this.config.defaultTtl);
+
+      const hydratedEntry = {
+        ...parsed,
+        timestamp: timestampDate.getTime(),
+        expiresAt: expiresAtDate.getTime(),
+      };
+
+      // Hydrate any date fields in the cached data itself
+      if (hydratedEntry.data && typeof hydratedEntry.data === 'object') {
+        hydratedEntry.data = hydrateCacheEntry(
+          hydratedEntry.data as unknown as CacheEntryWithDates,
+        ) as T;
+      }
+
+      return hydratedEntry;
+    } catch (error) {
+      console.warn('Failed to parse cache entry from localStorage:', error);
       return null;
     }
   }
