@@ -96,15 +96,21 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
 
   if (analysis.totalOnExchanges === 0 && analysis.totalInSelfCustody === 0) {
     return (
-      <div 
+      <div
         className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-lg shadow border-2 p-4"
-        style={isDark ? { backgroundColor: '#1f2937', borderColor: '#374151', color: '#f9fafb' } : { backgroundColor: '#fefefe', borderColor: '#eeeeee', color: '#0f172a' }}
+        style={
+          isDark
+            ? { backgroundColor: '#1f2937', borderColor: '#374151', color: '#f9fafb' }
+            : { backgroundColor: '#fefefe', borderColor: '#eeeeee', color: '#0f172a' }
+        }
       >
         <div className="flex items-center gap-3 mb-3">
           <Wallet className="text-gray-500" size={20} />
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-400">Self-Custody Status</span>
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
+            Self-Custody Status
+          </span>
         </div>
-        <div className="text-sm text-gray-800 dark:text-gray-400">
+        <div className="text-sm text-gray-800 dark:text-gray-300">
           Import transactions to see self-custody recommendations
         </div>
       </div>
@@ -116,7 +122,9 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           {getSecurityIcon()}
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-400">Self-Custody Status</span>
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
+            Self-Custody Status
+          </span>
         </div>
         {onAddWithdrawal && (
           <button
@@ -136,7 +144,7 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
       </div>
 
       {/* Portfolio Breakdown */}
-      <div className="text-xs text-gray-800 dark:text-gray-400 mb-3 space-y-1">
+      <div className="text-xs text-gray-800 dark:text-gray-300 mb-3 space-y-1">
         <div className="flex justify-between">
           <span>On Exchanges:</span>
           <span className="font-medium">
@@ -160,7 +168,7 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
         <div className="mb-3">
           <div className="flex items-start gap-2">
             {getRecommendationIcon(analysis.recommendations[0].urgency)}
-            <div className="text-xs text-gray-700 leading-relaxed">
+            <div className="text-xs text-theme-primary leading-relaxed">
               {analysis.recommendations[0].message}
             </div>
           </div>
@@ -174,7 +182,9 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
             onClick={() => setShowDetails(!showDetails)}
             className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
           >
-            {showDetails ? 'Hide details' : `Show details (${analysis.recommendations.length} recommendations)`}
+            {showDetails
+              ? 'Hide details'
+              : `Show details (${analysis.recommendations.length} recommendations)`}
           </button>
 
           {showDetails && (
@@ -182,12 +192,14 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
               {/* All Recommendations */}
               {analysis.recommendations.length > 1 && (
                 <div>
-                  <div className="text-xs font-medium text-gray-600 mb-2">All Recommendations:</div>
+                  <div className="text-xs font-medium text-theme-secondary mb-2">
+                    All Recommendations:
+                  </div>
                   <div className="space-y-2">
                     {analysis.recommendations.slice(1).map((rec, index) => (
                       <div key={index} className="flex items-start gap-2">
                         {getRecommendationIcon(rec.urgency)}
-                        <div className="text-xs text-gray-600 leading-relaxed">
+                        <div className="text-xs text-theme-primary leading-relaxed">
                           {rec.message}
                         </div>
                       </div>
@@ -199,12 +211,20 @@ const SelfCustodyCard: React.FC<SelfCustodyCardProps> = ({
               {/* Exchange Breakdown */}
               {analysis.exchangeBalances.length > 0 && (
                 <div>
-                  <div className="text-xs font-medium text-gray-600 mb-2">Exchange Balances:</div>
+                  <div className="text-xs font-medium text-theme-secondary mb-2">
+                    Exchange Balances:
+                  </div>
                   <div className="space-y-1">
                     {analysis.exchangeBalances.map((balance, index) => (
                       <div key={index} className="flex justify-between text-xs">
-                        <span className="text-gray-600">{balance.exchange}:</span>
-                        <span className={balance.recommendSelfCustody ? 'text-orange-600 font-medium' : 'text-gray-700'}>
+                        <span className="text-theme-secondary">{balance.exchange}:</span>
+                        <span
+                          className={
+                            balance.recommendSelfCustody
+                              ? 'text-orange-600 font-medium'
+                              : 'text-theme-primary'
+                          }
+                        >
                           {formatBTC(balance.btcAmount)}
                           {balance.milestone && (
                             <span className="ml-1 text-xs bg-orange-100 text-orange-700 px-1 rounded">

@@ -251,6 +251,77 @@
         color: var(--color-text-primary);
         transition: all 0.2s ease-in-out;
       }
+
+      /* Fix form elements contrast in light mode - Ultra specific selectors for all browsers */
+      html:not(.dark) body .tax-year-select,
+      html:not(.dark) body .tax-input,
+      html:not(.dark) body select,
+      html:not(.dark) body input[type="number"],
+      html:not(.dark) body input[type="text"],
+      html:not(.dark) select,
+      html:not(.dark) input {
+        background-color: white !important;
+        background: white !important;
+        color: #1f2937 !important;
+        border-color: #d1d5db !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+      }
+      
+      html:not(.dark) body .tax-year-select option,
+      html:not(.dark) body select option,
+      html:not(.dark) select option,
+      html:not(.dark) option {
+        background-color: white !important;
+        background: white !important;
+        color: #1f2937 !important;
+      }
+
+      /* Override any Tailwind classes specifically */
+      html:not(.dark) .bg-gray-700,
+      html:not(.dark) .dark\:bg-gray-700 {
+        background-color: white !important;
+        background: white !important;
+      }
+      
+      html:not(.dark) .text-gray-100,
+      html:not(.dark) .dark\:text-gray-100 {
+        color: #1f2937 !important;
+      }
+
+      /* Firefox-specific overrides */
+      @-moz-document url-prefix() {
+        html:not(.dark) select {
+          background-color: white !important;
+          color: #1f2937 !important;
+          border-color: #d1d5db !important;
+        }
+        
+        html:not(.dark) option {
+          background-color: white !important;
+          color: #1f2937 !important;
+        }
+      }
+
+      /* Ensure dark mode form elements work properly */
+      html.dark body .tax-year-select,
+      html.dark body .tax-input,
+      html.dark body select,
+      html.dark body input[type="number"],
+      html.dark body input[type="text"] {
+        background-color: #374151 !important;
+        background: #374151 !important;
+        color: #f9fafb !important;
+        border-color: #4b5563 !important;
+      }
+      
+      html.dark body .tax-year-select option,
+      html.dark body select option {
+        background-color: #374151 !important;
+        background: #374151 !important;
+        color: #f9fafb !important;
+      }
     </style>
   </head>
   <body>

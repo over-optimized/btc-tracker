@@ -74,15 +74,11 @@ const InvestedVsPnLChart: React.FC<Props> = ({ transactions, currentPrice }) => 
   return (
     <div className="space-y-4">
       {/* Time Range Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Invested vs. Unrealized P&L (Monthly)
-        </h3>
+      <div className="flex justify-end">
         <TimeRangeSelector
           selectedRange={selectedRange}
           onRangeChange={setSelectedRange}
           transactions={transactions}
-          className="justify-start sm:justify-end"
         />
       </div>
 

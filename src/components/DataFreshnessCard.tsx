@@ -90,7 +90,7 @@ const DataFreshnessCard: React.FC<DataFreshnessCardProps> = ({ transactions, onI
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           {getIcon()}
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-400">Data Status</span>
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-100">Data Status</span>
         </div>
         {freshness.isStale && onImportClick && (
           <button
@@ -102,35 +102,31 @@ const DataFreshnessCard: React.FC<DataFreshnessCardProps> = ({ transactions, onI
         )}
       </div>
 
-      <div className={`text-sm font-medium mb-2 ${getTextColor()}`}>
-        {freshness.message}
-      </div>
+      <div className={`text-sm font-medium mb-2 ${getTextColor()}`}>{freshness.message}</div>
 
       {freshness.recommendation && (
-        <div className="text-xs text-gray-600 mb-3">
-          {freshness.recommendation}
-        </div>
+        <div className="text-xs text-theme-secondary mb-3">{freshness.recommendation}</div>
       )}
 
       {freshness.lastTransactionDate && (
-        <div className="text-xs text-gray-500 mb-2">
+        <div className="text-xs text-theme-secondary mb-2">
           Last transaction: {freshness.lastTransactionDate.toLocaleDateString()}
         </div>
       )}
 
       {gaps.hasSignificantGaps && (
         <div className="mt-3 pt-3 border-t border-gray-200">
-          <div className="text-xs font-medium text-gray-600 mb-1">
+          <div className="text-xs font-medium text-theme-secondary mb-1">
             Potential gaps detected:
           </div>
           <div className="space-y-1">
             {gaps.gaps.slice(0, 2).map((gap, index) => (
-              <div key={index} className="text-xs text-gray-500">
+              <div key={index} className="text-xs text-theme-tertiary">
                 • {gap.message}
               </div>
             ))}
             {gaps.gaps.length > 2 && (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-theme-tertiary">
                 • +{gaps.gaps.length - 2} more gap{gaps.gaps.length - 2 !== 1 ? 's' : ''}
               </div>
             )}

@@ -31,10 +31,10 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="card-base p-8">
         <div className="flex items-center justify-center space-x-4">
           <div className="animate-spin rounded-full h-8 w-8 border-4 border-purple-600 border-t-transparent"></div>
-          <span className="text-lg text-gray-600">Generating tax report...</span>
+          <span className="text-lg text-theme-secondary">Generating tax report...</span>
         </div>
       </div>
     );
@@ -42,10 +42,10 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
 
   if (!report) {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center text-gray-600">
-          <FileText size={48} className="mx-auto mb-4 text-gray-400" />
-          <h3 className="text-lg font-semibold mb-2">No Tax Report Generated</h3>
+      <div className="card-base p-8">
+        <div className="text-center text-theme-secondary">
+          <FileText size={48} className="mx-auto mb-4 text-theme-tertiary" />
+          <h3 className="text-lg font-semibold mb-2 text-theme-primary">No Tax Report Generated</h3>
           <p>
             Configure your tax settings and click &quot;Generate Tax Report&quot; to get started.
           </p>
@@ -75,13 +75,15 @@ const TaxReport: React.FC<TaxReportProps> = ({ report, loading }) => {
   return (
     <div className="space-y-6">
       {/* Report Header */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="card-base p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <FileText className="text-purple-500" size={24} />
             <div>
-              <h2 className="text-xl font-bold text-gray-800">Tax Report - {report.taxYear}</h2>
-              <p className="text-sm text-gray-600">
+              <h2 className="text-xl font-bold text-theme-primary">
+                Tax Report - {report.taxYear}
+              </h2>
+              <p className="text-sm text-theme-secondary">
                 Method: {report.method} | Generated: {formatDate(report.generatedAt)}
               </p>
             </div>

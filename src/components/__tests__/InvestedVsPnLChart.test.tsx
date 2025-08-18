@@ -42,7 +42,6 @@ describe('InvestedVsPnLChart', () => {
   it('renders time range selector', () => {
     render(<InvestedVsPnLChart transactions={mockTransactions} currentPrice={50000} />);
 
-    expect(screen.getByText('Invested vs. Unrealized P&L (Monthly)')).toBeInTheDocument();
     expect(screen.getByText('Last 6 Months')).toBeInTheDocument();
     expect(screen.getByText('All Time')).toBeInTheDocument();
   });
@@ -55,7 +54,7 @@ describe('InvestedVsPnLChart', () => {
     fireEvent.click(allTimeButton);
 
     // Should have chart container
-    expect(screen.getByText('Invested vs. Unrealized P&L (Monthly)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'All Time' })).toBeInTheDocument();
   });
 
   it('shows year options when data spans multiple years', () => {
@@ -69,7 +68,6 @@ describe('InvestedVsPnLChart', () => {
   it('handles empty transactions gracefully', () => {
     render(<InvestedVsPnLChart transactions={[]} currentPrice={50000} />);
 
-    expect(screen.getByText('Invested vs. Unrealized P&L (Monthly)')).toBeInTheDocument();
     expect(screen.getByText('All Time')).toBeInTheDocument();
   });
 });

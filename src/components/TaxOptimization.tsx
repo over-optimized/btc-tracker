@@ -134,12 +134,12 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
     <MediumRiskFeature
       feature="taxOptimization"
       fallback={
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="text-center text-gray-600 py-8">
-            <Calculator size={48} className="mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-semibold mb-2">Tax Optimization</h3>
+        <div className="card-base rounded-lg shadow-lg p-6">
+          <div className="text-center text-theme-secondary py-8">
+            <Calculator size={48} className="mx-auto mb-4 text-theme-tertiary" />
+            <h3 className="text-lg font-semibold mb-2 text-theme-primary">Tax Optimization</h3>
             <p>Tax optimization tools are available in development mode.</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-theme-tertiary mt-2">
               These features require legal review before production deployment.
             </p>
           </div>
@@ -148,16 +148,18 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
     >
       <div className="space-y-6">
         {/* Tax Optimization Suggestions */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="card-base rounded-lg shadow-lg p-6">
           <div className="flex items-center gap-3 mb-6">
             <Lightbulb className="text-yellow-500" size={24} />
-            <h2 className="text-xl font-bold text-gray-800">Tax Optimization Suggestions</h2>
+            <h2 className="text-xl font-bold text-theme-primary">Tax Optimization Suggestions</h2>
           </div>
 
           {suggestions.length === 0 ? (
-            <div className="text-center text-gray-600 py-8">
-              <Lightbulb size={48} className="mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold mb-2">No Suggestions Available</h3>
+            <div className="text-center text-theme-secondary py-8">
+              <Lightbulb size={48} className="mx-auto mb-4 text-theme-tertiary" />
+              <h3 className="text-lg font-semibold mb-2 text-theme-primary">
+                No Suggestions Available
+              </h3>
               <p>
                 Upload transactions and set a current Bitcoin price to get optimization suggestions.
               </p>
@@ -167,11 +169,11 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                  className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600"
                 >
                   {getOptimizationIcon(suggestion)}
                   <div className="flex-1">
-                    <p className="text-sm text-gray-700">{suggestion}</p>
+                    <p className="text-sm text-theme-secondary">{suggestion}</p>
                   </div>
                 </div>
               ))}
@@ -180,17 +182,17 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
         </div>
 
         {/* Hypothetical Sale Calculator */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="card-base rounded-lg shadow-lg p-6">
           <div className="flex items-center gap-3 mb-6">
             <Calculator className="text-purple-500" size={24} />
-            <h2 className="text-xl font-bold text-gray-800">Hypothetical Sale Calculator</h2>
+            <h2 className="text-xl font-bold text-theme-primary">Hypothetical Sale Calculator</h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Input Form */}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-theme-secondary mb-2">
                   Bitcoin Amount to Sell
                 </label>
                 <div className="relative">
@@ -201,16 +203,18 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
                     max={remainingBtc}
                     value={hypotheticalAmount}
                     onChange={(e) => setHypotheticalAmount(e.target.value)}
-                    className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 pr-12 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="0.01"
                   />
-                  <span className="absolute right-3 top-2 text-gray-500 text-sm">BTC</span>
+                  <span className="absolute right-3 top-2 text-theme-tertiary text-sm">BTC</span>
                 </div>
-                <p className="text-xs text-gray-600 mt-1">Available: {formatBTC(remainingBtc)}</p>
+                <p className="text-xs text-theme-tertiary mt-1">
+                  Available: {formatBTC(remainingBtc)}
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-theme-secondary mb-2">
                   Sale Price per BTC
                 </label>
                 <div className="relative">
@@ -220,13 +224,13 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
                     min="0"
                     value={hypotheticalPrice}
                     onChange={(e) => setHypotheticalPrice(e.target.value)}
-                    className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 pr-12 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="50000"
                   />
-                  <span className="absolute right-3 top-2 text-gray-500 text-sm">USD</span>
+                  <span className="absolute right-3 top-2 text-theme-tertiary text-sm">USD</span>
                 </div>
                 {currentPrice && (
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-theme-tertiary mt-1">
                     Current price: {formatCurrency(currentPrice)}
                   </p>
                 )}
@@ -271,8 +275,8 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
             {/* Results Display */}
             <div>
               {hypotheticalResult && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-semibold text-gray-800 mb-3">
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <h3 className="font-semibold text-theme-primary mb-3">
                     {configuration.method} Method Result
                   </h3>
 
@@ -281,19 +285,19 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
                   ) : (
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Proceeds:</span>
+                        <span className="text-theme-secondary">Proceeds:</span>
                         <span className="font-medium">
                           {formatCurrency(hypotheticalResult.proceeds)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Cost Basis:</span>
+                        <span className="text-theme-secondary">Cost Basis:</span>
                         <span className="font-medium">
                           {formatCurrency(hypotheticalResult.costBasis)}
                         </span>
                       </div>
-                      <div className="flex justify-between border-t pt-2">
-                        <span className="text-gray-600">Capital Gain/Loss:</span>
+                      <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-2">
+                        <span className="text-theme-secondary">Capital Gain/Loss:</span>
                         <span
                           className={`font-bold ${
                             hypotheticalResult.capitalGain >= 0 ? 'text-green-600' : 'text-red-600'
@@ -303,7 +307,7 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Holding Period:</span>
+                        <span className="text-theme-secondary">Holding Period:</span>
                         <span
                           className={`px-2 py-1 text-xs rounded-full ${
                             hypotheticalResult.holdingPeriod === HoldingPeriod.LONG_TERM
@@ -318,7 +322,7 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
                       </div>
                       {hypotheticalResult.effectiveTaxRate && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Est. Tax Rate:</span>
+                          <span className="text-theme-secondary">Est. Tax Rate:</span>
                           <span className="font-medium">
                             {(hypotheticalResult.effectiveTaxRate * 100).toFixed(0)}%
                           </span>
@@ -334,10 +338,10 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
 
         {/* Method Comparison Results */}
         {methodComparison && (
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="card-base rounded-lg shadow-lg p-6">
             <div className="flex items-center gap-3 mb-6">
               <BarChart3 className="text-blue-500" size={24} />
-              <h2 className="text-xl font-bold text-gray-800">Tax Method Comparison</h2>
+              <h2 className="text-xl font-bold text-theme-primary">Tax Method Comparison</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -349,7 +353,7 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
                     key={index}
                     className={`
                     p-4 rounded-lg border-2 relative
-                    ${isBest ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-gray-50'}
+                    ${isBest ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800'}
                   `}
                   >
                     {isBest && (
@@ -358,14 +362,16 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
                       </div>
                     )}
 
-                    <h3 className="font-semibold text-gray-800 mb-3 mt-2">{comparison.method}</h3>
+                    <h3 className="font-semibold text-theme-primary mb-3 mt-2">
+                      {comparison.method}
+                    </h3>
 
                     {comparison.error ? (
                       <div className="text-red-600 text-sm">{comparison.error}</div>
                     ) : (
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Capital Gain:</span>
+                          <span className="text-theme-secondary">Capital Gain:</span>
                           <span
                             className={`font-bold ${
                               comparison.capitalGain >= 0 ? 'text-green-600' : 'text-red-600'
@@ -375,13 +381,13 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Cost Basis:</span>
+                          <span className="text-theme-secondary">Cost Basis:</span>
                           <span className="font-medium">
                             {formatCurrency(comparison.costBasis)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Holding Period:</span>
+                          <span className="text-theme-secondary">Holding Period:</span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full ${
                               comparison.holdingPeriod === HoldingPeriod.LONG_TERM
@@ -400,8 +406,8 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
             </div>
 
             {getBestMethod() && (
-              <div className="mt-4 p-3 bg-green-100 border border-green-200 rounded-lg">
-                <p className="text-green-800 text-sm">
+              <div className="mt-4 p-3 bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <p className="text-green-800 dark:text-green-200 text-sm">
                   <strong>Recommendation:</strong> The {getBestMethod()!.method} method provides the
                   best tax outcome for this hypothetical sale with a capital gain of{' '}
                   {formatCurrency(getBestMethod()!.capitalGain)}.

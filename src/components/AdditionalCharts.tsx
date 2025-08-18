@@ -46,8 +46,10 @@ const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ transactions, curre
   return (
     <div className="space-y-12">
       {/* Cumulative Bitcoin Acquired */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Cumulative Bitcoin Acquired</h2>
+      <div className="card-base p-6">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+          Cumulative Bitcoin Acquired
+        </h2>
         <ResponsiveContainer width="100%" height={250}>
           <AreaChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -59,8 +61,10 @@ const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ transactions, curre
         </ResponsiveContainer>
       </div>
       {/* Cost Basis vs. Current Price */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Cost Basis vs. Current Price</h2>
+      <div className="card-base p-6">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+          Cost Basis vs. Current Price
+        </h2>
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -94,8 +98,10 @@ const AdditionalCharts: React.FC<AdditionalChartsProps> = ({ transactions, curre
         </ResponsiveContainer>
       </div>
       {/* Unrealized P&L Over Time */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Unrealized P&L Over Time</h2>
+      <div className="card-base p-6">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+          Unrealized P&L Over Time
+        </h2>
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" />

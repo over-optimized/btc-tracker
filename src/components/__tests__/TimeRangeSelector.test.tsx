@@ -41,7 +41,7 @@ describe('TimeRangeSelector', () => {
     const unselectedButton = screen.getByText('Last 12 Months');
 
     expect(selectedButton).toHaveClass('bg-blue-600', 'text-white');
-    expect(unselectedButton).toHaveClass('bg-gray-100', 'text-gray-700');
+    expect(unselectedButton).toHaveClass('bg-gray-200', 'text-gray-900');
   });
 
   it('should call onRangeChange when a button is clicked', () => {
