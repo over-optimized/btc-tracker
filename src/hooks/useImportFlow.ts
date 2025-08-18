@@ -30,7 +30,9 @@ interface ImportState {
   withdrawalModalOpen: boolean;
   classificationModalOpen: boolean;
   classificationPrompts: ClassificationPrompt[];
-  pendingClassificationCallback: ((decisions: ClassificationDecision[]) => ClassificationResult) | null;
+  pendingClassificationCallback:
+    | ((decisions: ClassificationDecision[]) => ClassificationResult)
+    | null;
 }
 
 interface ImportFlowResult {
@@ -45,13 +47,18 @@ interface ImportFlowResult {
     setErrorModalOpen: (open: boolean) => void;
     setWithdrawalModalOpen: (open: boolean) => void;
     setClassificationModalOpen: (open: boolean) => void;
-    setPendingClassificationCallback: (callback: ((decisions: ClassificationDecision[]) => ClassificationResult) | null) => void;
+    setPendingClassificationCallback: (
+      callback: ((decisions: ClassificationDecision[]) => ClassificationResult) | null,
+    ) => void;
     setClassificationPrompts: (prompts: ClassificationPrompt[]) => void;
   };
 }
 
 interface UseImportFlowProps {
-  onTransactionsMerged: (newTransactions: Transaction[]) => { merged: Transaction[]; duplicateCount: number };
+  onTransactionsMerged: (newTransactions: Transaction[]) => {
+    merged: Transaction[];
+    duplicateCount: number;
+  };
 }
 
 export const useImportFlow = ({ onTransactionsMerged }: UseImportFlowProps): ImportFlowResult => {
@@ -75,7 +82,7 @@ export const useImportFlow = ({ onTransactionsMerged }: UseImportFlowProps): Imp
   });
 
   const updateState = (updates: Partial<ImportState>) => {
-    setState(prev => ({ ...prev, ...updates }));
+    setState((prev) => ({ ...prev, ...updates }));
   };
 
   const processFile = async (file: File, retryOptions?: any) => {
@@ -95,14 +102,27 @@ export const useImportFlow = ({ onTransactionsMerged }: UseImportFlowProps): Imp
 
       updateState({ loading: false, uploadProgress: 100 });
 
-      if (result.needsClassification && result.classificationPrompts) {
-        // Show classification modal for ambiguous transactions
-        updateState({
-          classificationPrompts: result.classificationPrompts,
-          pendingClassificationCallback: result.onClassificationComplete!,
-          classificationModalOpen: true,
-        });
-        return;
+      if (
+        result.needsClassification &&
+        result.classificationPrompts &&
+        result.classificationPrompts.length > 0
+      ) {
+        // Validate prompts have valid transactions before opening modal
+        const validPrompts = result.classificationPrompts.filter(
+          (prompt) => prompt.transactions && prompt.transactions.length > 0,
+        );
+
+        if (validPrompts.length > 0) {
+          // Show classification modal for ambiguous transactions
+          updateState({
+            classificationPrompts: validPrompts,
+            pendingClassificationCallback: result.onClassificationComplete!,
+            classificationModalOpen: true,
+          });
+          return;
+        } else {
+          console.warn('Classification prompts had no valid transactions, skipping modal');
+        }
       }
 
       if (result.success && result.importedCount > 0) {
@@ -179,13 +199,15 @@ export const useImportFlow = ({ onTransactionsMerged }: UseImportFlowProps): Imp
 
     if (!state.pendingClassificationCallback) {
       updateState({
-        importErrors: [{
-          type: 'CLASSIFICATION_ERROR' as any,
-          message: 'No classification callback available',
-          details: 'Classification callback was not set',
-          suggestions: ['Try importing the file again'],
-          recoverable: false,
-        }],
+        importErrors: [
+          {
+            type: 'CLASSIFICATION_ERROR' as any,
+            message: 'No classification callback available',
+            details: 'Classification callback was not set',
+            suggestions: ['Try importing the file again'],
+            recoverable: false,
+          },
+        ],
         errorModalOpen: true,
       });
       return;
@@ -224,26 +246,33 @@ export const useImportFlow = ({ onTransactionsMerged }: UseImportFlowProps): Imp
       } else {
         // Handle classification errors
         updateState({
-          importErrors: errors.length > 0 ? errors : [{
-            type: 'CLASSIFICATION_ERROR' as any,
-            message: 'No transactions imported after classification',
-            details: 'Classification completed but no valid transactions were produced',
-            suggestions: ['Try importing the file again'],
-            recoverable: false,
-          }],
+          importErrors:
+            errors.length > 0
+              ? errors
+              : [
+                  {
+                    type: 'CLASSIFICATION_ERROR' as any,
+                    message: 'No transactions imported after classification',
+                    details: 'Classification completed but no valid transactions were produced',
+                    suggestions: ['Try importing the file again'],
+                    recoverable: false,
+                  },
+                ],
           importWarnings: warnings,
           errorModalOpen: true,
         });
       }
     } catch (error) {
       updateState({
-        importErrors: [{
-          type: 'CLASSIFICATION_ERROR' as any,
-          message: 'Error processing classified transactions',
-          details: String(error),
-          suggestions: ['Try importing the file again'],
-          recoverable: false,
-        }],
+        importErrors: [
+          {
+            type: 'CLASSIFICATION_ERROR' as any,
+            message: 'Error processing classified transactions',
+            details: String(error),
+            suggestions: ['Try importing the file again'],
+            recoverable: false,
+          },
+        ],
         errorModalOpen: true,
       });
     } finally {
@@ -266,7 +295,8 @@ export const useImportFlow = ({ onTransactionsMerged }: UseImportFlowProps): Imp
       setErrorModalOpen: (open) => updateState({ errorModalOpen: open }),
       setWithdrawalModalOpen: (open) => updateState({ withdrawalModalOpen: open }),
       setClassificationModalOpen: (open) => updateState({ classificationModalOpen: open }),
-      setPendingClassificationCallback: (callback) => updateState({ pendingClassificationCallback: callback }),
+      setPendingClassificationCallback: (callback) =>
+        updateState({ pendingClassificationCallback: callback }),
       setClassificationPrompts: (prompts) => updateState({ classificationPrompts: prompts }),
     },
   };

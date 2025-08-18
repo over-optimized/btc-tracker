@@ -9,6 +9,7 @@ export interface UnclassifiedTransaction {
   price?: number;
   destinationAddress?: string; // If available in CSV
   txHash?: string; // If available in CSV
+  originalId?: string; // Exchange's original reference (e.g., Strike Reference, Coinbase Transaction ID)
   confidence: number; // 0-1, how confident we are about the type
   suggestedClassification: TransactionClassification;
 }
@@ -21,16 +22,16 @@ export enum TransactionClassification {
   REIMBURSEMENT_RECEIVED = 'reimbursement_received', // Bitcoin received as expense reimbursement (taxable)
   MINING_INCOME = 'mining_income', // Mining rewards (taxable income at FMV)
   STAKING_INCOME = 'staking_income', // Staking/yield rewards (taxable income at FMV)
-  
+
   // DISPOSALS (Taxable Capital Gain/Loss Events)
   SALE = 'sale', // Sale for USD (taxable disposal)
   GIFT_SENT = 'gift_sent', // Bitcoin given as gift (taxable disposal at FMV)
   PAYMENT_SENT = 'payment_sent', // Bitcoin spent for goods/services (taxable disposal)
-  
+
   // NON-TAXABLE MOVEMENTS
   SELF_CUSTODY_WITHDRAWAL = 'self_custody_withdrawal', // Move to own wallet (non-taxable)
   EXCHANGE_TRANSFER = 'exchange_transfer', // Transfer between exchanges (non-taxable)
-  
+
   // SYSTEM OPTIONS
   SKIP = 'skip', // Don't import this transaction
 }
@@ -38,22 +39,22 @@ export enum TransactionClassification {
 export interface ClassificationDecision {
   transactionId: string;
   classification: TransactionClassification;
-  
+
   // Tax calculation fields
-  usdValue?: number;            // Fair market value (for income events)
-  costBasis?: number;           // Known cost basis (for disposals)
-  
+  usdValue?: number; // Fair market value (for income events)
+  costBasis?: number; // Known cost basis (for disposals)
+
   // Context fields
-  destinationWallet?: string;   // For self-custody
-  sourceExchange?: string;      // For transfers
+  destinationWallet?: string; // For self-custody
+  sourceExchange?: string; // For transfers
   destinationExchange?: string; // For exchange transfers
-  counterparty?: string;        // Who you transacted with
-  goodsServices?: string;       // What was purchased/provided
-  
+  counterparty?: string; // Who you transacted with
+  goodsServices?: string; // What was purchased/provided
+
   // Legacy fields (for backwards compatibility)
-  salePrice?: number;           // For sales (now mapped to usdValue)
-  transferExchange?: string;    // For exchange transfers (now mapped to destinationExchange)
-  
+  salePrice?: number; // For sales (now mapped to usdValue)
+  transferExchange?: string; // For exchange transfers (now mapped to destinationExchange)
+
   // User notes
   notes?: string;
 }
@@ -82,21 +83,51 @@ export interface ClassificationPrompt {
 // Common transaction type patterns for detection
 export const TRANSACTION_TYPE_PATTERNS = {
   purchases: [
-    'purchase', 'buy', 'bought', 'acquisition', 'deposit', 'trade', 'order',
-    'investment', 'dca', 'recurring'
+    'purchase',
+    'buy',
+    'bought',
+    'acquisition',
+    'deposit',
+    'trade',
+    'order',
+    'investment',
+    'dca',
+    'recurring',
   ],
   withdrawals: [
-    'withdrawal', 'withdraw', 'send', 'sent', 'transfer', 'moved', 'outgoing',
-    'out', 'to wallet', 'to address', 'self custody'
+    'withdrawal',
+    'withdraw',
+    'send',
+    'sent',
+    'transfer',
+    'moved',
+    'outgoing',
+    'out',
+    'to wallet',
+    'to address',
+    'self custody',
   ],
+  deposits: ['deposit', 'receive', 'received', 'incoming', 'in', 'from wallet', 'from address'],
   sales: [
-    'sale', 'sell', 'sold', 'disposal', 'liquidation', 'convert', 'exchange',
-    'cash out', 'realize'
+    'sale',
+    'sell',
+    'sold',
+    'disposal',
+    'liquidation',
+    'convert',
+    'exchange',
+    'cash out',
+    'realize',
   ],
   transfers: [
-    'transfer', 'moved', 'migration', 'consolidation', 'internal transfer',
-    'exchange transfer', 'platform transfer'
-  ]
+    'transfer',
+    'moved',
+    'migration',
+    'consolidation',
+    'internal transfer',
+    'exchange transfer',
+    'platform transfer',
+  ],
 };
 
 // Amount patterns that suggest certain transaction types
@@ -109,9 +140,9 @@ export const AMOUNT_PATTERN_HEURISTICS = {
 
 // Tax event types for educational purposes
 export enum TaxEventType {
-  INCOME = 'income',           // Taxable income at FMV
-  DISPOSAL = 'disposal',       // Capital gains/loss calculation
-  NON_TAXABLE = 'non_taxable'  // No tax implications
+  INCOME = 'income', // Taxable income at FMV
+  DISPOSAL = 'disposal', // Capital gains/loss calculation
+  NON_TAXABLE = 'non_taxable', // No tax implications
 }
 
 // Utility function to determine tax event type from classification
@@ -124,17 +155,17 @@ export const getTaxEventType = (classification: TransactionClassification): TaxE
     case TransactionClassification.MINING_INCOME:
     case TransactionClassification.STAKING_INCOME:
       return TaxEventType.INCOME;
-    
+
     case TransactionClassification.SALE:
     case TransactionClassification.GIFT_SENT:
     case TransactionClassification.PAYMENT_SENT:
       return TaxEventType.DISPOSAL;
-    
+
     case TransactionClassification.SELF_CUSTODY_WITHDRAWAL:
     case TransactionClassification.EXCHANGE_TRANSFER:
     case TransactionClassification.SKIP:
       return TaxEventType.NON_TAXABLE;
-    
+
     default:
       return TaxEventType.NON_TAXABLE;
   }

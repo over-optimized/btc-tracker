@@ -207,7 +207,7 @@ export class CostTracker {
 
     const costByMonth = sessions.reduce(
       (acc, session) => {
-        const monthKey = session.startTime.substring(0, 7); // YYYY-MM format
+        const monthKey = session.startTime.toISOString().substring(0, 7); // YYYY-MM format
         acc[monthKey] = (acc[monthKey] || 0) + session.totalCost.totalCost;
         return acc;
       },

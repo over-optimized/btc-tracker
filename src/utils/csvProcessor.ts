@@ -1,6 +1,12 @@
 import Papa from 'papaparse';
 import { Transaction } from '../types/Transaction';
-import { ImportResult, ImportError, ImportErrorType, ErrorRecoveryContext, RecoveryOption } from '../types/ImportError';
+import {
+  ImportResult,
+  ImportError,
+  ImportErrorType,
+  ErrorRecoveryContext,
+  RecoveryOption,
+} from '../types/ImportError';
 import { validateFile, validateCSVStructure, validateTransactionRow } from './csvValidator';
 import { exchangeParsers, detectExchangeFormat } from './exchangeParsers';
 
@@ -39,7 +45,9 @@ export class CSVProcessor {
     this.progressCallback = options.progressCallback;
   }
 
-  async processCSVFile(file: File): Promise<ImportResult & { recoveryContext?: ErrorRecoveryContext }> {
+  async processCSVFile(
+    file: File,
+  ): Promise<ImportResult & { recoveryContext?: ErrorRecoveryContext }> {
     const result: ImportResult = {
       success: false,
       importedCount: 0,
@@ -60,11 +68,13 @@ export class CSVProcessor {
         return this.createFailureResult(result, file);
       }
 
-      result.warnings.push(...fileValidation.warnings.map(w => ({
-        ...w,
-        type: ImportErrorType.INVALID_DATA_VALUES,
-        recoverable: w.recoverable,
-      })));
+      result.warnings.push(
+        ...fileValidation.warnings.map((w) => ({
+          ...w,
+          type: ImportErrorType.INVALID_DATA_VALUES,
+          recoverable: w.recoverable,
+        })),
+      );
 
       this.updateProgress(10);
 
@@ -80,14 +90,16 @@ export class CSVProcessor {
 
       // Step 3: Validate CSV structure
       const { data, headers } = parseResult;
-      const structureValidation = validateCSVStructure(headers, data);
-      
+      const structureValidation = validateCSVStructure(headers || [], data || []);
+
       result.errors.push(...structureValidation.errors);
-      result.warnings.push(...structureValidation.warnings.map(w => ({
-        ...w,
-        type: ImportErrorType.INVALID_DATA_VALUES,
-        recoverable: w.recoverable,
-      })));
+      result.warnings.push(
+        ...structureValidation.warnings.map((w) => ({
+          ...w,
+          type: ImportErrorType.INVALID_DATA_VALUES,
+          recoverable: w.recoverable,
+        })),
+      );
 
       if (!structureValidation.isValid && !this.options.allowPartialImport) {
         result.summary = 'CSV structure validation failed';
@@ -98,9 +110,9 @@ export class CSVProcessor {
 
       // Step 4: Process transactions
       const transactionResult = await this.processTransactions(
-        data,
+        data || [],
         structureValidation.detectedFormat,
-        headers
+        headers || [],
       );
 
       result.importedCount = transactionResult.transactions.length;
@@ -110,8 +122,8 @@ export class CSVProcessor {
       this.updateProgress(90);
 
       // Step 5: Determine success
-      const hasBlockingErrors = result.errors.some(error => !error.recoverable);
-      
+      const hasBlockingErrors = result.errors.some((error) => !error.recoverable);
+
       if (hasBlockingErrors && !this.options.allowPartialImport) {
         result.success = false;
         result.summary = `Import failed: ${result.errors.length} errors found`;
@@ -127,14 +139,10 @@ export class CSVProcessor {
       // Success!
       result.success = true;
       result.summary = this.createSuccessSummary(result);
-      
+
       this.updateProgress(100);
 
-      return {
-        ...result,
-        transactions: transactionResult.transactions,
-      };
-
+      return result;
     } catch (error) {
       result.errors.push({
         type: ImportErrorType.FILE_READ_ERROR,
@@ -143,7 +151,7 @@ export class CSVProcessor {
         suggestions: ['Try again with a different file', 'Contact support if error persists'],
         recoverable: false,
       });
-      
+
       result.summary = 'Processing failed unexpectedly';
       return this.createFailureResult(result, file);
     }
@@ -165,7 +173,7 @@ export class CSVProcessor {
             const error: ImportError = {
               type: ImportErrorType.INVALID_CSV_FORMAT,
               message: 'CSV parsing failed',
-              details: results.errors.map(e => e.message).join('; '),
+              details: results.errors.map((e) => e.message).join('; '),
               suggestions: [
                 'Check file encoding (should be UTF-8)',
                 'Ensure proper CSV formatting',
@@ -201,7 +209,7 @@ export class CSVProcessor {
   private async processTransactions(
     data: any[],
     detectedFormat: string,
-    headers: string[]
+    headers: string[],
   ): Promise<{
     transactions: Transaction[];
     ignoredCount: number;
@@ -215,7 +223,7 @@ export class CSVProcessor {
     for (let i = 0; i < data.length; i++) {
       try {
         const row = data[i];
-        
+
         // Progress update for large files
         if (i % 100 === 0) {
           const progress = 50 + (i / data.length) * 40; // 50-90% range
@@ -226,8 +234,8 @@ export class CSVProcessor {
         const rowErrors = validateTransactionRow(row, detectedFormat, i);
         if (rowErrors.length > 0) {
           errors.push(...rowErrors);
-          
-          if (!this.options.skipInvalidRows || rowErrors.some(e => !e.recoverable)) {
+
+          if (!this.options.skipInvalidRows || rowErrors.some((e) => !e.recoverable)) {
             ignoredCount++;
             continue;
           }
@@ -235,12 +243,12 @@ export class CSVProcessor {
 
         // Parse transaction
         const transaction = this.parseTransaction(row, detectedFormat, i);
-        
+
         if (transaction) {
           transactions.push(transaction);
         } else {
           ignoredCount++;
-          
+
           if (!this.options.skipInvalidRows) {
             errors.push({
               type: ImportErrorType.INVALID_DATA_VALUES,
@@ -265,7 +273,6 @@ export class CSVProcessor {
           });
           break;
         }
-
       } catch (error) {
         errors.push({
           type: ImportErrorType.INVALID_DATA_VALUES,
@@ -275,7 +282,7 @@ export class CSVProcessor {
           suggestions: ['Check data format in this row'],
           recoverable: true,
         });
-        
+
         if (!this.options.skipInvalidRows) {
           ignoredCount++;
         }
@@ -296,7 +303,10 @@ export class CSVProcessor {
 
       // Fall back to auto-detection
       const detectedFormat = detectExchangeFormat(row);
-      if (detectedFormat !== 'unknown' && exchangeParsers[detectedFormat as keyof typeof exchangeParsers]) {
+      if (
+        detectedFormat !== 'unknown' &&
+        exchangeParsers[detectedFormat as keyof typeof exchangeParsers]
+      ) {
         const parser = exchangeParsers[detectedFormat as keyof typeof exchangeParsers];
         return parser(row, index);
       }
@@ -310,19 +320,19 @@ export class CSVProcessor {
 
   private createSuccessSummary(result: ImportResult): string {
     const parts = [];
-    
+
     parts.push(`${result.importedCount} transactions imported`);
-    
+
     if (result.ignoredCount > 0) {
       parts.push(`${result.ignoredCount} rows skipped`);
     }
-    
+
     if (result.warnings.length > 0) {
       parts.push(`${result.warnings.length} warnings`);
     }
 
     if (result.errors.length > 0) {
-      const recoverableErrors = result.errors.filter(e => e.recoverable).length;
+      const recoverableErrors = result.errors.filter((e) => e.recoverable).length;
       if (recoverableErrors > 0) {
         parts.push(`${recoverableErrors} minor issues`);
       }
@@ -332,15 +342,15 @@ export class CSVProcessor {
   }
 
   private createFailureResult(
-    result: ImportResult, 
-    file: File, 
-    data?: any[], 
-    format?: string
+    result: ImportResult,
+    file: File,
+    data?: any[],
+    format?: string,
   ): ImportResult & { recoveryContext: ErrorRecoveryContext } {
     const recoveryOptions: RecoveryOption[] = [];
 
     // Add retry options based on error types
-    if (result.errors.some(e => e.type === ImportErrorType.MISSING_REQUIRED_COLUMNS)) {
+    if (result.errors.some((e) => e.type === ImportErrorType.MISSING_REQUIRED_COLUMNS)) {
       recoveryOptions.push({
         id: 'try-generic',
         label: 'Try Generic Format',
@@ -350,7 +360,9 @@ export class CSVProcessor {
       });
     }
 
-    if (result.errors.some(e => e.type === ImportErrorType.INVALID_DATA_VALUES && e.recoverable)) {
+    if (
+      result.errors.some((e) => e.type === ImportErrorType.INVALID_DATA_VALUES && e.recoverable)
+    ) {
       recoveryOptions.push({
         id: 'skip-invalid',
         label: 'Skip Invalid Rows',
@@ -366,9 +378,9 @@ export class CSVProcessor {
         label: 'Export Problem Rows',
         description: 'Download CSV of rows with issues',
         action: 'export',
-        data: { 
+        data: {
           rows: data,
-          errors: result.errors.filter(e => e.rowNumber),
+          errors: result.errors.filter((e) => e.rowNumber),
         },
       });
     }
@@ -384,7 +396,7 @@ export class CSVProcessor {
     const recoveryContext: ErrorRecoveryContext = {
       originalFile: file,
       processedData: data,
-      failedRows: result.errors.filter(e => e.rowNumber).map(e => e.rowNumber! - 1),
+      failedRows: result.errors.filter((e) => e.rowNumber).map((e) => e.rowNumber! - 1),
       detectedFormat: format,
       recoveryOptions,
     };
@@ -410,7 +422,10 @@ export class CSVProcessor {
  * - Intelligent transaction classification with user prompts
  * - Enhanced error handling and recovery options
  */
-export async function processCSVFile(file: File, options?: ProcessOptions): Promise<ImportResult & { recoveryContext?: ErrorRecoveryContext }> {
+export async function processCSVFile(
+  file: File,
+  options?: ProcessOptions,
+): Promise<ImportResult & { recoveryContext?: ErrorRecoveryContext }> {
   const processor = new CSVProcessor(options);
   return processor.processCSVFile(file);
 }
