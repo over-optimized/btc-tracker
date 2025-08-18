@@ -59,7 +59,7 @@ export const useBitcoinPrice = (options: UseBitcoinPriceOptions = {}): BitcoinPr
 
   // Use ref to track if component is mounted
   const mounted = useRef(true);
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const updateCacheStats = useCallback(() => {
     setCacheStats(getBitcoinPriceCacheStats());

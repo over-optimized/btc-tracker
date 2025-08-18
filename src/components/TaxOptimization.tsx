@@ -57,9 +57,7 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
     const salePrice = parseFloat(hypotheticalPrice);
 
     if (isNaN(btcAmount) || isNaN(salePrice) || btcAmount <= 0 || salePrice <= 0) {
-      setHypotheticalResult({
-        error: 'Please enter valid positive numbers for both BTC amount and sale price',
-      });
+      setHypotheticalResult(null);
       return;
     }
 
@@ -67,9 +65,7 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
       const result = calculator.calculateHypotheticalDisposal(btcAmount, salePrice);
       setHypotheticalResult(result);
     } catch (error) {
-      setHypotheticalResult({
-        error: error instanceof Error ? error.message : 'Calculation failed',
-      });
+      setHypotheticalResult(null);
     }
   };
 
@@ -91,12 +87,16 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
         try {
           const result = methodCalculator.calculateHypotheticalDisposal(btcAmount, salePrice);
           comparisons.push({
-            method,
+            method: method.toString(),
             ...result,
           });
         } catch (error) {
           comparisons.push({
-            method,
+            method: method.toString(),
+            capitalGain: 0,
+            costBasis: 0,
+            proceeds: 0,
+            holdingPeriod: 'short' as HoldingPeriod,
             error: error instanceof Error ? error.message : 'Calculation failed',
           });
         }
@@ -402,9 +402,9 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
             {getBestMethod() && (
               <div className="mt-4 p-3 bg-green-100 border border-green-200 rounded-lg">
                 <p className="text-green-800 text-sm">
-                  <strong>Recommendation:</strong> The {getBestMethod().method} method provides the
+                  <strong>Recommendation:</strong> The {getBestMethod()!.method} method provides the
                   best tax outcome for this hypothetical sale with a capital gain of{' '}
-                  {formatCurrency(getBestMethod().capitalGain)}.
+                  {formatCurrency(getBestMethod()!.capitalGain)}.
                 </p>
               </div>
             )}

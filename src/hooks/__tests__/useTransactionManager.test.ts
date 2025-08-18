@@ -44,7 +44,7 @@ describe('useTransactionManager', () => {
 
   it('should initialize with empty transactions from storage', () => {
     const { result } = renderHook(() => useTransactionManager());
-    
+
     expect(result.current.transactions).toEqual([]);
     expect(storage.getTransactions).toHaveBeenCalled();
   });
@@ -54,7 +54,7 @@ describe('useTransactionManager', () => {
     (storage.getTransactions as any).mockReturnValue({ transactions: existingTransactions });
 
     const { result } = renderHook(() => useTransactionManager());
-    
+
     expect(result.current.transactions).toEqual(existingTransactions);
   });
 
@@ -76,15 +76,15 @@ describe('useTransactionManager', () => {
 
     const newTransactions = [mockTransaction, mockTransaction2]; // One duplicate, one new
 
-    let mergeResult;
+    let mergeResult: any;
     act(() => {
       mergeResult = result.current.mergeTransactions(newTransactions);
     });
 
-    expect(mergeResult.duplicateCount).toBe(1); // mockTransaction is a duplicate
-    expect(mergeResult.merged).toHaveLength(2); // Should have 2 unique transactions
+    expect(mergeResult!.duplicateCount).toBe(1); // mockTransaction is a duplicate
+    expect(mergeResult!.merged).toHaveLength(2); // Should have 2 unique transactions
     expect(result.current.transactions).toHaveLength(2);
-    expect(storage.saveTransactions).toHaveBeenCalledWith(mergeResult.merged);
+    expect(storage.saveTransactions).toHaveBeenCalledWith(mergeResult!.merged);
   });
 
   it('should merge transactions with no duplicates', () => {
@@ -92,13 +92,13 @@ describe('useTransactionManager', () => {
 
     const newTransactions = [mockTransaction, mockTransaction2];
 
-    let mergeResult;
+    let mergeResult: any;
     act(() => {
       mergeResult = result.current.mergeTransactions(newTransactions);
     });
 
-    expect(mergeResult.duplicateCount).toBe(0);
-    expect(mergeResult.merged).toHaveLength(2);
+    expect(mergeResult!.duplicateCount).toBe(0);
+    expect(mergeResult!.merged).toHaveLength(2);
     expect(result.current.transactions).toEqual(newTransactions);
   });
 
@@ -112,7 +112,9 @@ describe('useTransactionManager', () => {
       result.current.clearAllTransactions();
     });
 
-    expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to clear all transaction data?');
+    expect(window.confirm).toHaveBeenCalledWith(
+      'Are you sure you want to clear all transaction data?',
+    );
     expect(result.current.transactions).toEqual([]);
     expect(storage.clearTransactions).toHaveBeenCalled();
   });
@@ -142,7 +144,7 @@ describe('useTransactionManager', () => {
     const { result } = renderHook(() => useTransactionManager());
 
     const exchanges = result.current.getExchangesList();
-    
+
     expect(exchanges).toEqual(['Coinbase', 'Kraken', 'Strike']); // Should be sorted and unique
   });
 
@@ -150,7 +152,7 @@ describe('useTransactionManager', () => {
     const { result } = renderHook(() => useTransactionManager());
 
     const exchanges = result.current.getExchangesList();
-    
+
     expect(exchanges).toEqual([]);
   });
 
@@ -170,13 +172,13 @@ describe('useTransactionManager', () => {
     (storage.getTransactions as any).mockReturnValue({ transactions: [mockTransaction] });
     const { result } = renderHook(() => useTransactionManager());
 
-    let mergeResult;
+    let mergeResult: any;
     act(() => {
       mergeResult = result.current.mergeTransactions([]);
     });
 
-    expect(mergeResult.duplicateCount).toBe(0);
-    expect(mergeResult.merged).toEqual([mockTransaction]); // Should keep existing
+    expect(mergeResult!.duplicateCount).toBe(0);
+    expect(mergeResult!.merged).toEqual([mockTransaction]); // Should keep existing
     expect(result.current.transactions).toEqual([mockTransaction]);
   });
 
@@ -185,13 +187,13 @@ describe('useTransactionManager', () => {
 
     const newTransactions = [mockTransaction, mockTransaction2];
 
-    let mergeResult;
+    let mergeResult: any;
     act(() => {
       mergeResult = result.current.mergeTransactions(newTransactions);
     });
 
-    expect(mergeResult.duplicateCount).toBe(0);
-    expect(mergeResult.merged).toEqual(newTransactions);
+    expect(mergeResult!.duplicateCount).toBe(0);
+    expect(mergeResult!.merged).toEqual(newTransactions);
     expect(result.current.transactions).toEqual(newTransactions);
   });
 });

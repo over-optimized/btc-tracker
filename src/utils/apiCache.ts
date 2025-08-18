@@ -10,7 +10,7 @@
  * - Date field hydration for localStorage compatibility
  */
 
-import { hydrateCacheEntry, safeDateConversion } from './dateHydration';
+import { hydrateCacheEntry, safeDateConversion, CacheEntryWithDates } from './dateHydration';
 
 import {
   ApiCacheInterface,
@@ -273,7 +273,7 @@ class ApiCache<T> implements ApiCacheInterface<T> {
 
           // Hydrate any date fields in the cached data itself
           if (entry.data && typeof entry.data === 'object') {
-            entry.data = hydrateCacheEntry(entry.data as Record<string, unknown>);
+            entry.data = hydrateCacheEntry(entry.data as unknown as CacheEntryWithDates) as T;
           }
 
           if (!this.isExpired(entry)) {
@@ -330,7 +330,9 @@ class ApiCache<T> implements ApiCacheInterface<T> {
 
       // Hydrate any date fields in the cached data itself
       if (hydratedEntry.data && typeof hydratedEntry.data === 'object') {
-        hydratedEntry.data = hydrateCacheEntry(hydratedEntry.data as Record<string, unknown>);
+        hydratedEntry.data = hydrateCacheEntry(
+          hydratedEntry.data as unknown as CacheEntryWithDates,
+        ) as T;
       }
 
       return hydratedEntry;

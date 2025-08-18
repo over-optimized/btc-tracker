@@ -97,7 +97,7 @@ describe('Bitcoin Price API Integration', () => {
       const mockFetcher = vi.fn().mockResolvedValue('fresh-data');
 
       // Set cached data
-      testCache.set('test-key', 'cached-data');
+      testCache.set('test-key', 50000);
 
       const cachedFetcher = testCache.createCachedFetcher(mockFetcher, 'test-key', {
         strategy: 'cache-first',
@@ -105,7 +105,7 @@ describe('Bitcoin Price API Integration', () => {
 
       const result = await cachedFetcher();
 
-      expect(result).toBe('cached-data');
+      expect(result).toBe(50000);
       expect(mockFetcher).not.toHaveBeenCalled();
     });
 
@@ -113,7 +113,7 @@ describe('Bitcoin Price API Integration', () => {
       const mockFetcher = vi.fn().mockResolvedValue('fresh-data');
 
       // Set cached data
-      testCache.set('test-key', 'cached-data');
+      testCache.set('test-key', 50000);
 
       const cachedFetcher = testCache.createCachedFetcher(mockFetcher, 'test-key', {
         strategy: 'network-first',
@@ -129,7 +129,7 @@ describe('Bitcoin Price API Integration', () => {
       const mockFetcher = vi.fn().mockRejectedValue(new Error('Network error'));
 
       // Set cached data
-      testCache.set('test-key', 'cached-data');
+      testCache.set('test-key', 50000);
 
       const cachedFetcher = testCache.createCachedFetcher(mockFetcher, 'test-key', {
         strategy: 'network-first',
@@ -137,7 +137,7 @@ describe('Bitcoin Price API Integration', () => {
 
       const result = await cachedFetcher();
 
-      expect(result).toBe('cached-data');
+      expect(result).toBe(50000);
       expect(mockFetcher).toHaveBeenCalled();
     });
   });
@@ -150,7 +150,7 @@ describe('Bitcoin Price API Integration', () => {
 
       // Should not throw
       expect(() => {
-        testCache.set('test-key', 'test-value');
+        testCache.set('test-key', 45000);
       }).not.toThrow();
     });
 
