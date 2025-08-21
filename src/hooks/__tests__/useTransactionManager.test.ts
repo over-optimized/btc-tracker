@@ -145,13 +145,13 @@ describe('useTransactionManager (Real Integration)', () => {
       duplicateCount: number;
     }
 
-    let mergeResult: MergeResult;
+    let mergeResult: MergeResult | undefined;
     act(() => {
       mergeResult = result.current.mergeTransactions(newTransactions);
     });
 
-    expect(mergeResult.duplicateCount).toBe(1); // mockTransaction is a duplicate
-    expect(mergeResult.merged).toHaveLength(2); // Should have 2 unique transactions
+    expect(mergeResult!.duplicateCount).toBe(1); // mockTransaction is a duplicate
+    expect(mergeResult!.merged).toHaveLength(2); // Should have 2 unique transactions
     expect(result.current.transactions).toHaveLength(2);
 
     // Verify persistence to real storage
@@ -170,13 +170,13 @@ describe('useTransactionManager (Real Integration)', () => {
       duplicateCount: number;
     }
 
-    let mergeResult: MergeResult;
+    let mergeResult: MergeResult | undefined;
     act(() => {
       mergeResult = result.current.mergeTransactions(newTransactions);
     });
 
-    expect(mergeResult.duplicateCount).toBe(0);
-    expect(mergeResult.merged).toHaveLength(2);
+    expect(mergeResult!.duplicateCount).toBe(0);
+    expect(mergeResult!.merged).toHaveLength(2);
     expect(result.current.transactions).toEqual(newTransactions);
 
     // Verify persistence
@@ -325,13 +325,13 @@ describe('useTransactionManager (Real Integration)', () => {
       duplicateCount: number;
     }
 
-    let mergeResult: MergeResult;
+    let mergeResult: MergeResult | undefined;
     act(() => {
       mergeResult = result.current.mergeTransactions([]);
     });
 
-    expect(mergeResult.duplicateCount).toBe(0);
-    expect(mergeResult.merged).toEqual([mockTransaction]); // Should keep existing
+    expect(mergeResult!.duplicateCount).toBe(0);
+    expect(mergeResult!.merged).toEqual([mockTransaction]); // Should keep existing
     expect(result.current.transactions).toEqual([mockTransaction]);
   });
 
@@ -345,13 +345,13 @@ describe('useTransactionManager (Real Integration)', () => {
       duplicateCount: number;
     }
 
-    let mergeResult: MergeResult;
+    let mergeResult: MergeResult | undefined;
     act(() => {
       mergeResult = result.current.mergeTransactions(newTransactions);
     });
 
-    expect(mergeResult.duplicateCount).toBe(0);
-    expect(mergeResult.merged).toEqual(newTransactions);
+    expect(mergeResult!.duplicateCount).toBe(0);
+    expect(mergeResult!.merged).toEqual(newTransactions);
     expect(result.current.transactions).toEqual(newTransactions);
   });
 });
