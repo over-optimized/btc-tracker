@@ -165,3 +165,5 @@ interface Transaction {
 ---
 
 This project follows the global CLAUDE.md development standards for workflow, testing, and quality gates.
+
+- Do not use the Generated with Claude Code signature on PRs
