@@ -26,7 +26,7 @@ const NavBar: React.FC = () => {
           <div className="hidden md:flex items-center justify-between py-4">
             {/* Brand/Logo */}
             <BrandHeader size="small" showSubtitle={false} />
-            
+
             {/* Navigation Links */}
             <ul className="flex items-center gap-6">
               {navItems.map((item) => (
@@ -34,10 +34,10 @@ const NavBar: React.FC = () => {
                   <NavLink
                     to={item.to}
                     className={({ isActive }) =>
-                      `text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 ${
+                      `text-sm font-medium px-4 py-2.5 rounded-lg transition-all duration-200 ${
                         isActive
-                          ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
-                          : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                          ? 'text-white bg-blue-600 dark:bg-blue-500 shadow-md hover:bg-blue-700 dark:hover:bg-blue-600'
+                          : 'text-gray-700 dark:text-gray-300 hover:text-white hover:bg-blue-500 dark:hover:text-blue-400 dark:hover:bg-gray-700/50'
                       }`
                     }
                     end={item.to === '/'}
@@ -79,8 +79,8 @@ const NavBar: React.FC = () => {
                       className={({ isActive }) =>
                         `block px-4 py-3 mx-2 text-base font-medium rounded-lg transition-all duration-200 ${
                           isActive
-                            ? 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 border-l-4 border-blue-600 dark:border-blue-400'
-                            : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            ? 'text-white bg-blue-600 dark:bg-blue-500 shadow-md'
+                            : 'text-gray-700 dark:text-gray-300 hover:text-white hover:bg-blue-500 dark:hover:text-blue-400 dark:hover:bg-gray-700/50'
                         }`
                       }
                       end={item.to === '/'}
@@ -95,7 +95,7 @@ const NavBar: React.FC = () => {
         </div>
       </nav>
       {/* Subtle theme-consistent spacing */}
-      <div className="h-4" style={{backgroundColor: 'var(--color-bg-page)'}}></div>
+      <div className="h-4" style={{ backgroundColor: 'var(--color-bg-page)' }}></div>
     </div>
   );
 };
