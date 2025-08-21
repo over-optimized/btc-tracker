@@ -2,12 +2,20 @@ import { Transaction } from '../types/Transaction';
 import {
   CURRENT_STORAGE_VERSION,
   getStorageVersion,
-  migrateTransactionData,
   needsMigration,
+  performMigration,
   STORAGE_VERSION_KEY,
   type MigrationResult,
   type StorageVersion,
 } from './dataMigration';
+import {
+  convertToLegacyTransaction,
+  convertToOptimizedTransaction,
+  type OptimizedTransaction,
+  isOptimizedTransaction,
+  batchConvertToLegacy,
+} from '../types/OptimizedTransaction';
+import { generateStableTransactionId, type TransactionData } from './generateTransactionId';
 
 const STORAGE_KEY = 'btc-tracker:transactions';
 
@@ -49,7 +57,26 @@ export interface StorageLoadResult {
 }
 
 /**
- * Load transactions with automatic migration handling
+ * Detect if stored data is in optimized format (v3+) or legacy format
+ */
+function isOptimizedFormat(rawData: any[]): boolean {
+  if (!Array.isArray(rawData) || rawData.length === 0) {
+    return false;
+  }
+
+  // Check if first transaction has optimized format fields
+  const firstTx = rawData[0];
+  return (
+    firstTx &&
+    typeof firstTx.usd_amount === 'number' &&
+    typeof firstTx.btc_amount === 'number' &&
+    typeof firstTx.user_id !== 'undefined' &&
+    typeof firstTx.created_at === 'string'
+  );
+}
+
+/**
+ * Load transactions with automatic migration handling and format detection
  */
 export function getTransactions(): StorageLoadResult {
   const data = localStorage.getItem(STORAGE_KEY);
@@ -70,16 +97,52 @@ export function getTransactions(): StorageLoadResult {
   }
 
   // Parse existing data
-  let transactions: Transaction[];
+  let rawTransactions: any[];
   try {
-    const rawTransactions = JSON.parse(data);
-    transactions = rawTransactions
+    rawTransactions = JSON.parse(data);
+  } catch (error) {
+    console.error('Failed to parse transaction data:', error);
+    return {
+      transactions: [],
+      needsAttention: true,
+    };
+  }
+
+  // Detect format and convert accordingly
+  const isOptimized = isOptimizedFormat(rawTransactions);
+
+  if (isOptimized) {
+    // Data is already in optimized format (v3+)
+    const optimizedTransactions = rawTransactions as OptimizedTransaction[];
+    const legacyTransactions = batchConvertToLegacy(optimizedTransactions);
+
+    // Filter for integrity
+    const validTransactions = legacyTransactions.filter((tx: Transaction) => {
+      const isValid = validateTransactionIntegrity(tx);
+      if (!isValid) {
+        console.warn('Filtering out corrupted transaction:', tx);
+      }
+      return isValid;
+    });
+
+    // Log if we filtered out corrupted data
+    const filteredCount = optimizedTransactions.length - validTransactions.length;
+    if (filteredCount > 0) {
+      console.warn(`Filtered out ${filteredCount} corrupted transactions during load`);
+    }
+
+    return {
+      transactions: validTransactions,
+      needsAttention: false,
+    };
+  } else {
+    // Data is in legacy format, convert and validate
+    const transactions: Transaction[] = rawTransactions
       .map((tx: Omit<Transaction, 'date'> & { date: string }) => ({
         ...tx,
         date: new Date(tx.date),
       }))
       .filter((tx: Transaction) => {
-        // Validate transaction integrity
         const isValid = validateTransactionIntegrity(tx);
         if (!isValid) {
           console.warn('Filtering out corrupted transaction:', tx);
@@ -92,48 +155,47 @@ export function getTransactions(): StorageLoadResult {
     if (filteredCount > 0) {
       console.warn(`Filtered out ${filteredCount} corrupted transactions during load`);
     }
-  } catch (error) {
-    console.error('Failed to parse transaction data:', error);
+
+    // Check if migration is needed
+    if (needsMigration()) {
+      console.log('Migration needed, upgrading transaction data...');
+
+      const migrationResult = performMigration(transactions);
+
+      if (migrationResult.success) {
+        // For v2→v3 migration, the data is now in optimized format
+        // But we need to return legacy format for backward compatibility
+        if (migrationResult.preAlphaRestructure) {
+          // This was a v2→v3 migration, reload optimized data
+          return getTransactions(); // Recursive call to load optimized format
+        } else {
+          // This was a v1→v2 migration, handle deduplication
+          const { deduplicated } = deduplicateAndMigrate(transactions);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(deduplicated));
+
+          return {
+            transactions: deduplicated,
+            migrationResult,
+            needsAttention: migrationResult.errorCount > 0 || migrationResult.duplicatesRemoved > 0,
+          };
+        }
+      } else {
+        // Migration failed, return original data but flag for attention
+        console.error('Migration failed:', migrationResult.errors);
+        return {
+          transactions,
+          migrationResult,
+          needsAttention: true,
+        };
+      }
+    }
+
+    // No migration needed, return data as-is
     return {
-      transactions: [],
-      needsAttention: true,
+      transactions,
+      needsAttention: false,
     };
   }
-
-  // Check if migration is needed
-  if (needsMigration()) {
-    console.log('Migration needed, upgrading transaction data...');
-
-    const migrationResult = migrateTransactionData(transactions);
-
-    if (migrationResult.success) {
-      // Save migrated data - use the migration function's output
-
-      // Actually perform the migration and get the results
-      const { deduplicated } = deduplicateAndMigrate(transactions);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(deduplicated));
-
-      return {
-        transactions: deduplicated,
-        migrationResult,
-        needsAttention: migrationResult.errorCount > 0 || migrationResult.duplicatesRemoved > 0,
-      };
-    } else {
-      // Migration failed, return original data but flag for attention
-      console.error('Migration failed:', migrationResult.errors);
-      return {
-        transactions,
-        migrationResult,
-        needsAttention: true,
-      };
-    }
-  }
-
-  // No migration needed, return data as-is
-  return {
-    transactions,
-    needsAttention: false,
-  };
 }
 
 /**
@@ -143,10 +205,6 @@ function deduplicateAndMigrate(transactions: Transaction[]): {
   deduplicated: Transaction[];
   removedCount: number;
 } {
-  // Import here to avoid circular dependency
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { generateStableTransactionId } = require('./generateTransactionId');
-
   const txMap = new Map<string, Transaction>();
   let removedCount = 0;
 
@@ -211,11 +269,16 @@ function extractReferenceFromLegacyId(legacyId: string, exchange: string): strin
 }
 
 /**
- * Save transactions (no migration needed for saving new data)
+ * Save transactions in optimized format for v3+ compatibility
  */
 export function saveTransactions(transactions: Transaction[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+    // Convert legacy transactions to optimized format for storage
+    const optimizedTransactions = transactions.map(
+      (tx) => convertToOptimizedTransaction(tx, null), // null = anonymous user
+    );
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(optimizedTransactions));
 
     // Ensure version is up to date
     const currentVersion = getStorageVersion();

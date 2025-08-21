@@ -60,16 +60,55 @@ _[Complete details in [completed-tasks-archive.md](completed-tasks-archive.md)]_
 
 **Goal: Deploy feature-complete app with multi-user support on free tiers**
 
-| Task                                            | Status    | Priority | Estimate | Dependencies      | Notes                                         |
-| ----------------------------------------------- | --------- | -------- | -------- | ----------------- | --------------------------------------------- |
-| Supabase project setup & database schema design | todo      | high     | 5        | none              | PostgreSQL schema for multi-user transactions |
-| GitHub Actions CI/CD pipeline configuration     | todo      | high     | 3        | Supabase setup    | Automated deployment to Vercel                |
-| ✅ Vercel deployment with environment configs   | completed | high     | 2        | GitHub Actions    | **COMPLETED** - App live in production!       |
-| Supabase Auth integration with existing UI      | todo      | high     | 8        | Supabase setup    | Replace localStorage-only auth                |
-| User data migration utility (localStorage → DB) | todo      | high     | 5        | Auth integration  | Preserve existing user data                   |
-| Multi-user data isolation and testing           | todo      | high     | 5        | Migration utility | Row Level Security implementation             |
+### Phase 1A: Pre-Alpha Data Restructure (Week 1)
 
-**Phase 1 Total**: 26 points remaining (2 completed) | **Target**: 2-3 weeks | **Cost**: $0/month
+| Task                                                | Status | Priority | Estimate | Dependencies | Notes                                                  |
+| --------------------------------------------------- | ------ | -------- | -------- | ------------ | ------------------------------------------------------ |
+| Design optimized transaction structure (snake_case) | todo   | high     | 2        | none         | Match database schema exactly, eliminate field mapping |
+| Implement pre-alpha data migration utility          | todo   | high     | 3        | structure    | Convert existing camelCase to snake_case format        |
+| Update storage layer to use optimized format        | todo   | high     | 3        | migration    | Modify storage.ts and useTransactionManager            |
+| Create backup/restore utilities for data safety     | todo   | high     | 2        | storage      | Export before restructure, recovery mechanisms         |
+| Bump storage version to v3 (pre-alpha restructure)  | todo   | high     | 1        | backup       | Mark completion of optimization phase                  |
+
+**Phase 1A Total**: 11 points | **Target**: 3-4 days
+
+### Phase 1B: Database-Ready Infrastructure (Week 1-2)
+
+| Task                                            | Status    | Priority | Estimate | Dependencies      | Notes                                           |
+| ----------------------------------------------- | --------- | -------- | -------- | ----------------- | ----------------------------------------------- |
+| Supabase project setup & database schema design | todo      | high     | 4        | Phase 1A complete | PostgreSQL schema matching localStorage exactly |
+| Create storage provider abstraction interface   | todo      | high     | 3        | Supabase setup    | IStorageProvider for localStorage/Supabase      |
+| Implement SupabaseStorageProvider class         | todo      | high     | 5        | abstraction       | Zero-transformation database operations         |
+| GitHub Actions CI/CD pipeline configuration     | todo      | high     | 3        | Supabase setup    | Automated deployment to Vercel                  |
+| ✅ Vercel deployment with environment configs   | completed | high     | 2        | GitHub Actions    | **COMPLETED** - App live in production!         |
+
+**Phase 1B Total**: 15 points (2 completed) | **Target**: 4-5 days
+
+### Phase 1C: Authentication & Migration (Week 2-3)
+
+| Task                                               | Status | Priority | Estimate | Dependencies      | Notes                                        |
+| -------------------------------------------------- | ------ | -------- | -------- | ----------------- | -------------------------------------------- |
+| Supabase Auth integration with existing UI         | todo   | high     | 6        | Phase 1B complete | Login/signup/logout components               |
+| Storage mode detection and context management      | todo   | high     | 3        | Auth integration  | Anonymous vs authenticated mode switching    |
+| localStorage → Supabase migration flow             | todo   | high     | 4        | storage context   | Seamless user data migration with UI         |
+| Multi-user data isolation and Row Level Security   | todo   | high     | 4        | migration flow    | Test data privacy and access controls        |
+| Bidirectional sync and offline fallback mechanisms | todo   | high     | 5        | RLS testing       | Online/offline mode with conflict resolution |
+
+**Phase 1C Total**: 22 points | **Target**: 5-6 days
+
+### Phase 1D: Testing & Polish (Week 3)
+
+| Task                                               | Status | Priority | Estimate | Dependencies      | Notes                              |
+| -------------------------------------------------- | ------ | -------- | -------- | ----------------- | ---------------------------------- |
+| Comprehensive testing of dual storage modes        | todo   | high     | 4        | Phase 1C complete | Unit and integration test coverage |
+| Error handling and edge case coverage              | todo   | high     | 3        | testing           | Network failures, data corruption  |
+| Performance optimization for large datasets        | todo   | medium   | 3        | error handling    | Efficient queries and data loading |
+| User experience improvements and migration prompts | todo   | medium   | 3        | performance       | Smooth onboarding and migration UX |
+| Documentation and deployment verification          | todo   | medium   | 2        | UX improvements   | Verify production deployment works |
+
+**Phase 1D Total**: 15 points | **Target**: 3-4 days
+
+**PHASE 1 GRAND TOTAL**: 63 points (2 completed) | **Target**: 2-3 weeks | **Cost**: $0/month
 
 ## 🧹 Technical Debt & Code Quality (LOW Priority - Ongoing)
 

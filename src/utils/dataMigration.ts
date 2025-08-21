@@ -5,6 +5,11 @@
 
 import { Transaction } from '../types/Transaction';
 import { generateStableTransactionId, type TransactionData } from './generateTransactionId';
+import {
+  convertToOptimizedTransaction,
+  type OptimizedTransaction,
+  isValidOptimizedTransaction,
+} from '../types/OptimizedTransaction';
 
 export interface MigrationResult {
   success: boolean;
@@ -13,16 +18,18 @@ export interface MigrationResult {
   errors: string[];
   duplicatesRemoved: number;
   backupCreated: boolean;
+  preAlphaRestructure?: boolean; // Flag for v3 pre-alpha restructure
 }
 
 export interface StorageVersion {
   version: number;
   migratedAt: Date;
   previousVersion?: number;
+  preAlphaRestructure?: boolean; // Flag for v3 pre-alpha restructure
 }
 
 // Current storage version - increment when making breaking changes
-export const CURRENT_STORAGE_VERSION = 2;
+export const CURRENT_STORAGE_VERSION = 3; // Updated for pre-alpha restructure
 export const STORAGE_VERSION_KEY = 'btc-tracker:storage-version';
 export const BACKUP_KEY = 'btc-tracker:backup-v1';
 
@@ -201,6 +208,108 @@ export function migrateTransactionData(existingTransactions: Transaction[]): Mig
     result.errors.push(`Migration failed: ${error}`);
     return result;
   }
+}
+
+/**
+ * Pre-alpha data restructure: Convert legacy transactions to optimized format
+ * Version 2 → Version 3 migration
+ */
+export function performPreAlphaRestructure(existingTransactions: Transaction[]): MigrationResult {
+  const result: MigrationResult = {
+    success: false,
+    migratedCount: 0,
+    errorCount: 0,
+    errors: [],
+    duplicatesRemoved: 0,
+    backupCreated: false,
+    preAlphaRestructure: true,
+  };
+
+  try {
+    // Create backup first
+    result.backupCreated = createBackup(existingTransactions);
+
+    console.log('Starting pre-alpha restructure: converting to optimized transaction format...');
+
+    // Convert each transaction to optimized format
+    const optimizedTransactions: OptimizedTransaction[] = [];
+
+    for (const legacyTx of existingTransactions) {
+      try {
+        const optimizedTx = convertToOptimizedTransaction(legacyTx, null); // null = anonymous user
+
+        if (isValidOptimizedTransaction(optimizedTx)) {
+          optimizedTransactions.push(optimizedTx);
+          result.migratedCount++;
+        } else {
+          result.errorCount++;
+          result.errors.push(`Invalid optimized transaction for ${legacyTx.id}`);
+        }
+      } catch (error) {
+        result.errorCount++;
+        result.errors.push(`Failed to convert transaction ${legacyTx.id}: ${error}`);
+      }
+    }
+
+    // Save optimized transactions to localStorage
+    const STORAGE_KEY = 'btc-tracker:transactions';
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(optimizedTransactions));
+
+    // Update storage version to v3
+    const versionInfo: StorageVersion = {
+      version: CURRENT_STORAGE_VERSION,
+      migratedAt: new Date(),
+      previousVersion: 2,
+      preAlphaRestructure: true,
+    };
+    localStorage.setItem(STORAGE_VERSION_KEY, JSON.stringify(versionInfo));
+
+    console.log(
+      `Pre-alpha restructure completed: ${result.migratedCount} transactions converted, ${result.errorCount} errors`,
+    );
+
+    result.success = true;
+    return result;
+  } catch (error) {
+    result.errors.push(`Pre-alpha restructure failed: ${error}`);
+    console.error('Pre-alpha restructure failed:', error);
+    return result;
+  }
+}
+
+/**
+ * Enhanced migration function that handles both v1→v2 and v2→v3 migrations
+ */
+export function performMigration(existingTransactions: Transaction[]): MigrationResult {
+  const currentVersion = getStorageVersion();
+
+  if (!currentVersion || currentVersion.version < 2) {
+    // v1 → v2: Stable ID migration
+    console.log('Performing v1→v2 migration (stable IDs)');
+    const v2Result = migrateTransactionData(existingTransactions);
+
+    if (!v2Result.success) {
+      return v2Result;
+    }
+
+    // After v1→v2, we need to reload and continue to v2→v3
+    // This would be handled by the storage layer calling this function again
+    return v2Result;
+  } else if (currentVersion.version === 2) {
+    // v2 → v3: Pre-alpha restructure to optimized format
+    console.log('Performing v2→v3 migration (pre-alpha restructure)');
+    return performPreAlphaRestructure(existingTransactions);
+  }
+
+  // Already at current version
+  return {
+    success: true,
+    migratedCount: 0,
+    errorCount: 0,
+    errors: [],
+    duplicatesRemoved: 0,
+    backupCreated: false,
+  };
 }
 
 /**
