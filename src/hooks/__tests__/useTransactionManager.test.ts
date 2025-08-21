@@ -140,13 +140,18 @@ describe('useTransactionManager (Real Integration)', () => {
 
     const newTransactions = [mockTransaction, mockTransaction2]; // One duplicate, one new
 
-    let mergeResult: any;
+    interface MergeResult {
+      merged: Transaction[];
+      duplicateCount: number;
+    }
+
+    let mergeResult: MergeResult;
     act(() => {
       mergeResult = result.current.mergeTransactions(newTransactions);
     });
 
-    expect(mergeResult!.duplicateCount).toBe(1); // mockTransaction is a duplicate
-    expect(mergeResult!.merged).toHaveLength(2); // Should have 2 unique transactions
+    expect(mergeResult.duplicateCount).toBe(1); // mockTransaction is a duplicate
+    expect(mergeResult.merged).toHaveLength(2); // Should have 2 unique transactions
     expect(result.current.transactions).toHaveLength(2);
 
     // Verify persistence to real storage
@@ -160,13 +165,18 @@ describe('useTransactionManager (Real Integration)', () => {
 
     const newTransactions = [mockTransaction, mockTransaction2];
 
-    let mergeResult: any;
+    interface MergeResult {
+      merged: Transaction[];
+      duplicateCount: number;
+    }
+
+    let mergeResult: MergeResult;
     act(() => {
       mergeResult = result.current.mergeTransactions(newTransactions);
     });
 
-    expect(mergeResult!.duplicateCount).toBe(0);
-    expect(mergeResult!.merged).toHaveLength(2);
+    expect(mergeResult.duplicateCount).toBe(0);
+    expect(mergeResult.merged).toHaveLength(2);
     expect(result.current.transactions).toEqual(newTransactions);
 
     // Verify persistence
@@ -250,7 +260,21 @@ describe('useTransactionManager (Real Integration)', () => {
       { ...mockTransaction, id: 'test-id-4', exchange: 'Kraken' },
     ];
 
-    (storage.getTransactions as any).mockReturnValue({ transactions });
+    // Pre-populate localStorage with transactions
+    const serializedTransactions = transactions.map((tx) => ({
+      ...tx,
+      date: tx.date.toISOString(),
+    }));
+
+    mockLocalStorage.setItem('btc-tracker:transactions', JSON.stringify(serializedTransactions));
+    mockLocalStorage.setItem(
+      'btc-tracker:storage-version',
+      JSON.stringify({
+        version: 3,
+        migratedAt: new Date().toISOString(),
+      }),
+    );
+
     const { result } = renderHook(() => useTransactionManager());
 
     const exchanges = result.current.getExchangesList();
@@ -279,16 +303,35 @@ describe('useTransactionManager (Real Integration)', () => {
   });
 
   it('should handle empty new transactions in merge', () => {
-    (storage.getTransactions as any).mockReturnValue({ transactions: [mockTransaction] });
+    // Pre-populate localStorage with existing transaction
+    const serializedTransactions = [mockTransaction].map((tx) => ({
+      ...tx,
+      date: tx.date.toISOString(),
+    }));
+
+    mockLocalStorage.setItem('btc-tracker:transactions', JSON.stringify(serializedTransactions));
+    mockLocalStorage.setItem(
+      'btc-tracker:storage-version',
+      JSON.stringify({
+        version: 3,
+        migratedAt: new Date().toISOString(),
+      }),
+    );
+
     const { result } = renderHook(() => useTransactionManager());
 
-    let mergeResult: any;
+    interface MergeResult {
+      merged: Transaction[];
+      duplicateCount: number;
+    }
+
+    let mergeResult: MergeResult;
     act(() => {
       mergeResult = result.current.mergeTransactions([]);
     });
 
-    expect(mergeResult!.duplicateCount).toBe(0);
-    expect(mergeResult!.merged).toEqual([mockTransaction]); // Should keep existing
+    expect(mergeResult.duplicateCount).toBe(0);
+    expect(mergeResult.merged).toEqual([mockTransaction]); // Should keep existing
     expect(result.current.transactions).toEqual([mockTransaction]);
   });
 
@@ -297,13 +340,18 @@ describe('useTransactionManager (Real Integration)', () => {
 
     const newTransactions = [mockTransaction, mockTransaction2];
 
-    let mergeResult: any;
+    interface MergeResult {
+      merged: Transaction[];
+      duplicateCount: number;
+    }
+
+    let mergeResult: MergeResult;
     act(() => {
       mergeResult = result.current.mergeTransactions(newTransactions);
     });
 
-    expect(mergeResult!.duplicateCount).toBe(0);
-    expect(mergeResult!.merged).toEqual(newTransactions);
+    expect(mergeResult.duplicateCount).toBe(0);
+    expect(mergeResult.merged).toEqual(newTransactions);
     expect(result.current.transactions).toEqual(newTransactions);
   });
 });

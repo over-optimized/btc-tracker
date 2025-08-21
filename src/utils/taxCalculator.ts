@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // TODO: Replace any types with proper tax calculation interfaces
 // Complex tax logic requires careful type analysis
 
