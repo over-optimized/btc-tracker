@@ -387,18 +387,21 @@ export class StorageProviderFactory {
     config?: StorageProviderConfig,
   ): Promise<IStorageProvider> {
     switch (type) {
-      case 'localStorage':
+      case 'localStorage': {
         const { LocalStorageProvider } = await import('../utils/LocalStorageProvider');
         return new LocalStorageProvider();
+      }
 
-      case 'supabase':
+      case 'supabase': {
         const { SupabaseStorageProvider } = await import('../utils/SupabaseStorageProvider');
         return new SupabaseStorageProvider();
+      }
 
-      case 'auto':
+      case 'auto': {
         // Auto-detect based on authentication state and environment
         const { AutoStorageProvider } = await import('../utils/AutoStorageProvider');
         return new AutoStorageProvider();
+      }
 
       default:
         throw new Error(`Unknown storage provider type: ${type}`);
