@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Transaction } from '../types/Transaction';
-import { clearTransactions, getTransactions, saveTransactions } from '../utils/storage';
+import { AutoStorageProvider } from '../utils/AutoStorageProvider';
+import { StorageProviderConfig } from '../types/StorageProvider';
 
 interface MergeResult {
   merged: Transaction[];
@@ -10,24 +11,89 @@ interface MergeResult {
 interface TransactionManagerResult {
   transactions: Transaction[];
   setTransactions: (transactions: Transaction[]) => void;
-  addTransaction: (transaction: Transaction) => void;
-  mergeTransactions: (newTransactions: Transaction[]) => MergeResult;
-  clearAllTransactions: () => void;
+  addTransaction: (transaction: Transaction) => Promise<void>;
+  mergeTransactions: (newTransactions: Transaction[]) => Promise<MergeResult>;
+  clearAllTransactions: () => Promise<void>;
   getExchangesList: () => string[];
+  loading: boolean;
+  error: string | null;
+  storageProvider: AutoStorageProvider | null;
 }
 
 export const useTransactionManager = (): TransactionManagerResult => {
-  const [transactions, setTransactions] = useState<Transaction[]>(
-    () => getTransactions().transactions
-  );
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [storageProvider, setStorageProvider] = useState<AutoStorageProvider | null>(null);
 
-  const addTransaction = (transaction: Transaction) => {
-    const updatedTransactions = [...transactions, transaction];
-    setTransactions(updatedTransactions);
-    saveTransactions(updatedTransactions);
+  // Initialize storage provider and load transactions
+  useEffect(() => {
+    const initializeStorage = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const provider = new AutoStorageProvider();
+        const config: StorageProviderConfig = {
+          enableAuth: true, // Allow authentication but don't require it
+        };
+
+        const initResult = await provider.initialize(config);
+        if (!initResult.success) {
+          throw new Error(initResult.error || 'Failed to initialize storage');
+        }
+
+        setStorageProvider(provider);
+
+        // Load existing transactions
+        const transactionsResult = await provider.getTransactions();
+        if (transactionsResult.success) {
+          setTransactions(transactionsResult.data || []);
+        } else {
+          console.warn('Failed to load transactions:', transactionsResult.error);
+          setError(transactionsResult.error || 'Failed to load transactions');
+        }
+      } catch (err) {
+        console.error('Storage initialization failed:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+
+        // Fallback to legacy localStorage loading
+        try {
+          const { getTransactions } = await import('../utils/storage');
+          const result = getTransactions();
+          setTransactions(result.transactions);
+        } catch {
+          setTransactions([]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeStorage();
+  }, []);
+
+  const addTransaction = async (transaction: Transaction) => {
+    if (!storageProvider) {
+      console.error('Storage provider not available');
+      return;
+    }
+
+    const result = await storageProvider.saveTransaction(transaction);
+    if (result.success) {
+      setTransactions((prev) => [...prev, result.data]);
+    } else {
+      console.error('Failed to add transaction:', result.error);
+      setError(result.error || 'Failed to add transaction');
+    }
   };
 
-  const mergeTransactions = (newTransactions: Transaction[]): MergeResult => {
+  const mergeTransactions = async (newTransactions: Transaction[]): Promise<MergeResult> => {
+    if (!storageProvider) {
+      console.error('Storage provider not available');
+      return { merged: transactions, duplicateCount: 0 };
+    }
+
     const txMap = new Map<string, Transaction>();
 
     // Add existing transactions
@@ -43,16 +109,33 @@ export const useTransactionManager = (): TransactionManagerResult => {
     });
 
     const merged = Array.from(txMap.values());
-    setTransactions(merged);
-    saveTransactions(merged);
 
-    return { merged, duplicateCount };
+    // Save all transactions to storage
+    const result = await storageProvider.saveTransactions(merged);
+    if (result.success) {
+      setTransactions(result.data);
+      return { merged: result.data, duplicateCount };
+    } else {
+      console.error('Failed to merge transactions:', result.error);
+      setError(result.error || 'Failed to merge transactions');
+      return { merged: transactions, duplicateCount: 0 };
+    }
   };
 
-  const clearAllTransactions = () => {
+  const clearAllTransactions = async () => {
     if (confirm('Are you sure you want to clear all transaction data?')) {
-      setTransactions([]);
-      clearTransactions();
+      if (!storageProvider) {
+        console.error('Storage provider not available');
+        return;
+      }
+
+      const result = await storageProvider.clearTransactions();
+      if (result.success) {
+        setTransactions([]);
+      } else {
+        console.error('Failed to clear transactions:', result.error);
+        setError(result.error || 'Failed to clear transactions');
+      }
     }
   };
 
@@ -68,5 +151,8 @@ export const useTransactionManager = (): TransactionManagerResult => {
     mergeTransactions,
     clearAllTransactions,
     getExchangesList,
+    loading,
+    error,
+    storageProvider,
   };
 };

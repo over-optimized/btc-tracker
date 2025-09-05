@@ -6,6 +6,7 @@ import GlobalModals from './components/GlobalModals';
 import ImportReminderToast from './components/ImportReminderToast';
 import NavBar from './components/NavBar';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { useBitcoinPrice } from './hooks/useBitcoinPrice';
 import { useImportFlow } from './hooks/useImportFlow';
 import { usePortfolioStats } from './hooks/usePortfolioStats';
@@ -21,6 +22,53 @@ const AppContent: React.FC = () => {
   const importFlow = useImportFlow({
     onTransactionsMerged: transactionManager.mergeTransactions,
   });
+
+  // Show loading screen while storage is initializing
+  if (transactionManager.loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 mx-auto mb-4 border-4 border-orange-600 border-t-transparent rounded-full"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error screen if storage initialization failed
+  if (transactionManager.error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-600 dark:text-red-400 mb-4">
+            <svg
+              className="w-12 h-12 mx-auto"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Storage Error
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{transactionManager.error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -91,8 +139,10 @@ const AppContent: React.FC = () => {
 const BitcoinTracker: React.FC = () => (
   <FeatureFlagProvider>
     <ThemeProvider>
-      <ProductionSafetyWarning />
-      <AppContent />
+      <AuthProvider>
+        <ProductionSafetyWarning />
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   </FeatureFlagProvider>
 );
