@@ -166,4 +166,48 @@ interface Transaction {
 
 This project follows the global CLAUDE.md development standards for workflow, testing, and quality gates.
 
+## Git Workflow Standards
+
+### Branch Management
+
+**Required Workflow:**
+
+1. **Feature Branches**: Always create feature branches from `staging` for new work
+2. **Branch Naming**: Use descriptive names like `feat/phase-1c-optional-authentication`
+3. **Never Direct Commits**: Avoid committing directly to `staging` - use feature branches
+4. **Pull Requests**: Create PRs from feature branch to `staging` for code review
+
+**Example Workflow:**
+
+```bash
+# Create feature branch from staging
+git checkout staging
+git pull origin staging
+git checkout -b feat/your-feature-name
+
+# Work on feature, commit frequently
+git add -A && git commit -m "descriptive message"
+
+# Push feature branch and create PR
+git push -u origin feat/your-feature-name
+gh pr create --title "feat: Your Feature" --body "Description..."
+
+# After PR approval, merge to staging
+```
+
+**Branch Recovery (if commits made directly to staging):**
+
+```bash
+# Create feature branch from current HEAD
+git checkout -b feat/feature-name
+
+# Reset staging to match origin
+git checkout staging
+git reset --hard origin/staging
+
+# Push feature branch and create PR
+git checkout feat/feature-name
+git push -u origin feat/feature-name
+```
+
 - Do not use the Generated with Claude Code signature on PRs
