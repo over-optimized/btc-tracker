@@ -80,8 +80,8 @@ export const useTransactionManager = (): TransactionManagerResult => {
     }
 
     const result = await storageProvider.saveTransaction(transaction);
-    if (result.success) {
-      setTransactions((prev) => [...prev, result.data]);
+    if (result.success && result.data) {
+      setTransactions((prev) => [...prev, result.data!]);
     } else {
       console.error('Failed to add transaction:', result.error);
       setError(result.error || 'Failed to add transaction');
@@ -112,7 +112,7 @@ export const useTransactionManager = (): TransactionManagerResult => {
 
     // Save all transactions to storage
     const result = await storageProvider.saveTransactions(merged);
-    if (result.success) {
+    if (result.success && result.data) {
       setTransactions(result.data);
       return { merged: result.data, duplicateCount };
     } else {

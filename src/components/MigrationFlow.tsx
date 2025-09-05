@@ -43,7 +43,7 @@ export const MigrationFlow: React.FC<MigrationFlowProps> = ({
       const result = await storageProvider.migrateToAuthenticated();
 
       if (result.success) {
-        setMigrationResult(result.data);
+        setMigrationResult(result.data || null);
         setStep('success');
       } else {
         setError(result.error || 'Migration failed');
@@ -91,7 +91,7 @@ export const MigrationFlow: React.FC<MigrationFlowProps> = ({
             {/* What will happen */}
             <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
-                Here's what will happen:
+                Here&apos;s what will happen:
               </h3>
               <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-2">
                 <li className="flex items-start">
