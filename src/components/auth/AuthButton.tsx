@@ -1,3 +1,12 @@
+/**
+ * @deprecated This component has been replaced by UnifiedAuthButton for better space utilization and mobile support.
+ * Use UnifiedAuthButton instead which provides:
+ * - Better desktop space optimization
+ * - Mobile authentication access
+ * - Unified messaging combining backup CTA with auth buttons
+ *
+ * This component will be removed in a future version.
+ */
 import React, { useState } from 'react';
 import { useOptionalAuth } from '../../contexts/AuthContext';
 
@@ -7,6 +16,9 @@ interface AuthButtonProps {
   className?: string;
 }
 
+/**
+ * @deprecated Use UnifiedAuthButton instead
+ */
 export const AuthButton: React.FC<AuthButtonProps> = ({
   onOpenLogin,
   onOpenSignup,
