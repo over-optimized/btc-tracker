@@ -87,7 +87,7 @@ export const useTransactionManager = (): TransactionManagerResult => {
     if (!auth.loading) {
       initializeStorage();
     }
-  }, [auth.loading, auth.isAuthenticated, auth.supabase]);
+  }, [auth.loading, auth.isAuthenticated, auth.supabase, auth]);
 
   const addTransaction = async (transaction: Transaction) => {
     if (!storageProvider) {

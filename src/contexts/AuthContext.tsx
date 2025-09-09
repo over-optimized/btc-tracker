@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Test connection with a simple API call
         console.log('🔍 Testing Supabase connection...');
-        const { data: healthCheck, error: healthError } = await client.auth.getSession();
+        const { error: healthError } = await client.auth.getSession();
 
         if (healthError) {
           console.error('❌ Supabase connection test failed:', healthError);
