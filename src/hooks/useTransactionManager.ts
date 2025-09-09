@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Transaction } from '../types/Transaction';
 import { AutoStorageProvider } from '../utils/AutoStorageProvider';
 import { StorageProviderConfig } from '../types/StorageProvider';
+import { useOptionalAuth } from '../contexts/AuthContext';
 
 interface MergeResult {
   merged: Transaction[];
@@ -26,16 +27,26 @@ export const useTransactionManager = (): TransactionManagerResult => {
   const [error, setError] = useState<string | null>(null);
   const [storageProvider, setStorageProvider] = useState<AutoStorageProvider | null>(null);
 
-  // Initialize storage provider and load transactions
+  // Get auth context to coordinate with authentication state
+  const auth = useOptionalAuth();
+
+  // Initialize storage provider and load transactions - auth-aware
   useEffect(() => {
     const initializeStorage = async () => {
       try {
+        console.log('🔄 Transaction manager initializing with auth state:', {
+          authLoading: auth.loading,
+          isAuthenticated: auth.isAuthenticated,
+          hasSupabase: !!auth.supabase,
+        });
+
         setLoading(true);
         setError(null);
 
         const provider = new AutoStorageProvider();
         const config: StorageProviderConfig = {
           enableAuth: true, // Allow authentication but don't require it
+          authContext: auth, // Pass auth context to storage provider
         };
 
         const initResult = await provider.initialize(config);
@@ -46,15 +57,17 @@ export const useTransactionManager = (): TransactionManagerResult => {
         setStorageProvider(provider);
 
         // Load existing transactions
+        console.log('📚 Loading transactions from storage...');
         const transactionsResult = await provider.getTransactions();
         if (transactionsResult.success) {
+          console.log('✅ Loaded transactions:', transactionsResult.data?.length || 0);
           setTransactions(transactionsResult.data || []);
         } else {
-          console.warn('Failed to load transactions:', transactionsResult.error);
+          console.warn('⚠️ Failed to load transactions:', transactionsResult.error);
           setError(transactionsResult.error || 'Failed to load transactions');
         }
       } catch (err) {
-        console.error('Storage initialization failed:', err);
+        console.error('💥 Storage initialization failed:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
 
         // Fallback to legacy localStorage loading
@@ -70,8 +83,11 @@ export const useTransactionManager = (): TransactionManagerResult => {
       }
     };
 
-    initializeStorage();
-  }, []);
+    // Only initialize when auth loading is complete
+    if (!auth.loading) {
+      initializeStorage();
+    }
+  }, [auth.loading, auth.isAuthenticated, auth.supabase]);
 
   const addTransaction = async (transaction: Transaction) => {
     if (!storageProvider) {

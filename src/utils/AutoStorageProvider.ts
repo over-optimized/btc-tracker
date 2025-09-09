@@ -82,17 +82,50 @@ export class AutoStorageProvider extends BaseStorageProvider {
    * Update current provider based on authentication state
    */
   private async updateCurrentProvider(): Promise<void> {
+    console.log('🔍 AutoStorageProvider: Updating current provider...');
+
+    // Use auth context if available for immediate decision
+    if (this._config?.authContext) {
+      const auth = this._config.authContext;
+      console.log('📡 Using auth context:', {
+        loading: auth.loading,
+        isAuthenticated: auth.isAuthenticated,
+        hasSupabase: !!auth.supabase,
+      });
+
+      // If auth is still loading, don't make any changes
+      if (auth.loading) {
+        console.log('⏳ Auth still loading, keeping current provider');
+        return;
+      }
+
+      // If authenticated and Supabase is available, use Supabase
+      if (auth.isAuthenticated && auth.supabase && this.supabaseProvider) {
+        console.log('✅ Using Supabase provider (authenticated)');
+        this.currentProvider = this.supabaseProvider;
+        return;
+      }
+
+      // Otherwise use localStorage
+      console.log('📁 Using localStorage provider (anonymous or no Supabase)');
+      this.currentProvider = this.localProvider;
+      return;
+    }
+
+    // Fallback to legacy provider detection
     if (this.supabaseProvider) {
       const status = await this.supabaseProvider.getStatus();
 
       // Use Supabase if authenticated and healthy
       if (status.success && status.data?.isAuthenticated) {
+        console.log('✅ Using Supabase provider (legacy detection)');
         this.currentProvider = this.supabaseProvider;
         return;
       }
     }
 
     // Fall back to localStorage
+    console.log('📁 Using localStorage provider (fallback)');
     this.currentProvider = this.localProvider;
   }
 

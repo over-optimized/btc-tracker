@@ -82,6 +82,20 @@ _[Complete details in [completed-tasks-archive.md](completed-tasks-archive.md)]_
 - **Dual-mode UI**: Authentication positioned as "data backup" enhancement, not requirement
 - **Loading states**: Proper initialization handling with fallback to localStorage
 - **Error handling**: Graceful degradation when Supabase unavailable
+- **Auth-aware data loading**: Eliminates premature database calls, coordinated loading states
+
+### 🔧 Phase 1C→1D Bridge: Data Migration Gap
+
+**Discovered Issue**: Users transitioning from anonymous to authenticated see empty state despite having localStorage transaction data.
+
+**Phase 1D Enhancement**: Expanded "User experience improvements" task to include automatic localStorage→Supabase migration with:
+
+- **Auto-detection**: Identify localStorage data on successful authentication
+- **Seamless migration**: Background transfer using existing `AutoStorageProvider.migrateToAuthenticated()`
+- **Progress feedback**: User-friendly migration status and success confirmation
+- **Error handling**: Graceful migration failure recovery with retry options
+
+This completes the Phase 1C infrastructure with proper user experience continuity.
 
 ## 🚀 PHASE 1: Alpha Infrastructure (HIGH Priority - March 2025)
 
@@ -126,17 +140,17 @@ _[Complete details in [completed-tasks-archive.md](completed-tasks-archive.md)]_
 
 ### Phase 1D: Testing & Polish (Week 3)
 
-| Task                                               | Status | Priority | Estimate | Dependencies      | Notes                              |
-| -------------------------------------------------- | ------ | -------- | -------- | ----------------- | ---------------------------------- |
-| Comprehensive testing of dual storage modes        | todo   | high     | 4        | Phase 1C complete | Unit and integration test coverage |
-| Error handling and edge case coverage              | todo   | high     | 3        | testing           | Network failures, data corruption  |
-| Performance optimization for large datasets        | todo   | medium   | 3        | error handling    | Efficient queries and data loading |
-| User experience improvements and migration prompts | todo   | medium   | 3        | performance       | Smooth onboarding and migration UX |
-| Documentation and deployment verification          | todo   | medium   | 2        | UX improvements   | Verify production deployment works |
+| Task                                               | Status | Priority | Estimate | Dependencies      | Notes                                                                                     |
+| -------------------------------------------------- | ------ | -------- | -------- | ----------------- | ----------------------------------------------------------------------------------------- |
+| Comprehensive testing of dual storage modes        | todo   | high     | 4        | Phase 1C complete | Unit and integration test coverage                                                        |
+| Error handling and edge case coverage              | todo   | high     | 3        | testing           | Network failures, data corruption                                                         |
+| Performance optimization for large datasets        | todo   | medium   | 3        | error handling    | Efficient queries and data loading                                                        |
+| User experience improvements and migration prompts | todo   | medium   | 5        | performance       | **EXPANDED**: Auto localStorage→Supabase migration on auth, progress UI, success feedback |
+| Documentation and deployment verification          | todo   | medium   | 2        | UX improvements   | Verify production deployment works                                                        |
 
-**Phase 1D Total**: 15 points | **Target**: 3-4 days
+**Phase 1D Total**: 17 points | **Target**: 4-5 days
 
-**PHASE 1 GRAND TOTAL**: 70 points (55 completed) | **Target**: 2-3 weeks | **Cost**: $0/month
+**PHASE 1 GRAND TOTAL**: 72 points (55 completed) | **Target**: 2-3 weeks | **Cost**: $0/month
 
 ## 🧹 Technical Debt & Code Quality (LOW Priority - Ongoing)
 

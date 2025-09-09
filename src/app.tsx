@@ -6,7 +6,7 @@ import GlobalModals from './components/GlobalModals';
 import ImportReminderToast from './components/ImportReminderToast';
 import NavBar from './components/NavBar';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useOptionalAuth } from './contexts/AuthContext';
 import { useBitcoinPrice } from './hooks/useBitcoinPrice';
 import { useImportFlow } from './hooks/useImportFlow';
 import { usePortfolioStats } from './hooks/usePortfolioStats';
@@ -14,6 +14,9 @@ import { useTransactionManager } from './hooks/useTransactionManager';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
+
+  // Get auth context to coordinate loading states
+  const auth = useOptionalAuth();
 
   // Custom hooks
   const transactionManager = useTransactionManager();
@@ -23,13 +26,15 @@ const AppContent: React.FC = () => {
     onTransactionsMerged: transactionManager.mergeTransactions,
   });
 
-  // Show loading screen while storage is initializing
-  if (transactionManager.loading) {
+  // Show loading screen while auth or storage is initializing
+  if (auth.loading || transactionManager.loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 mx-auto mb-4 border-4 border-orange-600 border-t-transparent rounded-full"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your data...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            {auth.loading ? 'Initializing authentication...' : 'Loading your data...'}
+          </p>
         </div>
       </div>
     );
