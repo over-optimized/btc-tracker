@@ -2,7 +2,7 @@
  * Auto Storage Provider Implementation
  *
  * Automatically switches between localStorage and Supabase based on authentication state.
- * Provides seamless user experience for anonymous and authenticated users.
+ * Provides seamless user experience for anonymous and authenticated users with intelligent caching.
  */
 
 import {
@@ -16,14 +16,30 @@ import {
 import { Transaction } from '../types/Transaction';
 import { LocalStorageProvider } from './LocalStorageProvider';
 import { SupabaseStorageProvider } from './SupabaseStorageProvider';
+import { ApiCache } from './apiCache';
+import { CacheOptions } from '../types/ApiCache';
 
 /**
- * AutoStorageProvider: Intelligent provider switching based on authentication
+ * AutoStorageProvider: Intelligent provider switching based on authentication with caching
  */
 export class AutoStorageProvider extends BaseStorageProvider {
   private localProvider: LocalStorageProvider | null = null;
   private supabaseProvider: SupabaseStorageProvider | null = null;
   private currentProvider: IStorageProvider | null = null;
+  private transactionCache: ApiCache<Transaction[]>;
+  private cacheKeyPrefix = 'transactions';
+
+  // Provider caching to prevent repeated API calls
+  private _providerInitialized = false;
+  private _lastAuthState: { isAuthenticated: boolean; userId?: string } | null = null;
+
+  // Cache configuration - conservative TTL for data integrity
+  private readonly cacheConfig: CacheOptions = {
+    ttl: parseInt(import.meta.env.VITE_SUPABASE_CACHE_TTL || '60000'), // 1 minute default
+    strategy: 'cache-first',
+    persistent: true,
+    crossTab: true,
+  };
 
   readonly info: StorageProviderInfo = {
     type: 'auto',
@@ -32,8 +48,21 @@ export class AutoStorageProvider extends BaseStorageProvider {
     supportsSync: true,
     supportsBackup: true,
     description:
-      'Auto-switching provider: localStorage for anonymous, Supabase for authenticated users',
+      'Auto-switching provider with caching: localStorage for anonymous, Supabase for authenticated users',
   };
+
+  constructor() {
+    super();
+
+    // Initialize transaction cache with configuration
+    this.transactionCache = new ApiCache<Transaction[]>({
+      defaultTtl: this.cacheConfig.ttl,
+      maxEntries: 10, // Conservative - few cache keys for transaction data
+      cleanupInterval: 30000, // 30 seconds cleanup
+      persistent: this.cacheConfig.persistent,
+      sharedWorker: false, // Not needed for transaction data
+    });
+  }
 
   /**
    * Initialize both providers and detect authentication state
@@ -57,15 +86,31 @@ export class AutoStorageProvider extends BaseStorageProvider {
 
       // Initialize Supabase provider if enabled
       if (config?.enableAuth !== false && import.meta.env.VITE_ENABLE_SUPABASE === 'true') {
-        this.supabaseProvider = new SupabaseStorageProvider();
-        const supabaseResult = await this.supabaseProvider.initialize(config);
+        try {
+          this.supabaseProvider = new SupabaseStorageProvider();
+          const supabaseResult = await this.supabaseProvider.initialize(config);
 
-        if (!supabaseResult.success) {
+          if (!supabaseResult.success) {
+            console.warn(
+              '⚠️ Supabase provider initialization failed, gracefully falling back to localStorage only:',
+              supabaseResult.error,
+            );
+            // Clean up the failed provider
+            this.supabaseProvider = null;
+          } else {
+            console.log('✅ Supabase provider initialized successfully');
+          }
+        } catch (error) {
           console.warn(
-            'Supabase provider initialization failed, using localStorage only:',
-            supabaseResult.error,
+            '💥 Supabase provider failed to initialize due to exception, using localStorage only:',
+            error instanceof Error ? error.message : 'Unknown error',
           );
+          this.supabaseProvider = null;
         }
+      } else {
+        console.log(
+          '📁 Supabase disabled or authentication disabled - using localStorage only mode',
+        );
       }
 
       // Determine current provider based on authentication state
@@ -79,54 +124,70 @@ export class AutoStorageProvider extends BaseStorageProvider {
   }
 
   /**
-   * Update current provider based on authentication state
+   * Update current provider based on authentication state (with intelligent caching)
    */
-  private async updateCurrentProvider(): Promise<void> {
-    console.log('🔍 AutoStorageProvider: Updating current provider...');
+  private async updateCurrentProvider(forceUpdate = false): Promise<void> {
+    // Get current auth state from context if available
+    const authContext = this._config?.authContext;
+    const currentAuthState = authContext
+      ? {
+          isAuthenticated: authContext.isAuthenticated || false,
+          userId: authContext.user?.id,
+          loading: authContext.loading || false,
+        }
+      : null;
+
+    // Skip update if provider already initialized and auth state hasn't changed
+    if (this._providerInitialized && !forceUpdate && currentAuthState) {
+      const authStateChanged =
+        !this._lastAuthState ||
+        this._lastAuthState.isAuthenticated !== currentAuthState.isAuthenticated ||
+        this._lastAuthState.userId !== currentAuthState.userId;
+
+      if (!authStateChanged) {
+        console.log('✅ Provider already up-to-date, skipping expensive update');
+        return;
+      }
+    }
+
+    console.log('🔄 Updating current provider based on auth state');
 
     // Use auth context if available for immediate decision
-    if (this._config?.authContext) {
-      const auth = this._config.authContext;
+    if (authContext) {
       console.log('📡 Using auth context:', {
-        loading: auth.loading,
-        isAuthenticated: auth.isAuthenticated,
-        hasSupabase: !!auth.supabase,
+        loading: currentAuthState?.loading,
+        isAuthenticated: currentAuthState?.isAuthenticated,
+        hasSupabase: !!authContext.supabase,
       });
 
       // If auth is still loading, don't make any changes
-      if (auth.loading) {
+      if (currentAuthState?.loading) {
         console.log('⏳ Auth still loading, keeping current provider');
         return;
       }
 
       // If authenticated and Supabase is available, use Supabase
-      if (auth.isAuthenticated && auth.supabase && this.supabaseProvider) {
+      if (currentAuthState?.isAuthenticated && authContext.supabase && this.supabaseProvider) {
         console.log('✅ Using Supabase provider (authenticated)');
         this.currentProvider = this.supabaseProvider;
+        this._providerInitialized = true;
+        this._lastAuthState = currentAuthState;
         return;
       }
 
       // Otherwise use localStorage
       console.log('📁 Using localStorage provider (anonymous or no Supabase)');
       this.currentProvider = this.localProvider;
+      this._providerInitialized = true;
+      this._lastAuthState = currentAuthState;
       return;
     }
 
-    // Fallback to legacy provider detection
-    if (this.supabaseProvider) {
-      const status = await this.supabaseProvider.getStatus();
-
-      // Use Supabase if authenticated and healthy
-      if (status.success && status.data?.isAuthenticated) {
-        console.log('✅ Using Supabase provider (legacy detection)');
-        this.currentProvider = this.supabaseProvider;
-        return;
-      }
-    }
-
-    // Fall back to localStorage
-    console.log('📁 Using localStorage provider (fallback)');
+    // No auth context available - default to localStorage (safe fallback)
+    console.warn('⚠️ No auth context available, defaulting to localStorage provider');
     this.currentProvider = this.localProvider;
+    this._providerInitialized = true;
+    this._lastAuthState = null;
   }
 
   /**
@@ -134,8 +195,6 @@ export class AutoStorageProvider extends BaseStorageProvider {
    */
   async getStatus(): Promise<StorageOperationResult<any>> {
     try {
-      await this.updateCurrentProvider();
-
       if (!this.currentProvider) {
         return this.createResult(false, undefined, 'No provider available', 'getStatus');
       }
@@ -159,67 +218,206 @@ export class AutoStorageProvider extends BaseStorageProvider {
   }
 
   /**
-   * Delegate to current provider with automatic switching
+   * Get cached cache key for query
+   */
+  private getCacheKey(query?: TransactionQuery): string {
+    if (!query) {
+      return `${this.cacheKeyPrefix}:all`;
+    }
+
+    // Create deterministic cache key based on query parameters
+    const keyParts = [this.cacheKeyPrefix];
+
+    if (query.exchange) keyParts.push(`exchange:${query.exchange}`);
+    if (query.type) keyParts.push(`type:${query.type}`);
+    if (query.startDate) keyParts.push(`start:${query.startDate.toISOString()}`);
+    if (query.endDate) keyParts.push(`end:${query.endDate.toISOString()}`);
+    if (query.minAmount !== undefined) keyParts.push(`minAmount:${query.minAmount}`);
+    if (query.maxAmount !== undefined) keyParts.push(`maxAmount:${query.maxAmount}`);
+    if (query.onlyTaxableEvents) keyParts.push('taxableOnly:true');
+    if (query.sortBy) keyParts.push(`sort:${query.sortBy}:${query.sortOrder || 'desc'}`);
+    if (query.limit) keyParts.push(`limit:${query.limit}`);
+    if (query.offset) keyParts.push(`offset:${query.offset}`);
+
+    return keyParts.join('|');
+  }
+
+  /**
+   * Clear transaction cache when data is modified
+   */
+  private invalidateTransactionCache(): void {
+    console.log('🗑️ Invalidating transaction cache due to data modification');
+    this.transactionCache.clear();
+  }
+
+  /**
+   * Delegate to current provider with intelligent caching
    */
   async getTransactions(query?: TransactionQuery): Promise<StorageOperationResult<Transaction[]>> {
-    await this.updateCurrentProvider();
-    return (
-      this.currentProvider?.getTransactions(query) ||
-      this.createResult(false, [], 'No provider available', 'getTransactions')
-    );
+    // Provider should already be set during initialization - don't update on every call!
+    if (!this.currentProvider) {
+      return this.createResult(false, [], 'No provider available', 'getTransactions');
+    }
+
+    // Only cache Supabase results (localStorage is already fast)
+    const shouldCache = this.currentProvider === this.supabaseProvider;
+
+    if (!shouldCache) {
+      console.log('📁 Using localStorage provider (no caching needed)');
+      return this.currentProvider.getTransactions(query);
+    }
+
+    const cacheKey = this.getCacheKey(query);
+    console.log('🔍 Checking cache for transactions:', cacheKey);
+
+    // Try to get from cache first
+    const cachedResult = this.transactionCache.get(cacheKey);
+    if (cachedResult) {
+      console.log('✅ Cache hit for transactions:', cachedResult.data.length, 'transactions');
+      return this.createResult(true, cachedResult.data, undefined, 'getTransactions');
+    }
+
+    console.log('❌ Cache miss, fetching from Supabase...');
+
+    try {
+      // Fetch from Supabase
+      const result = await this.currentProvider.getTransactions(query);
+
+      if (result.success && result.data) {
+        // Cache successful results
+        console.log('💾 Caching transaction data:', result.data.length, 'transactions');
+        this.transactionCache.set(cacheKey, result.data, this.cacheConfig);
+      } else {
+        console.warn('⚠️ Supabase fetch failed, attempting localStorage fallback:', result.error);
+
+        // If Supabase fails, try to fall back to localStorage
+        if (this.localProvider && this.supabaseProvider) {
+          console.log('🔄 Attempting localStorage fallback for transaction fetch...');
+          const fallbackResult = await this.localProvider.getTransactions(query);
+          if (fallbackResult.success) {
+            console.log('✅ localStorage fallback successful');
+            return fallbackResult;
+          }
+        }
+      }
+
+      return result;
+    } catch (error) {
+      console.error('💥 Exception during Supabase fetch:', error);
+
+      // If Supabase throws an exception, try localStorage fallback
+      if (this.localProvider) {
+        console.log('🔄 Emergency localStorage fallback due to exception...');
+        try {
+          const fallbackResult = await this.localProvider.getTransactions(query);
+          if (fallbackResult.success) {
+            console.log('✅ Emergency localStorage fallback successful');
+            return fallbackResult;
+          }
+        } catch (fallbackError) {
+          console.error('💥 localStorage fallback also failed:', fallbackError);
+        }
+      }
+
+      return this.createResult(
+        false,
+        [],
+        error instanceof Error ? error.message : 'Unknown error during transaction fetch',
+        'getTransactions',
+      );
+    }
   }
 
   async getTransaction(id: string): Promise<StorageOperationResult<Transaction | null>> {
-    await this.updateCurrentProvider();
-    return (
-      this.currentProvider?.getTransaction(id) ||
-      this.createResult(false, null, 'No provider available', 'getTransaction')
-    );
+    if (!this.currentProvider) {
+      return this.createResult(false, null, 'No provider available', 'getTransaction');
+    }
+    return this.currentProvider.getTransaction(id);
   }
 
   async saveTransaction(transaction: Transaction): Promise<StorageOperationResult<Transaction>> {
-    await this.updateCurrentProvider();
-    return (
-      this.currentProvider?.saveTransaction(transaction) ||
-      this.createResult(false, transaction, 'No provider available', 'saveTransaction')
-    );
+    if (!this.currentProvider) {
+      return this.createResult(false, transaction, 'No provider available', 'saveTransaction');
+    }
+
+    const result = await this.currentProvider.saveTransaction(transaction);
+
+    // Invalidate cache if successful and using Supabase
+    if (result.success && this.currentProvider === this.supabaseProvider) {
+      this.invalidateTransactionCache();
+    }
+
+    return result;
   }
 
   async saveTransactions(
     transactions: Transaction[],
   ): Promise<StorageOperationResult<Transaction[]>> {
-    await this.updateCurrentProvider();
-    return (
-      this.currentProvider?.saveTransactions(transactions) ||
-      this.createResult(false, [], 'No provider available', 'saveTransactions')
-    );
+    if (!this.currentProvider) {
+      return this.createResult(false, [], 'No provider available', 'saveTransactions');
+    }
+
+    const result = await this.currentProvider.saveTransactions(transactions);
+
+    // Invalidate cache if successful and using Supabase
+    if (result.success && this.currentProvider === this.supabaseProvider) {
+      this.invalidateTransactionCache();
+    }
+
+    return result;
   }
 
   async updateTransaction(
     id: string,
     updates: Partial<Transaction>,
   ): Promise<StorageOperationResult<Transaction>> {
-    await this.updateCurrentProvider();
-    return (
-      this.currentProvider?.updateTransaction(id, updates) ||
-      this.createResult(false, updates as Transaction, 'No provider available', 'updateTransaction')
-    );
+    if (!this.currentProvider) {
+      return this.createResult(
+        false,
+        updates as Transaction,
+        'No provider available',
+        'updateTransaction',
+      );
+    }
+
+    const result = await this.currentProvider.updateTransaction(id, updates);
+
+    // Invalidate cache if successful and using Supabase
+    if (result.success && this.currentProvider === this.supabaseProvider) {
+      this.invalidateTransactionCache();
+    }
+
+    return result;
   }
 
   async deleteTransaction(id: string): Promise<StorageOperationResult<void>> {
-    await this.updateCurrentProvider();
-    return (
-      this.currentProvider?.deleteTransaction(id) ||
-      this.createResult(false, undefined, 'No provider available', 'deleteTransaction')
-    );
+    if (!this.currentProvider) {
+      return this.createResult(false, undefined, 'No provider available', 'deleteTransaction');
+    }
+
+    const result = await this.currentProvider.deleteTransaction(id);
+
+    // Invalidate cache if successful and using Supabase
+    if (result.success && this.currentProvider === this.supabaseProvider) {
+      this.invalidateTransactionCache();
+    }
+
+    return result;
   }
 
   async clearTransactions(): Promise<StorageOperationResult<void>> {
-    await this.updateCurrentProvider();
-    return (
-      this.currentProvider?.clearTransactions() ||
-      this.createResult(false, undefined, 'No provider available', 'clearTransactions')
-    );
+    if (!this.currentProvider) {
+      return this.createResult(false, undefined, 'No provider available', 'clearTransactions');
+    }
+
+    const result = await this.currentProvider.clearTransactions();
+
+    // Invalidate cache if successful and using Supabase
+    if (result.success && this.currentProvider === this.supabaseProvider) {
+      this.invalidateTransactionCache();
+    }
+
+    return result;
   }
 
   /**
@@ -276,6 +474,9 @@ export class AutoStorageProvider extends BaseStorageProvider {
       // Clear localStorage after successful migration
       await this.localProvider.clearTransactions();
 
+      // Invalidate cache since we just added data to Supabase
+      this.invalidateTransactionCache();
+
       return this.createResult(
         true,
         {
@@ -295,11 +496,10 @@ export class AutoStorageProvider extends BaseStorageProvider {
   // ============================================================================
 
   async bulkOperations(): Promise<StorageOperationResult<Transaction[]>> {
-    await this.updateCurrentProvider();
-    return (
-      this.currentProvider?.bulkOperations([]) ||
-      this.createResult(false, [], 'No provider available', 'bulkOperations')
-    );
+    if (!this.currentProvider) {
+      return this.createResult(false, [], 'No provider available', 'bulkOperations');
+    }
+    return this.currentProvider.bulkOperations([]);
   }
 
   async importTransactions(): Promise<StorageOperationResult<any>> {
@@ -340,6 +540,11 @@ export class AutoStorageProvider extends BaseStorageProvider {
   }
 
   async dispose(): Promise<void> {
+    // Clean up cache resources
+    if (this.transactionCache) {
+      this.transactionCache.destroy();
+    }
+
     if (this.localProvider) {
       await this.localProvider.dispose();
       this.localProvider = null;

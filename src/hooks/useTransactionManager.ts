@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Transaction } from '../types/Transaction';
 import { AutoStorageProvider } from '../utils/AutoStorageProvider';
 import { StorageProviderConfig } from '../types/StorageProvider';
@@ -27,18 +27,39 @@ export const useTransactionManager = (): TransactionManagerResult => {
   const [error, setError] = useState<string | null>(null);
   const [storageProvider, setStorageProvider] = useState<AutoStorageProvider | null>(null);
 
+  // Use ref to prevent re-initialization on auth context changes
+  const initializationAttempted = useRef(false);
+
   // Get auth context to coordinate with authentication state
   const auth = useOptionalAuth();
+
+  // Create stable auth context reference for storage provider
+  // NOTE: Only include essential stable data needed for storage provider
+  const stableAuthContext = useMemo(
+    () => ({
+      loading: auth.loading,
+      isAuthenticated: auth.isAuthenticated,
+      isAnonymous: auth.isAnonymous,
+      user: auth.user,
+      session: auth.session,
+      supabase: auth.supabase,
+      // Auth functions are not needed for storage provider operations
+    }),
+    [
+      auth.loading,
+      auth.isAuthenticated,
+      auth.isAnonymous,
+      auth.user?.id, // Only track user ID, not the entire user object
+      auth.session?.access_token, // Only track access token, not entire session
+      auth.supabase,
+    ],
+  );
 
   // Initialize storage provider and load transactions - auth-aware
   useEffect(() => {
     const initializeStorage = async () => {
       try {
-        console.log('🔄 Transaction manager initializing with auth state:', {
-          authLoading: auth.loading,
-          isAuthenticated: auth.isAuthenticated,
-          hasSupabase: !!auth.supabase,
-        });
+        console.log('🔄 Transaction manager initializing (one-time)');
 
         setLoading(true);
         setError(null);
@@ -46,7 +67,7 @@ export const useTransactionManager = (): TransactionManagerResult => {
         const provider = new AutoStorageProvider();
         const config: StorageProviderConfig = {
           enableAuth: true, // Allow authentication but don't require it
-          authContext: auth, // Pass auth context to storage provider
+          authContext: stableAuthContext, // Pass stable auth context to storage provider
         };
 
         const initResult = await provider.initialize(config);
@@ -83,11 +104,12 @@ export const useTransactionManager = (): TransactionManagerResult => {
       }
     };
 
-    // Only initialize when auth loading is complete
-    if (!auth.loading) {
+    // Only initialize once when auth loading is complete
+    if (!auth.loading && !initializationAttempted.current) {
+      initializationAttempted.current = true;
       initializeStorage();
     }
-  }, [auth.loading, auth.isAuthenticated, auth.supabase, auth]);
+  }, [auth.loading, stableAuthContext]);
 
   const addTransaction = async (transaction: Transaction) => {
     if (!storageProvider) {
@@ -156,7 +178,8 @@ export const useTransactionManager = (): TransactionManagerResult => {
   };
 
   const getExchangesList = (): string[] => {
-    const exchanges = new Set(transactions.map((tx) => tx.exchange));
+    const safeTransactions = Array.isArray(transactions) ? transactions : [];
+    const exchanges = new Set(safeTransactions.map((tx) => tx.exchange));
     return Array.from(exchanges).sort();
   };
 
