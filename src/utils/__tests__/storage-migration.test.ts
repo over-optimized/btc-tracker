@@ -388,9 +388,9 @@ describe('Storage Migration Logic', () => {
       (provider as any).localProvider = mockLocalStorageProvider;
       (provider as any).supabaseProvider = mockSupabaseProvider;
 
-      const startTime = performance.now();
+      const startTime = Date.now();
       const result = await provider.migrateToAuthenticated();
-      const duration = performance.now() - startTime;
+      const duration = Date.now() - startTime;
 
       expect(result.success).toBe(true);
       expect(result.data?.migrated).toBe(100);

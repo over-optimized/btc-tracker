@@ -345,10 +345,10 @@ export class PerformanceTestUtils {
    */
   private async getMemoryUsage(): Promise<number> {
     return await this.page.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (
         typeof window !== 'undefined' &&
         'performance' in window &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         'memory' in (window as any).performance
       ) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
