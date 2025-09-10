@@ -169,6 +169,31 @@ export class AutoStorageProvider extends BaseStorageProvider {
       // If authenticated and Supabase is available, use Supabase
       if (currentAuthState?.isAuthenticated && authContext.supabase && this.supabaseProvider) {
         console.log('✅ Using Supabase provider (authenticated)');
+
+        // Check if we're transitioning from anonymous to authenticated
+        const wasAnonymous = !this._lastAuthState?.isAuthenticated;
+        const nowAuthenticated = currentAuthState.isAuthenticated;
+
+        if (wasAnonymous && nowAuthenticated) {
+          console.log(
+            '🚀 Auth state changed from anonymous to authenticated - triggering migration',
+          );
+          // Trigger migration asynchronously to avoid blocking provider setup
+          this.migrateToAuthenticated()
+            .then((result) => {
+              if (result.success) {
+                console.log(
+                  `✅ Migration completed: ${result.data?.migrated} transactions migrated`,
+                );
+              } else {
+                console.error('❌ Migration failed:', result.error);
+              }
+            })
+            .catch((error) => {
+              console.error('💥 Migration error:', error);
+            });
+        }
+
         this.currentProvider = this.supabaseProvider;
         this._providerInitialized = true;
         this._lastAuthState = currentAuthState;

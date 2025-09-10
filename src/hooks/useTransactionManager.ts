@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Transaction } from '../types/Transaction';
 import { AutoStorageProvider } from '../utils/AutoStorageProvider';
 import { StorageProviderConfig } from '../types/StorageProvider';
@@ -35,6 +35,8 @@ export const useTransactionManager = (): TransactionManagerResult => {
 
   // Create stable auth context reference for storage provider
   // NOTE: Only include essential stable data needed for storage provider
+  // IMPORTANT: We deliberately use specific properties (user?.id, session?.access_token)
+  // instead of full objects to prevent infinite re-renders from object recreation
   const stableAuthContext = useMemo(
     () => ({
       loading: auth.loading,
@@ -45,6 +47,7 @@ export const useTransactionManager = (): TransactionManagerResult => {
       supabase: auth.supabase,
       // Auth functions are not needed for storage provider operations
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       auth.loading,
       auth.isAuthenticated,
@@ -52,6 +55,8 @@ export const useTransactionManager = (): TransactionManagerResult => {
       auth.user?.id, // Only track user ID, not the entire user object
       auth.session?.access_token, // Only track access token, not entire session
       auth.supabase,
+      // NOTE: We intentionally do NOT include auth.user and auth.session here
+      // to prevent infinite re-renders from object recreation
     ],
   );
 
