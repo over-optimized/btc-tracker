@@ -251,13 +251,11 @@ export class MigrationTestUtils {
    * Wait for migration to complete by watching console logs
    */
   async waitForMigrationComplete() {
-    let migrationCompleted = false;
-
     // Listen for migration completion logs
     this.page.on('console', (msg) => {
       const text = msg.text();
       if (text.includes('Migration completed:') || text.includes('migration successful')) {
-        migrationCompleted = true;
+        // Migration completed - handled by waitForFunction below
       }
     });
 
@@ -317,9 +315,9 @@ export class PerformanceTestUtils {
   ): Promise<{ result: T; duration: number }> {
     console.log(`⏱️ Starting performance measurement: ${name}`);
 
-    const start = performance.now();
+    const start = Date.now();
     const result = await operation();
-    const duration = performance.now() - start;
+    const duration = Date.now() - start;
 
     console.log(`✅ ${name} completed in ${duration.toFixed(2)}ms`);
 
@@ -347,8 +345,14 @@ export class PerformanceTestUtils {
    */
   private async getMemoryUsage(): Promise<number> {
     return await this.page.evaluate(() => {
-      if ('memory' in performance) {
-        return (performance as any).memory.usedJSHeapSize / 1024 / 1024;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (
+        typeof window !== 'undefined' &&
+        'performance' in window &&
+        'memory' in (window as any).performance
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (window as any).performance.memory.usedJSHeapSize / 1024 / 1024;
       }
       return 0;
     });
@@ -403,8 +407,10 @@ export class ErrorSimulationUtils {
    */
   async simulateStorageQuotaExceeded() {
     await this.page.addInitScript(() => {
-      const originalSetItem = Storage.prototype.setItem;
-      Storage.prototype.setItem = function (key: string, value: string) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const originalSetItem = (window as any).Storage.prototype.setItem;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).Storage.prototype.setItem = function (key: string, value: string) {
         if (key.startsWith('btc-tracker')) {
           throw new Error('QuotaExceededError: Failed to execute setItem on Storage');
         }

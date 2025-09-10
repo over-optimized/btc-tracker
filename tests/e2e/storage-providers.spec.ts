@@ -5,16 +5,8 @@
 
 import { test, expect } from '@playwright/test';
 import { createTestUtils } from '../utils/test-helpers';
-import {
-  getTestTransactions,
-  generateTransactionSet,
-  largeTransactionSet,
-} from '../fixtures/test-transactions';
-import {
-  anonymousState,
-  authenticatedState,
-  existingUserState,
-} from '../fixtures/mock-auth-states';
+import { getTestTransactions, generateTransactionSet } from '../fixtures/test-transactions';
+import { authenticatedState } from '../fixtures/mock-auth-states';
 
 test.describe('Storage Providers', () => {
   test.beforeEach(async ({ page }) => {
@@ -317,8 +309,6 @@ test.describe('Storage Providers', () => {
     });
 
     test('should handle concurrent storage operations', async ({ page }) => {
-      const utils = createTestUtils(page);
-
       console.log('🧪 Testing concurrent storage operations...');
 
       // Create multiple small transaction sets

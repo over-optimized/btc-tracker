@@ -5,12 +5,7 @@
 
 import { test, expect } from '@playwright/test';
 import { createTestUtils } from '../utils/test-helpers';
-import {
-  getTestTransactions,
-  generateTransactionSet,
-  largeTransactionSet,
-} from '../fixtures/test-transactions';
-import { authenticatedState } from '../fixtures/mock-auth-states';
+import { getTestTransactions, generateTransactionSet } from '../fixtures/test-transactions';
 
 test.describe('Error Handling', () => {
   test.beforeEach(async ({ page }) => {
@@ -71,7 +66,7 @@ test.describe('Error Handling', () => {
       await utils.auth.simulateAuthentication('slow-network-user');
 
       // App should show loading states and eventually complete
-      const hasLoadingState = await page
+      await page
         .locator('[data-testid="loading-spinner"]')
         .isVisible({ timeout: 2000 })
         .catch(() => false);
@@ -350,6 +345,7 @@ test.describe('Error Handling', () => {
         { usdAmount: 100, btcAmount: 0.01, exchange: 'Test' }, // Missing ID
       ];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await utils.localStorage.setTransactions(incompleteTransactions as any);
 
       await page.reload();

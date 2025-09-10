@@ -5,13 +5,8 @@
 
 import { test, expect } from '@playwright/test';
 import { createTestUtils } from '../utils/test-helpers';
-import {
-  getTestTransactions,
-  smallTransactionSet,
-  mediumTransactionSet,
-  multiExchangeTransactionSet,
-} from '../fixtures/test-transactions';
-import { migrationTestUser, anonymousState } from '../fixtures/mock-auth-states';
+import { getTestTransactions } from '../fixtures/test-transactions';
+import { migrationTestUser } from '../fixtures/mock-auth-states';
 
 test.describe('Migration Flow', () => {
   test.beforeEach(async ({ page }) => {
