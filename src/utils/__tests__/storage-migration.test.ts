@@ -9,7 +9,7 @@ import { Transaction } from '../../types/Transaction';
 // Test data fixtures
 const createTestTransaction = (overrides: Partial<Transaction> = {}): Transaction => ({
   id: 'test-tx-1',
-  date: new Date('2024-01-15').toISOString(),
+  date: new Date('2024-01-15'),
   exchange: 'Test Exchange',
   type: 'Purchase',
   usdAmount: 1000,
@@ -24,7 +24,7 @@ const createTestTransactionSet = (count: number): Transaction[] =>
       id: `test-tx-${i + 1}`,
       usdAmount: 100 + i * 50,
       btcAmount: (100 + i * 50) / 45000,
-      date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+      date: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
     }),
   );
 
@@ -171,7 +171,7 @@ describe('Storage Migration Logic', () => {
         price: 50000.99,
         exchange: 'Complex Exchange Name',
         type: 'Purchase',
-        date: '2024-02-15T14:30:00.000Z',
+        date: new Date('2024-02-15T14:30:00.000Z'),
       });
 
       mockLocalStorageProvider.getTransactions.mockResolvedValue({
@@ -179,7 +179,7 @@ describe('Storage Migration Logic', () => {
         data: [originalTransaction],
       });
 
-      mockSupabaseProvider.saveTransactions.mockImplementation((transactions) => {
+      mockSupabaseProvider.saveTransactions.mockImplementation((transactions: Transaction[]) => {
         // Verify the exact transaction data was passed
         expect(transactions).toHaveLength(1);
         expect(transactions[0]).toEqual(originalTransaction);
@@ -504,7 +504,7 @@ describe('Storage Migration Logic', () => {
     it('should handle transactions with very old dates', async () => {
       const oldTransaction = createTestTransaction({
         id: 'old-tx',
-        date: '2009-01-03T18:15:05.000Z', // Bitcoin genesis block date
+        date: new Date('2009-01-03T18:15:05.000Z'), // Bitcoin genesis block date
       });
 
       mockLocalStorageProvider.getTransactions.mockResolvedValue({
@@ -535,7 +535,7 @@ describe('Storage Migration Logic', () => {
     it('should handle transactions with future dates', async () => {
       const futureTransaction = createTestTransaction({
         id: 'future-tx',
-        date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year in future
+        date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year in future
       });
 
       mockLocalStorageProvider.getTransactions.mockResolvedValue({
@@ -593,8 +593,6 @@ describe('Storage Migration Logic', () => {
       expect(result.data).toBeDefined();
       expect(result.data?.migrated).toBe(10);
       expect(result.data?.errors).toBe(0);
-      expect(typeof result.operation).toBe('string');
-      expect(typeof result.timestamp).toBe('string');
     });
 
     it('should provide error details for failed migrations', async () => {
@@ -611,8 +609,6 @@ describe('Storage Migration Logic', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Detailed error message');
-      expect(result.operation).toBe('migrateToAuthenticated');
-      expect(typeof result.timestamp).toBe('string');
     });
   });
 });

@@ -44,7 +44,7 @@ describe('AutoStorageProvider', () => {
 
   const sampleTransaction: Transaction = {
     id: 'test-tx-1',
-    date: new Date('2024-01-15').toISOString(),
+    date: new Date('2024-01-15'),
     exchange: 'Test Exchange',
     type: 'Purchase',
     usdAmount: 1000,
@@ -85,7 +85,7 @@ describe('AutoStorageProvider', () => {
     });
 
     it('should fail gracefully with invalid config', async () => {
-      const invalidConfig = null as any;
+      const invalidConfig = undefined as any;
 
       const result = await provider.initialize(invalidConfig);
 
@@ -356,7 +356,7 @@ describe('AutoStorageProvider', () => {
 
   describe('Error Handling', () => {
     it('should handle provider initialization errors', async () => {
-      const errorConfig = { ...mockConfig, authContext: null };
+      const errorConfig = { ...mockConfig, authContext: undefined };
 
       const result = await provider.initialize(errorConfig);
 
@@ -514,7 +514,7 @@ describe('AutoStorageProvider', () => {
 
   describe('Edge Cases', () => {
     it('should handle null/undefined auth context gracefully', async () => {
-      const configWithNullAuth = { ...mockConfig, authContext: null };
+      const configWithNullAuth = { ...mockConfig, authContext: undefined };
 
       const result = await provider.initialize(configWithNullAuth);
 
