@@ -16,6 +16,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.3.0-dev] - Q1 2025 Development Phase ✅ INFRASTRUCTURE COMPLETE
 
+### 🎨 UI/UX Improvements
+
+- **Logo Enhancement**: Redesigned brand header with Bitcoin symbol integration and Inter typography
+  - Replaced "BTC Tracker" with "₿TC Tracker" for better brand recognition
+  - Added Inter font family for modern, professional typography
+  - Removed duplicate Bitcoin icon and repositioned trending indicator
+  - Maintained beautiful gradient effects and shimmer animations
+
+- **Accessibility & Contrast Improvements**: Fixed light mode text contrast across multiple components
+  - Enhanced auth button text visibility in light theme
+  - Improved chart title contrast using CSS custom properties
+  - Fixed navigation and form element readability
+
+- **TimeRangeSelector UX Upgrade**: Converted filter buttons to professional dropdown
+  - Replaced 5 horizontal buttons with space-efficient dropdown control
+  - Solved persistent contrast issues with native select styling
+  - Improved mobile experience and accessibility
+  - Better visual hierarchy and cleaner interface
+
+- **Font Optimization**: Reduced bundle size by removing unused Inter font weights
+  - Optimized from 4 weights (400,500,600,700) to 2 weights (500,600)
+  - Focused font usage on brand elements only
+
+### 🐛 Bug Fixes
+
+- **Error Handling**: Fixed "transactions.forEach is not a function" TypeError on page refresh
+  - Added defensive programming to self-custody tracking utilities
+  - Implemented proper array validation in `calculateExchangeBalances` and `analyzeSelfCustody`
+  - Graceful degradation with sensible defaults during loading states
+
 ### 🏗️ Infrastructure & Deployment (Phase 0.6 - COMPLETE)
 
 - **Legal Compliance & Feature Flag System**: Production-safe deployment with risk-based feature management

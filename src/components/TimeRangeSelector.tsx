@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronDown } from 'lucide-react';
 import { TimeRangeOption, getDateRange, getAvailableYearOptions } from '../utils/dateFilters';
 
 interface TimeRangeSelectorProps {
@@ -16,34 +17,37 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
 }) => {
   const availableOptions = getAvailableYearOptions(transactions);
 
-  const buttonBaseClasses =
-    'px-3 py-1.5 text-sm font-medium rounded-md transition-colors min-h-[44px] sm:min-h-auto sm:px-2 sm:py-1';
-
-  const getButtonClasses = (option: TimeRangeOption) => {
-    const isSelected = selectedRange === option;
-    return `${buttonBaseClasses} ${
-      isSelected
-        ? 'bg-blue-600 text-white'
-        : 'bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500'
-    }`;
-  };
-
   const getOptionLabel = (option: TimeRangeOption) => {
     return getDateRange(option).label;
   };
 
   return (
-    <div className={`flex flex-wrap gap-1 sm:gap-2 ${className}`}>
-      {availableOptions.map((option) => (
-        <button
-          key={option}
-          onClick={() => onRangeChange(option)}
-          className={getButtonClasses(option)}
-          type="button"
-        >
-          {getOptionLabel(option)}
-        </button>
-      ))}
+    <div className={`relative inline-block ${className}`}>
+      <select
+        value={selectedRange}
+        onChange={(e) => onRangeChange(e.target.value as TimeRangeOption)}
+        className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 
+                   text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 pr-10 text-sm font-medium
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                   hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer
+                   min-w-[140px]"
+        style={{ color: 'var(--color-text-primary)' }}
+      >
+        {availableOptions.map((option) => (
+          <option
+            key={option}
+            value={option}
+            className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+          >
+            {getOptionLabel(option)}
+          </option>
+        ))}
+      </select>
+
+      {/* Custom chevron icon */}
+      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+        <ChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+      </div>
     </div>
   );
 };

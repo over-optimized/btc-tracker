@@ -19,10 +19,13 @@ describe('TimeRangeSelector', () => {
   it('should render basic time range options when no transactions', () => {
     render(<TimeRangeSelector {...defaultProps} />);
 
-    expect(screen.getByText('Last 6 Months')).toBeInTheDocument();
-    expect(screen.getByText('Last 12 Months')).toBeInTheDocument();
-    expect(screen.getByText('Year to Date')).toBeInTheDocument();
-    expect(screen.getByText('All Time')).toBeInTheDocument();
+    const select = screen.getByRole('combobox');
+    expect(select).toBeInTheDocument();
+
+    expect(screen.getByRole('option', { name: 'Last 6 Months' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Last 12 Months' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Year to Date' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'All Time' })).toBeInTheDocument();
   });
 
   it('should include year options when transactions have data for those years', () => {
@@ -30,25 +33,22 @@ describe('TimeRangeSelector', () => {
 
     render(<TimeRangeSelector {...defaultProps} transactions={transactions} />);
 
-    expect(screen.getByText('2025')).toBeInTheDocument();
-    expect(screen.getByText('2024')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '2025' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '2024' })).toBeInTheDocument();
   });
 
-  it('should highlight the selected range', () => {
+  it('should show the selected range as the current value', () => {
     render(<TimeRangeSelector {...defaultProps} selectedRange="last6months" />);
 
-    const selectedButton = screen.getByText('Last 6 Months');
-    const unselectedButton = screen.getByText('Last 12 Months');
-
-    expect(selectedButton).toHaveClass('bg-blue-600', 'text-white');
-    expect(unselectedButton).toHaveClass('bg-gray-200', 'text-gray-900');
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    expect(select.value).toBe('last6months');
   });
 
-  it('should call onRangeChange when a button is clicked', () => {
+  it('should call onRangeChange when dropdown value changes', () => {
     render(<TimeRangeSelector {...defaultProps} />);
 
-    const button = screen.getByText('Last 6 Months');
-    fireEvent.click(button);
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'last6months' } });
 
     expect(mockOnRangeChange).toHaveBeenCalledTimes(1);
     expect(mockOnRangeChange).toHaveBeenCalledWith('last6months');
@@ -61,12 +61,15 @@ describe('TimeRangeSelector', () => {
     expect(wrapper).toHaveClass('custom-class');
   });
 
-  it('should have proper touch targets for mobile accessibility', () => {
+  it('should have proper accessibility attributes for dropdown', () => {
     render(<TimeRangeSelector {...defaultProps} />);
 
-    const buttons = screen.getAllByRole('button');
-    buttons.forEach((button) => {
-      expect(button).toHaveClass('min-h-[44px]');
-    });
+    const select = screen.getByRole('combobox');
+    expect(select).toBeInTheDocument();
+    expect(select).toHaveAttribute('class');
+
+    // Check that options are accessible
+    const options = screen.getAllByRole('option');
+    expect(options.length).toBeGreaterThan(0);
   });
 });

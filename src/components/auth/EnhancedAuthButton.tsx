@@ -61,7 +61,10 @@ export const EnhancedAuthButton: React.FC<EnhancedAuthButtonProps> = ({
       <div className={`flex items-center space-x-3 ${className}`}>
         {/* Status indicator - hidden on mobile, tooltip on desktop */}
         <div className="hidden sm:flex flex-col items-end group relative">
-          <span className="text-sm font-medium text-gray-900 dark:text-white cursor-help">
+          <span
+            className="text-sm font-medium cursor-help"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
             Synced to cloud
           </span>
           <span className="text-xs text-green-600 dark:text-green-400">
@@ -92,7 +95,7 @@ export const EnhancedAuthButton: React.FC<EnhancedAuthButtonProps> = ({
         <div className="sm:hidden">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-700 dark:text-gray-300">Synced</span>
+            <span className="text-sm text-slate-900 dark:text-gray-300">Synced</span>
           </div>
         </div>
 
@@ -100,7 +103,7 @@ export const EnhancedAuthButton: React.FC<EnhancedAuthButtonProps> = ({
         <button
           onClick={handleSignOut}
           disabled={signOutLoading}
-          className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 
+          className="flex items-center px-3 py-2 text-sm font-medium text-slate-900 dark:text-gray-300 
                      bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
                      rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 
                      focus:ring-2 focus:ring-orange-500 focus:border-transparent
@@ -292,7 +295,7 @@ export const EnhancedAuthButton: React.FC<EnhancedAuthButtonProps> = ({
             >
               <button
                 onClick={() => handleAuthAction('login')}
-                className="block w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300
+                className="block w-full px-3 py-2 text-left text-sm text-slate-900 dark:text-gray-300
                            hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 {contextualMessage.secondary}
