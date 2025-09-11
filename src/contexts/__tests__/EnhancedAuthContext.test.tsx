@@ -24,7 +24,7 @@ vi.mock('../AuthContext', () => ({
 const mockAuthHistory = {
   hasEverAuthenticated: false,
   lastAuthenticatedAt: null,
-  userPreference: 'undecided' as const,
+  userPreference: 'undecided' as 'anonymous' | 'authenticated' | 'undecided',
   deviceUsers: [],
   authenticationAttempts: 0,
   lastPreferenceUpdate: null,
@@ -32,7 +32,7 @@ const mockAuthHistory = {
   hasAuthenticatedBefore: false,
   recommendsAuthentication: false,
   isMultiUserDevice: false,
-  daysSinceLastAuth: null,
+  daysSinceLastAuth: null as number | null,
   updatePreference: vi.fn(),
   recordAuthenticationAttempt: vi.fn(),
   clearHistory: vi.fn(),
@@ -71,7 +71,7 @@ describe('EnhancedAuthContext', () => {
     Object.assign(mockAuthHistory, {
       hasEverAuthenticated: false,
       lastAuthenticatedAt: null,
-      userPreference: 'undecided' as const,
+      userPreference: 'undecided' as 'anonymous' | 'authenticated' | 'undecided',
       deviceUsers: [],
       authenticationAttempts: 0,
       lastPreferenceUpdate: null,
@@ -79,7 +79,7 @@ describe('EnhancedAuthContext', () => {
       hasAuthenticatedBefore: false,
       recommendsAuthentication: false,
       isMultiUserDevice: false,
-      daysSinceLastAuth: null,
+      daysSinceLastAuth: null as number | null,
     });
   });
 

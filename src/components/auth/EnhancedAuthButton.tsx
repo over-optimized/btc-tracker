@@ -142,10 +142,10 @@ export const EnhancedAuthButton: React.FC<EnhancedAuthButtonProps> = ({
   // Anonymous state - context-aware messaging
   const getContextualMessage = () => {
     // Has data but never authenticated - suggest backup
-    if (transactionCount.total > 0 && !auth.hasAuthenticatedBefore) {
+    if (transactionCount > 0 && !auth.hasAuthenticatedBefore) {
       return {
         primary: 'Backup & Sync',
-        secondary: `Backup your ${transactionCount.total} transactions`,
+        secondary: `Backup your ${transactionCount} transactions`,
         icon: 'backup',
       };
     }
