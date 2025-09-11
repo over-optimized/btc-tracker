@@ -79,12 +79,17 @@ describe('useAuthHistory', () => {
     });
 
     it('should handle corrupted localStorage data gracefully', () => {
+      // Suppress expected console errors for this test
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       mockLocalStorage.setItem('btc-tracker:auth-history', 'invalid-json');
 
       const { result } = renderHook(() => useAuthHistory());
 
       expect(result.current.hasEverAuthenticated).toBe(false);
       expect(result.current.userPreference).toBe('undecided');
+
+      consoleSpy.mockRestore();
     });
   });
 

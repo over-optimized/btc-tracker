@@ -221,3 +221,4 @@ git push -u origin feat/feature-name
 ```
 
 - Do not use the Generated with Claude Code signature on PRs
+- non negotiable, never use --no-verify for git commands

@@ -316,6 +316,9 @@ describe('ApiCache', () => {
 
   describe('Edge Cases', () => {
     it('should handle localStorage errors gracefully', () => {
+      // Suppress expected console errors for this test
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       localStorageMock.setItem.mockImplementation(() => {
         throw new Error('Storage quota exceeded');
       });
@@ -324,13 +327,20 @@ describe('ApiCache', () => {
       expect(() => {
         cache.set('test-key', 'test-value');
       }).not.toThrow();
+
+      consoleSpy.mockRestore();
     });
 
     it('should handle invalid JSON in localStorage', () => {
+      // Suppress expected console errors for this test
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       localStorageMock.getItem.mockReturnValue('invalid-json');
 
       const result = cache.get('test-key');
       expect(result).toBeNull();
+
+      consoleSpy.mockRestore();
     });
 
     it('should handle concurrent access safely', () => {
