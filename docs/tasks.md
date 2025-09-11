@@ -47,6 +47,7 @@ This file tracks **active and upcoming** development tasks. **Phase shift**: Mov
 
 ### ✅ Recently Completed (January 2025)
 
+- **Bug Fix: Transaction Loading Race Condition** - Defensive programming fix for "transactions is not iterable" error affecting page refresh
 - **Technical Debt Cleanup** (21 points) - Code quality improvements, lint fixes, enhanced test coverage
 - **Phase 1D: Testing & Infrastructure Polish** (22 points) - Comprehensive test suite, migration validation, performance optimization
 - **Phase 1C: Optional Authentication & Migration** (22 points) - Complete optional Supabase auth with localStorage fallback
@@ -225,16 +226,48 @@ This completes the Phase 1C infrastructure with proper user experience continuit
 
 **Goal: Safe for trusted beta users with essential security**
 
-| Task                                      | Status | Priority | Estimate | Dependencies     | Notes                          |
-| ----------------------------------------- | ------ | -------- | -------- | ---------------- | ------------------------------ |
-| Enhanced data backup/export functionality | todo   | medium   | 3        | Phase 1 complete | User data portability          |
-| Privacy policy and terms of service       | todo   | medium   | 2        | none             | Legal compliance preparation   |
-| Basic audit logging and monitoring        | todo   | medium   | 3        | Phase 1 complete | Track user actions in Supabase |
-| Beta user invite system                   | todo   | medium   | 5        | Privacy policy   | Controlled rollout             |
-| User feedback collection system           | todo   | low      | 3        | Beta invites     | Gather improvement insights    |
-| Performance optimization and indexing     | todo   | medium   | 5        | Beta testing     | Database query optimization    |
+| Task                                                      | Status | Priority | Estimate | Dependencies     | Notes                                              |
+| --------------------------------------------------------- | ------ | -------- | -------- | ---------------- | -------------------------------------------------- |
+| Context-aware authentication status & header optimization | todo   | medium   | 5        | Phase 1 complete | Space-efficient header with user context awareness |
+| Enhanced data backup/export functionality                 | todo   | medium   | 3        | Phase 1 complete | User data portability                              |
+| Privacy policy and terms of service                       | todo   | medium   | 2        | none             | Legal compliance preparation                       |
+| Basic audit logging and monitoring                        | todo   | medium   | 3        | Phase 1 complete | Track user actions in Supabase                     |
+| Beta user invite system                                   | todo   | medium   | 5        | Privacy policy   | Controlled rollout                                 |
+| User feedback collection system                           | todo   | low      | 3        | Beta invites     | Gather improvement insights                        |
+| Performance optimization and indexing                     | todo   | medium   | 5        | Beta testing     | Database query optimization                        |
 
-**Phase 2 Total**: 21 points | **Target**: 3-4 weeks | **Cost**: ~$10-25/month
+**Phase 2 Total**: 26 points | **Target**: 3-4 weeks | **Cost**: ~$10-25/month
+
+### 🔐 Phase 2 Key Enhancement: Authentication Status Optimization
+
+**Context-Aware Authentication Status System**:
+
+**Problem Solved**: Current header shows generic authentication states without considering user history or space constraints. Email addresses consume valuable header real estate, and messaging doesn't adapt to user scenarios.
+
+**Solution Components**:
+
+1. **Authentication History Tracking**
+   - Track user authentication patterns in localStorage
+   - Distinguish between "never authenticated", "previously authenticated", and "intentionally anonymous" users
+   - Support multi-user device scenarios
+
+2. **Space-Efficient Header Design**
+   - **Authenticated**: `"Synced to cloud"` (email in hover tooltip only)
+   - **Never Authenticated + Has Data**: `"Backup & Sync"` with data count context
+   - **Previously Authenticated**: `"Sign in"` with personalized messaging
+   - **Intentionally Anonymous**: `"Local only"` respecting user choice
+
+3. **Mobile-First Optimization**
+   - Progressive disclosure: essential info first, details on interaction
+   - Consistent iconography with status indicators
+   - Dropdown/modal for secondary options
+
+4. **Enhanced DataFreshnessCard Integration**
+   - Context-aware messaging based on authentication history
+   - Personalized prompts that respect user preferences
+   - Smart recommendations for data backup timing
+
+**User Experience Benefits**: Reduces header clutter, provides contextual authentication guidance, and respects user privacy preferences while maximizing mobile and desktop space efficiency.
 
 ## 🚀 PHASE 3: Production Scale-Ready (MEDIUM Priority - May 2025)
 
