@@ -2,6 +2,7 @@
   "name": "btc-tracker",
   "version": "0.3.0-dev",
   "description": "Bitcoin DCA Portfolio Tracker - Pre-Alpha Development",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "vite",

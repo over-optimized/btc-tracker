@@ -1,8 +1,4 @@
-import { 
-  TransactionClassification, 
-  TaxEventType,
-  getTaxEventType 
-} from '../types/TransactionClassification';
+import { TransactionClassification, TaxEventType } from '../types/TransactionClassification';
 import { TaxEducationContent } from '../components/educational';
 
 // Classification option with educational content
@@ -30,11 +26,7 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
     taxEventType: TaxEventType.INCOME,
     icon: '💰',
     color: 'green',
-    examples: [
-      'Strike DCA purchase',
-      'Coinbase buy order',
-      'Direct Bitcoin purchase'
-    ],
+    examples: ['Strike DCA purchase', 'Coinbase buy order', 'Direct Bitcoin purchase'],
     whenToUse: 'When you exchanged USD or other currency to buy Bitcoin',
     taxImplication: 'Creates cost basis for future sales - not immediately taxable',
     educationalContent: {
@@ -45,16 +37,17 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'You buy 0.01 BTC for $500 on Strike',
           explanation: 'You exchanged $500 of your money for Bitcoin',
-          outcome: 'Cost basis: $500. No immediate tax due. Future sales calculated against this basis.'
-        }
+          outcome:
+            'Cost basis: $500. No immediate tax due. Future sales calculated against this basis.',
+        },
       ],
       warnings: [
         'Keep records of purchase price and date for tax calculations',
-        'Include exchange fees in your cost basis'
-      ]
-    }
+        'Include exchange fees in your cost basis',
+      ],
+    },
   },
-  
+
   {
     classification: TransactionClassification.GIFT_RECEIVED,
     label: 'Gift Received',
@@ -66,7 +59,7 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
     examples: [
       'Birthday gift from family',
       'Friend sends Bitcoin as present',
-      'Inheritance of Bitcoin'
+      'Inheritance of Bitcoin',
     ],
     whenToUse: 'When someone gave you Bitcoin without expecting payment',
     taxImplication: 'Taxable income at fair market value when received',
@@ -78,21 +71,21 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'Friend sends you 0.005 BTC worth $250 as birthday gift',
           explanation: 'You received value without providing goods/services/payment',
-          outcome: 'Taxable income: $250. Cost basis for future sales: $250.'
-        }
+          outcome: 'Taxable income: $250. Cost basis for future sales: $250.',
+        },
       ],
       warnings: [
         'Report as "Other Income" on tax return',
         'Gift giver may owe gift tax if over $18,000 annual exclusion (2024)',
-        'Keep records of fair market value at time received'
-      ]
+        'Keep records of fair market value at time received',
+      ],
     },
     commonMistakes: [
       'Thinking gifts are not taxable to recipient',
-      'Using giver\'s cost basis instead of fair market value'
-    ]
+      "Using giver's cost basis instead of fair market value",
+    ],
   },
-  
+
   {
     classification: TransactionClassification.PAYMENT_RECEIVED,
     label: 'Payment Received',
@@ -104,7 +97,7 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
     examples: [
       'Freelance payment in Bitcoin',
       'Business accepts Bitcoin payment',
-      'Tips received in Bitcoin'
+      'Tips received in Bitcoin',
     ],
     whenToUse: 'When you received Bitcoin as payment for something you provided',
     taxImplication: 'Business income taxable at fair market value when received',
@@ -116,17 +109,17 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'You complete freelance work and receive 0.008 BTC worth $400',
           explanation: 'You provided services and were paid in Bitcoin',
-          outcome: 'Business income: $400. Cost basis for future sales: $400.'
-        }
+          outcome: 'Business income: $400. Cost basis for future sales: $400.',
+        },
       ],
       warnings: [
         'Report as business income or other income as appropriate',
         'May be subject to self-employment taxes',
-        'Keep records of fair market value and nature of services'
-      ]
-    }
+        'Keep records of fair market value and nature of services',
+      ],
+    },
   },
-  
+
   {
     classification: TransactionClassification.REIMBURSEMENT_RECEIVED,
     label: 'Reimbursement Received',
@@ -138,7 +131,7 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
     examples: [
       'Friend repays lunch cost via Lightning',
       'Roommate pays utilities in Bitcoin',
-      'Shared expense settlement'
+      'Shared expense settlement',
     ],
     whenToUse: 'When someone paid you back in Bitcoin for money you spent',
     taxImplication: 'Taxable gain/loss: Bitcoin value received vs cash amount spent',
@@ -150,17 +143,17 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'You pay $25 for lunch, friend sends 0.0005 BTC worth $27 to reimburse',
           explanation: 'You received Bitcoin worth more than the cash you spent',
-          outcome: 'Taxable income: $2 ($27 - $25). Cost basis for Bitcoin: $27.'
-        }
+          outcome: 'Taxable income: $2 ($27 - $25). Cost basis for Bitcoin: $27.',
+        },
       ],
       warnings: [
         'Track the original cash amount spent for accurate calculations',
         'This is different from pure gifts - involves exchange of value',
-        'Keep records of both cash spent and Bitcoin value received'
-      ]
-    }
+        'Keep records of both cash spent and Bitcoin value received',
+      ],
+    },
   },
-  
+
   {
     classification: TransactionClassification.SALE,
     label: 'Sale',
@@ -169,11 +162,7 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
     taxEventType: TaxEventType.DISPOSAL,
     icon: '💵',
     color: 'red',
-    examples: [
-      'Exchange sale for USD',
-      'P2P cash transaction',
-      'Conversion to fiat currency'
-    ],
+    examples: ['Exchange sale for USD', 'P2P cash transaction', 'Conversion to fiat currency'],
     whenToUse: 'When you sold Bitcoin and received cash or fiat currency',
     taxImplication: 'Capital gains/losses: Sale price minus your cost basis',
     educationalContent: {
@@ -184,17 +173,17 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'You sell 0.01 BTC for $600 that you bought for $500',
           explanation: 'Sale price exceeds your original cost basis',
-          outcome: 'Capital gain: $100 ($600 - $500). Taxable depending on holding period.'
-        }
+          outcome: 'Capital gain: $100 ($600 - $500). Taxable depending on holding period.',
+        },
       ],
       warnings: [
         'Gains are taxable income, losses may offset other gains',
         'Holding period affects tax rate (short vs long-term)',
-        'Accurate cost basis records are essential'
-      ]
-    }
+        'Accurate cost basis records are essential',
+      ],
+    },
   },
-  
+
   {
     classification: TransactionClassification.PAYMENT_SENT,
     label: 'Payment Sent',
@@ -206,7 +195,7 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
     examples: [
       'Lightning payment for coffee',
       'Online purchase with Bitcoin',
-      'Bill payment in Bitcoin'
+      'Bill payment in Bitcoin',
     ],
     whenToUse: 'When you spent Bitcoin to buy something or pay for services',
     taxImplication: 'Capital gains/losses: Fair market value spent minus your cost basis',
@@ -218,17 +207,17 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'You buy $20 coffee with Bitcoin that you originally bought for $15',
           explanation: 'You disposed of Bitcoin worth $20 that cost you $15',
-          outcome: 'Capital gain: $5 ($20 - $15). Taxable regardless of small amount.'
-        }
+          outcome: 'Capital gain: $5 ($20 - $15). Taxable regardless of small amount.',
+        },
       ],
       warnings: [
         'Every purchase with Bitcoin is a taxable event',
         'Small amounts still create tax liability',
-        'Track fair market value at time of purchase and original cost basis'
-      ]
-    }
+        'Track fair market value at time of purchase and original cost basis',
+      ],
+    },
   },
-  
+
   {
     classification: TransactionClassification.GIFT_SENT,
     label: 'Gift Sent',
@@ -237,11 +226,7 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
     taxEventType: TaxEventType.DISPOSAL,
     icon: '🎁',
     color: 'red',
-    examples: [
-      'Birthday gift to family member',
-      'Charitable donation',
-      'Gift to friend'
-    ],
+    examples: ['Birthday gift to family member', 'Charitable donation', 'Gift to friend'],
     whenToUse: 'When you gave Bitcoin to someone as a gift',
     taxImplication: 'Capital gains/losses: Fair market value gifted minus your cost basis',
     educationalContent: {
@@ -252,17 +237,18 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'You gift 0.002 BTC worth $100 that you bought for $80',
           explanation: 'You disposed of Bitcoin at fair market value',
-          outcome: 'Your capital gain: $20. Recipient\'s cost basis: $100. You may owe gift tax if over annual exclusion.'
-        }
+          outcome:
+            "Your capital gain: $20. Recipient's cost basis: $100. You may owe gift tax if over annual exclusion.",
+        },
       ],
       warnings: [
         'You owe capital gains tax on appreciation',
         'Gift tax may apply if over annual exclusion ($18,000 in 2024)',
-        'Recipient gets "stepped-up" basis at fair market value'
-      ]
-    }
+        'Recipient gets "stepped-up" basis at fair market value',
+      ],
+    },
   },
-  
+
   {
     classification: TransactionClassification.SELF_CUSTODY_WITHDRAWAL,
     label: 'Self-Custody Withdrawal',
@@ -274,7 +260,7 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
     examples: [
       'Exchange to hardware wallet',
       'Hot wallet to cold storage',
-      'Moving to personal wallet'
+      'Moving to personal wallet',
     ],
     whenToUse: 'When you moved Bitcoin from exchange to your own wallet/address',
     taxImplication: 'No tax implications - you still own the Bitcoin',
@@ -286,17 +272,17 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'You move 0.1 BTC from Coinbase to your hardware wallet',
           explanation: 'You transferred Bitcoin between your own accounts',
-          outcome: 'No tax implications. Same cost basis, same ownership, better security.'
-        }
+          outcome: 'No tax implications. Same cost basis, same ownership, better security.',
+        },
       ],
       warnings: [
         'Keep records for security milestone tracking',
         'Network fees may be deductible expenses',
-        'Ensure you control the destination address'
-      ]
-    }
+        'Ensure you control the destination address',
+      ],
+    },
   },
-  
+
   {
     classification: TransactionClassification.EXCHANGE_TRANSFER,
     label: 'Exchange Transfer',
@@ -308,7 +294,7 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
     examples: [
       'Coinbase to Kraken transfer',
       'Moving Bitcoin for arbitrage',
-      'Consolidating exchange accounts'
+      'Consolidating exchange accounts',
     ],
     whenToUse: 'When you moved Bitcoin from one exchange to another exchange',
     taxImplication: 'No tax implications - you still own the Bitcoin',
@@ -320,26 +306,22 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'You transfer 0.05 BTC from Coinbase to Kraken for trading',
           explanation: 'You moved Bitcoin between your own exchange accounts',
-          outcome: 'No tax implications. Same ownership, different exchange.'
-        }
-      ]
-    }
+          outcome: 'No tax implications. Same ownership, different exchange.',
+        },
+      ],
+    },
   },
-  
+
   {
     classification: TransactionClassification.SKIP,
     label: 'Skip This Transaction',
     shortLabel: 'Skip',
-    description: 'Don\'t import this transaction (deposits, fees, etc.)',
+    description: "Don't import this transaction (deposits, fees, etc.)",
     taxEventType: TaxEventType.NON_TAXABLE,
     icon: '⏭️',
     color: 'gray',
-    examples: [
-      'USD deposits to exchange',
-      'Fee-only transactions',
-      'Duplicate entries'
-    ],
-    whenToUse: 'For non-Bitcoin transactions or entries that shouldn\'t be tracked',
+    examples: ['USD deposits to exchange', 'Fee-only transactions', 'Duplicate entries'],
+    whenToUse: "For non-Bitcoin transactions or entries that shouldn't be tracked",
     taxImplication: 'No tax tracking - transaction will be ignored',
     educationalContent: {
       title: 'Skipping Transactions',
@@ -349,29 +331,37 @@ export const CLASSIFICATION_OPTIONS: ClassificationOption[] = [
         {
           scenario: 'CSV contains a "$100 USD deposit" entry with no Bitcoin amount',
           explanation: 'This is a cash deposit, not a Bitcoin transaction',
-          outcome: 'Skip this entry. It doesn\'t affect your Bitcoin holdings or tax calculations.'
-        }
+          outcome: "Skip this entry. It doesn't affect your Bitcoin holdings or tax calculations.",
+        },
       ],
       warnings: [
-        'Only skip entries that truly don\'t involve Bitcoin',
+        "Only skip entries that truly don't involve Bitcoin",
         'Be careful not to skip actual Bitcoin transactions',
-        'Review skipped items to ensure accuracy'
-      ]
-    }
-  }
+        'Review skipped items to ensure accuracy',
+      ],
+    },
+  },
 ];
 
 // Get classification option by enum value
-export const getClassificationOption = (classification: TransactionClassification): ClassificationOption | undefined => {
-  return CLASSIFICATION_OPTIONS.find(option => option.classification === classification);
+export const getClassificationOption = (
+  classification: TransactionClassification,
+): ClassificationOption | undefined => {
+  return CLASSIFICATION_OPTIONS.find((option) => option.classification === classification);
 };
 
 // Get options grouped by tax event type
 export const getClassificationsByTaxEvent = () => {
   return {
-    [TaxEventType.INCOME]: CLASSIFICATION_OPTIONS.filter(opt => opt.taxEventType === TaxEventType.INCOME),
-    [TaxEventType.DISPOSAL]: CLASSIFICATION_OPTIONS.filter(opt => opt.taxEventType === TaxEventType.DISPOSAL),
-    [TaxEventType.NON_TAXABLE]: CLASSIFICATION_OPTIONS.filter(opt => opt.taxEventType === TaxEventType.NON_TAXABLE),
+    [TaxEventType.INCOME]: CLASSIFICATION_OPTIONS.filter(
+      (opt) => opt.taxEventType === TaxEventType.INCOME,
+    ),
+    [TaxEventType.DISPOSAL]: CLASSIFICATION_OPTIONS.filter(
+      (opt) => opt.taxEventType === TaxEventType.DISPOSAL,
+    ),
+    [TaxEventType.NON_TAXABLE]: CLASSIFICATION_OPTIONS.filter(
+      (opt) => opt.taxEventType === TaxEventType.NON_TAXABLE,
+    ),
   };
 };
 
@@ -381,24 +371,24 @@ export const LIGHTNING_SCENARIOS = [
     title: 'Coffee Payment',
     description: 'You buy coffee using Lightning Network',
     classification: TransactionClassification.PAYMENT_SENT,
-    explanation: 'Spending Bitcoin for goods creates a taxable disposal'
+    explanation: 'Spending Bitcoin for goods creates a taxable disposal',
   },
   {
     title: 'Bill Split Reimbursement',
     description: 'Friend sends Bitcoin via Lightning to cover their share of dinner',
     classification: TransactionClassification.REIMBURSEMENT_RECEIVED,
-    explanation: 'Receiving Bitcoin as reimbursement creates taxable income'
+    explanation: 'Receiving Bitcoin as reimbursement creates taxable income',
   },
   {
     title: 'Lightning Gift',
     description: 'You send Bitcoin via Lightning as a birthday gift',
     classification: TransactionClassification.GIFT_SENT,
-    explanation: 'Giving Bitcoin creates taxable disposal at fair market value'
+    explanation: 'Giving Bitcoin creates taxable disposal at fair market value',
   },
   {
     title: 'Freelance Payment',
     description: 'Client pays you in Bitcoin via Lightning for work completed',
     classification: TransactionClassification.PAYMENT_RECEIVED,
-    explanation: 'Business income taxable at fair market value when received'
-  }
+    explanation: 'Business income taxable at fair market value when received',
+  },
 ];

@@ -3,6 +3,9 @@ import { NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import BrandHeader from './BrandHeader';
 import ThemeToggle from './ThemeToggle';
+import { UnifiedAuthButton } from './auth/UnifiedAuthButton';
+import { LoginModal } from './auth/LoginModal';
+import { SignupModal } from './auth/SignupModal';
 
 const navItems = [
   { to: '/', label: 'Dashboard' },
@@ -14,9 +17,28 @@ const navItems = [
 
 const NavBar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
+
+  const handleOpenLogin = () => {
+    setShowLogin(true);
+    setShowSignup(false);
+    closeMenu();
+  };
+
+  const handleOpenSignup = () => {
+    setShowSignup(true);
+    setShowLogin(false);
+    closeMenu();
+  };
+
+  const handleCloseModals = () => {
+    setShowLogin(false);
+    setShowSignup(false);
+  };
 
   return (
     <div>
@@ -48,14 +70,18 @@ const NavBar: React.FC = () => {
               ))}
             </ul>
 
-            {/* Theme Toggle */}
-            <ThemeToggle variant="icon" />
+            {/* Auth & Theme Toggle */}
+            <div className="flex items-center gap-4">
+              <UnifiedAuthButton onOpenLogin={handleOpenLogin} onOpenSignup={handleOpenSignup} />
+              <ThemeToggle variant="icon" />
+            </div>
           </div>
 
           {/* Mobile Navigation Header */}
           <div className="md:hidden flex items-center justify-between py-4">
             <BrandHeader size="small" showSubtitle={false} />
             <div className="flex items-center gap-2">
+              <UnifiedAuthButton onOpenLogin={handleOpenLogin} onOpenSignup={handleOpenSignup} />
               <ThemeToggle variant="icon" />
               <button
                 onClick={toggleMenu}
@@ -96,6 +122,24 @@ const NavBar: React.FC = () => {
       </nav>
       {/* Subtle theme-consistent spacing */}
       <div className="h-4" style={{ backgroundColor: 'var(--color-bg-page)' }}></div>
+
+      {/* Authentication Modals */}
+      <LoginModal
+        isOpen={showLogin}
+        onClose={handleCloseModals}
+        onSwitchToSignup={() => {
+          setShowLogin(false);
+          setShowSignup(true);
+        }}
+      />
+      <SignupModal
+        isOpen={showSignup}
+        onClose={handleCloseModals}
+        onSwitchToLogin={() => {
+          setShowSignup(false);
+          setShowLogin(true);
+        }}
+      />
     </div>
   );
 };

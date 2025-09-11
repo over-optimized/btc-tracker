@@ -25,7 +25,7 @@ const parseDate = (dateStr: string): Date => {
 };
 
 export const exchangeParsers = {
-  strike: (row: any, index: number): Transaction | null => {
+  strike: (row: any, _index: number): Transaction | null => {
     if (!row['Date & Time (UTC)'] || !row['Transaction Type']) return null;
 
     const transactionType = row['Transaction Type'];
@@ -62,7 +62,7 @@ export const exchangeParsers = {
     };
   },
 
-  coinbase: (row: any, index: number): Transaction | null => {
+  coinbase: (row: any, _index: number): Transaction | null => {
     // Common Coinbase formats
     if (
       row['Transaction Type'] &&
@@ -125,7 +125,7 @@ export const exchangeParsers = {
     return null;
   },
 
-  kraken: (row: any, index: number): Transaction | null => {
+  kraken: (row: any, _index: number): Transaction | null => {
     // Common Kraken formats
     if (row['type'] && row['type'] === 'trade') {
       const pair = row['pair'] || '';
@@ -166,7 +166,7 @@ export const exchangeParsers = {
     return null;
   },
 
-  generic: (row: any, index: number): Transaction => {
+  generic: (row: any, _index: number): Transaction => {
     // Generic fallback parser
     const date = parseDate(row.Date || row.date || row.Timestamp || row.timestamp);
     const usdAmount = Math.abs(

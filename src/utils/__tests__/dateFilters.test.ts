@@ -4,7 +4,6 @@ import {
   isDateInRange,
   getAvailableYearOptions,
   getDefaultTimeRange,
-  TimeRangeOption,
 } from '../dateFilters';
 
 describe('dateFilters', () => {

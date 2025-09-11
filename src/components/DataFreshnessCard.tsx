@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Calendar, CheckCircle, Clock, Upload } from 'lucide-react';
+import { AlertTriangle, Calendar, CheckCircle, Clock, Upload, Loader2 } from 'lucide-react';
 import { Transaction } from '../types/Transaction';
 import { analyzeDataFreshness, detectTransactionGaps } from '../utils/dataFreshness';
 import { useTheme } from '../contexts/ThemeContext';
@@ -12,6 +12,29 @@ interface DataFreshnessCardProps {
 const DataFreshnessCard: React.FC<DataFreshnessCardProps> = ({ transactions, onImportClick }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  // Handle loading state for both authenticated and unauthenticated users
+  const isLoading = !Array.isArray(transactions);
+
+  // Show loading state if transactions data isn't ready
+  if (isLoading) {
+    return (
+      <div
+        className={`rounded-lg shadow border-2 p-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <Loader2 className="text-blue-500 animate-spin" size={20} />
+            <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
+              Data Status
+            </span>
+          </div>
+        </div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Loading transaction data...</div>
+      </div>
+    );
+  }
+
   const freshness = analyzeDataFreshness(transactions);
   const gaps = detectTransactionGaps(transactions);
 

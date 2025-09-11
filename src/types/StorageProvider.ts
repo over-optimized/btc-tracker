@@ -68,6 +68,14 @@ export interface StorageProviderConfig {
   // Fallback configuration
   fallbackProvider?: StorageProviderType;
   enableOfflineMode?: boolean;
+
+  // Auth context for intelligent provider switching
+  authContext?: {
+    loading: boolean;
+    isAuthenticated: boolean;
+    supabase: any;
+    user: any;
+  };
 }
 
 /**

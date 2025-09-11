@@ -8,7 +8,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useBitcoinPrice, useBitcoinPriceSimple } from '../useBitcoinPrice';
-import { ApiCacheError } from '../../types/ApiCache';
 import {
   fetchBitcoinPriceWithMetadata,
   getBitcoinPriceCacheStats,

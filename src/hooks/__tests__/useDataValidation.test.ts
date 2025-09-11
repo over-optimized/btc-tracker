@@ -11,4 +11,20 @@ describe('useDataValidation', () => {
     expect(result.current.needsUserAction).toBe(false);
     expect(result.current.showValidationModal).toBe(false);
   });
+
+  it('should have correct return object structure', () => {
+    const { result } = renderHook(() => useDataValidation());
+
+    expect(result.current).toHaveProperty('isValidating');
+    expect(result.current).toHaveProperty('validationResult');
+    expect(result.current).toHaveProperty('needsUserAction');
+    expect(result.current).toHaveProperty('showValidationModal');
+    expect(result.current).toHaveProperty('handleValidationComplete');
+    expect(result.current).toHaveProperty('handleDataReset');
+    expect(result.current).toHaveProperty('retryValidation');
+
+    expect(typeof result.current.handleValidationComplete).toBe('function');
+    expect(typeof result.current.handleDataReset).toBe('function');
+    expect(typeof result.current.retryValidation).toBe('function');
+  });
 });
