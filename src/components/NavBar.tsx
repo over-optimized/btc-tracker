@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import BrandHeader from './BrandHeader';
 import ThemeToggle from './ThemeToggle';
-import { UnifiedAuthButton } from './auth/UnifiedAuthButton';
+import { EnhancedAuthButton } from './auth/EnhancedAuthButton';
 import { LoginModal } from './auth/LoginModal';
 import { SignupModal } from './auth/SignupModal';
 
@@ -72,7 +72,7 @@ const NavBar: React.FC = () => {
 
             {/* Auth & Theme Toggle */}
             <div className="flex items-center gap-4">
-              <UnifiedAuthButton onOpenLogin={handleOpenLogin} onOpenSignup={handleOpenSignup} />
+              <EnhancedAuthButton onOpenLogin={handleOpenLogin} onOpenSignup={handleOpenSignup} />
               <ThemeToggle variant="icon" />
             </div>
           </div>
@@ -81,7 +81,7 @@ const NavBar: React.FC = () => {
           <div className="md:hidden flex items-center justify-between py-4">
             <BrandHeader size="small" showSubtitle={false} />
             <div className="flex items-center gap-2">
-              <UnifiedAuthButton onOpenLogin={handleOpenLogin} onOpenSignup={handleOpenSignup} />
+              <EnhancedAuthButton onOpenLogin={handleOpenLogin} onOpenSignup={handleOpenSignup} />
               <ThemeToggle variant="icon" />
               <button
                 onClick={toggleMenu}

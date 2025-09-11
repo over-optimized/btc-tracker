@@ -49,12 +49,15 @@ describe('InvestedVsPnLChart', () => {
   it('filters data when time range changes', () => {
     render(<InvestedVsPnLChart transactions={mockTransactions} currentPrice={50000} />);
 
-    // Initially should show all data (default might be "All Time" or "Last 12 Months")
-    const allTimeButton = screen.getByText('All Time');
-    fireEvent.click(allTimeButton);
+    // Find the dropdown select element
+    const selectElement = screen.getByRole('combobox');
 
-    // Should have chart container
-    expect(screen.getByRole('button', { name: 'All Time' })).toBeInTheDocument();
+    // Change the selection to "All Time"
+    fireEvent.change(selectElement, { target: { value: 'alltime' } });
+
+    // Verify the selection was made
+    expect(selectElement).toHaveValue('alltime');
+    expect(screen.getByRole('option', { name: 'All Time' })).toBeInTheDocument();
   });
 
   it('shows year options when data spans multiple years', () => {

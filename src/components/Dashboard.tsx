@@ -126,7 +126,10 @@ const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Charts */}
         <div className="card-base p-3 sm:p-6 mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-3 sm:mb-4">
+          <h2
+            className="text-lg sm:text-xl font-bold mb-3 sm:mb-4"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
             Portfolio Value Over Time
           </h2>
           <Suspense fallback={<ChartSkeleton />}>
@@ -135,7 +138,10 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         <div className="card-base p-3 sm:p-6 mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100 mb-3 sm:mb-4">
+          <h2
+            className="text-lg sm:text-xl font-bold mb-3 sm:mb-4"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
             Invested vs. Unrealized P&L (Monthly)
           </h2>
           <Suspense fallback={<ChartSkeleton />}>

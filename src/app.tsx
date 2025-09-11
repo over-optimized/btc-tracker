@@ -7,6 +7,7 @@ import ImportReminderToast from './components/ImportReminderToast';
 import NavBar from './components/NavBar';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useOptionalAuth } from './contexts/AuthContext';
+import { EnhancedAuthProvider } from './contexts/EnhancedAuthContext';
 import { useBitcoinPrice } from './hooks/useBitcoinPrice';
 import { useImportFlow } from './hooks/useImportFlow';
 import { usePortfolioStats } from './hooks/usePortfolioStats';
@@ -148,8 +149,10 @@ const BitcoinTracker: React.FC = () => (
   <FeatureFlagProvider>
     <ThemeProvider>
       <AuthProvider>
-        <ProductionSafetyWarning />
-        <AppContent />
+        <EnhancedAuthProvider>
+          <ProductionSafetyWarning />
+          <AppContent />
+        </EnhancedAuthProvider>
       </AuthProvider>
     </ThemeProvider>
   </FeatureFlagProvider>
