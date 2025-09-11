@@ -345,9 +345,10 @@ describe('Storage Migration Logic', () => {
 
       const result = await provider.migrateToAuthenticated();
 
-      // Should still report success since data was migrated
-      expect(result.success).toBe(true);
-      expect(result.data?.migrated).toBe(2);
+      // Should report failure since localStorage cleanup failed
+      // Even though data was migrated, we can't guarantee localStorage was cleared
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Failed to clear localStorage');
       expect(mockSupabaseProvider.saveTransactions).toHaveBeenCalledWith(transactions);
     });
 
