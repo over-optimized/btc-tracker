@@ -14,6 +14,7 @@ const TaxDashboard = lazy(() => import('./TaxDashboard'));
 interface AppRoutesProps {
   // Data
   transactions: Transaction[];
+  transactionCount: number; // Optimized count for components that only need length
   currentPrice: number | null;
   stats: Stats;
 
@@ -35,6 +36,7 @@ interface AppRoutesProps {
 
 const AppRoutes: React.FC<AppRoutesProps> = ({
   transactions,
+  transactionCount,
   currentPrice,
   stats,
   lastUpdated,
@@ -85,7 +87,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
               <UploadTransactions
                 onUpload={onFileUpload}
                 loading={loading}
-                transactionsCount={transactions.length}
+                transactionsCount={transactionCount}
                 clearData={clearData}
               />
             </div>

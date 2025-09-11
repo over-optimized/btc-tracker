@@ -60,7 +60,11 @@ export const useTransactionManager = (): TransactionManagerResult => {
     ],
   );
 
-  // Initialize storage provider and load transactions - auth-aware
+  // Create ref for auth context to avoid dependency issues
+  const authContextRef = useRef(stableAuthContext);
+  authContextRef.current = stableAuthContext;
+
+  // Initialize storage provider and load transactions - one-time initialization
   useEffect(() => {
     const initializeStorage = async () => {
       try {
@@ -72,7 +76,7 @@ export const useTransactionManager = (): TransactionManagerResult => {
         const provider = new AutoStorageProvider();
         const config: StorageProviderConfig = {
           enableAuth: true, // Allow authentication but don't require it
-          authContext: stableAuthContext, // Pass stable auth context to storage provider
+          authContext: authContextRef.current, // Use current auth context from ref
         };
 
         const initResult = await provider.initialize(config);
@@ -114,7 +118,43 @@ export const useTransactionManager = (): TransactionManagerResult => {
       initializationAttempted.current = true;
       initializeStorage();
     }
-  }, [auth.loading, stableAuthContext]);
+  }, [auth.loading]); // Only depend on auth.loading for one-time initialization
+
+  // Handle auth state changes for provider updates and migration - separate from initialization
+  useEffect(() => {
+    const updateProviderForAuthChange = async () => {
+      // Only proceed if we have an initialized provider and auth is not loading
+      if (!storageProvider || auth.loading) {
+        return;
+      }
+
+      console.log('🔄 Auth state changed, updating storage provider...');
+
+      // Update the storage provider with new auth context
+      const config: StorageProviderConfig = {
+        enableAuth: true,
+        authContext: authContextRef.current, // Use current auth context from ref
+      };
+
+      try {
+        await storageProvider.initialize(config);
+        // If successful, refresh transactions to reflect any provider changes
+        const transactionsResult = await storageProvider.getTransactions();
+        if (transactionsResult.success) {
+          console.log(
+            '✅ Provider updated, reloaded transactions:',
+            transactionsResult.data?.length || 0,
+          );
+          setTransactions(transactionsResult.data || []);
+        }
+      } catch (err) {
+        console.warn('⚠️ Provider update failed:', err);
+        // Keep existing transactions on provider update failure
+      }
+    };
+
+    updateProviderForAuthChange();
+  }, [stableAuthContext, storageProvider, auth.loading]); // React to auth changes after initialization
 
   const addTransaction = async (transaction: Transaction) => {
     if (!storageProvider) {

@@ -11,6 +11,7 @@ import { useBitcoinPrice } from './hooks/useBitcoinPrice';
 import { useImportFlow } from './hooks/useImportFlow';
 import { usePortfolioStats } from './hooks/usePortfolioStats';
 import { useTransactionManager } from './hooks/useTransactionManager';
+import { useTransactionCount } from './hooks/useTransactionCount';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const AppContent: React.FC = () => {
   const transactionManager = useTransactionManager();
   const { currentPrice, lastUpdated, cached, source, loading, error } = useBitcoinPrice();
   const stats = usePortfolioStats(transactionManager.transactions, currentPrice);
+  const transactionCount = useTransactionCount(transactionManager.transactions);
   const importFlow = useImportFlow({
     onTransactionsMerged: transactionManager.mergeTransactions,
   });
@@ -81,6 +83,7 @@ const AppContent: React.FC = () => {
 
       <AppRoutes
         transactions={transactionManager.transactions}
+        transactionCount={transactionCount}
         currentPrice={currentPrice}
         stats={stats}
         lastUpdated={lastUpdated}

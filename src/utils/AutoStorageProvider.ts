@@ -29,6 +29,13 @@ export class AutoStorageProvider extends BaseStorageProvider {
   private transactionCache: ApiCache<Transaction[]>;
   private cacheKeyPrefix = 'transactions';
 
+  // Cache statistics for monitoring performance
+  private cacheStats = {
+    hits: 0,
+    misses: 0,
+    invalidations: 0,
+  };
+
   // Provider caching to prevent repeated API calls
   private _providerInitialized = false;
   private _lastAuthState: { isAuthenticated: boolean; userId?: string } | null = null;
@@ -268,11 +275,48 @@ export class AutoStorageProvider extends BaseStorageProvider {
   }
 
   /**
-   * Clear transaction cache when data is modified
+   * Clear transaction cache when data is modified - smart invalidation
    */
-  private invalidateTransactionCache(): void {
-    console.log('🗑️ Invalidating transaction cache due to data modification');
+  private invalidateTransactionCache(reason: string = 'data modification'): void {
+    // Only invalidate if cache actually has data to clear
+    if (this.transactionCache.getStats().size === 0) {
+      return; // No cache to invalidate
+    }
+
+    this.cacheStats.invalidations++;
+    console.log(
+      `🗑️ Invalidating transaction cache due to ${reason} (invalidation #${this.cacheStats.invalidations})`,
+    );
     this.transactionCache.clear();
+  }
+
+  /**
+   * Smart cache check - only invalidate when switching between different data sources
+   */
+  private shouldInvalidateCacheForProviderSwitch(newProvider: any): boolean {
+    // If we're switching from Supabase to localStorage or vice versa,
+    // the data source is fundamentally different, so invalidate
+    const currentIsSupabase = this.currentProvider === this.supabaseProvider;
+    const newIsSupabase = newProvider === this.supabaseProvider;
+
+    return currentIsSupabase !== newIsSupabase;
+  }
+
+  /**
+   * Get cache performance statistics
+   */
+  getCacheStats() {
+    return {
+      ...this.cacheStats,
+      hitRate:
+        this.cacheStats.hits + this.cacheStats.misses > 0
+          ? (
+              (this.cacheStats.hits / (this.cacheStats.hits + this.cacheStats.misses)) *
+              100
+            ).toFixed(1) + '%'
+          : '0%',
+      cacheSize: this.transactionCache.getStats().size,
+    };
   }
 
   /**
@@ -298,11 +342,21 @@ export class AutoStorageProvider extends BaseStorageProvider {
     // Try to get from cache first
     const cachedResult = this.transactionCache.get(cacheKey);
     if (cachedResult) {
-      console.log('✅ Cache hit for transactions:', cachedResult.data.length, 'transactions');
+      this.cacheStats.hits++;
+      console.log(
+        '✅ Cache hit for transactions:',
+        cachedResult.data.length,
+        'transactions',
+        `(${this.cacheStats.hits} hits, ${this.cacheStats.misses} misses)`,
+      );
       return this.createResult(true, cachedResult.data, undefined, 'getTransactions');
     }
 
-    console.log('❌ Cache miss, fetching from Supabase...');
+    this.cacheStats.misses++;
+    console.log(
+      '❌ Cache miss, fetching from Supabase...',
+      `(${this.cacheStats.hits} hits, ${this.cacheStats.misses} misses)`,
+    );
 
     try {
       // Fetch from Supabase
