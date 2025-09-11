@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EnhancedAuthProvider, useEnhancedAuth } from '../EnhancedAuthContext';
@@ -92,11 +92,15 @@ describe('EnhancedAuthContext', () => {
         return <div data-testid="auth-capability">{auth.authCapability}</div>;
       };
 
-      const { getByTestId } = render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      let getByTestId: any;
+      act(() => {
+        const result = render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+        getByTestId = result.getByTestId;
+      });
 
       expect(getByTestId('auth-capability')).toHaveTextContent('disabled');
     });
@@ -109,11 +113,15 @@ describe('EnhancedAuthContext', () => {
         return <div data-testid="auth-capability">{auth.authCapability}</div>;
       };
 
-      const { getByTestId } = render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      let getByTestId: any;
+      act(() => {
+        const result = render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+        getByTestId = result.getByTestId;
+      });
 
       expect(getByTestId('auth-capability')).toHaveTextContent('disabled');
     });
@@ -126,11 +134,15 @@ describe('EnhancedAuthContext', () => {
         return <div data-testid="auth-capability">{auth.authCapability}</div>;
       };
 
-      const { getByTestId } = render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      let getByTestId: any;
+      act(() => {
+        const result = render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+        getByTestId = result.getByTestId;
+      });
 
       expect(getByTestId('auth-capability')).toHaveTextContent('disabled');
     });
@@ -141,11 +153,15 @@ describe('EnhancedAuthContext', () => {
         return <div data-testid="auth-capability">{auth.authCapability}</div>;
       };
 
-      const { getByTestId } = render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      let getByTestId: any;
+      act(() => {
+        const result = render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+        getByTestId = result.getByTestId;
+      });
 
       expect(getByTestId('auth-capability')).toHaveTextContent('available');
     });
@@ -167,11 +183,15 @@ describe('EnhancedAuthContext', () => {
         );
       };
 
-      const { getByTestId } = render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      let getByTestId: any;
+      act(() => {
+        const result = render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+        getByTestId = result.getByTestId;
+      });
 
       expect(getByTestId('is-authenticated')).toHaveTextContent('true');
       expect(getByTestId('user-email')).toHaveTextContent('test@example.com');
@@ -204,11 +224,15 @@ describe('EnhancedAuthContext', () => {
         );
       };
 
-      const { getByTestId } = render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      let getByTestId: any;
+      act(() => {
+        const result = render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+        getByTestId = result.getByTestId;
+      });
 
       expect(getByTestId('has-authenticated-before')).toHaveTextContent('true');
       expect(getByTestId('is-intentionally-anonymous')).toHaveTextContent('false');
@@ -229,11 +253,13 @@ describe('EnhancedAuthContext', () => {
         return <div data-testid="test-component">Test</div>;
       };
 
-      render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      act(() => {
+        render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+      });
 
       expect(mockAuthHistory.updatePreference).toHaveBeenCalledWith('anonymous');
       expect(mockAuthHistory.recordAuthenticationAttempt).toHaveBeenCalled();
@@ -249,7 +275,9 @@ describe('EnhancedAuthContext', () => {
 
       // Expect error when not wrapped in provider
       expect(() => {
-        render(<TestComponent />);
+        act(() => {
+          render(<TestComponent />);
+        });
       }).toThrow('useEnhancedAuth must be used within an EnhancedAuthProvider');
     });
   });
@@ -279,11 +307,15 @@ describe('EnhancedAuthContext', () => {
         );
       };
 
-      const { getByTestId } = render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      let getByTestId: any;
+      act(() => {
+        const result = render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+        getByTestId = result.getByTestId;
+      });
 
       expect(getByTestId('auth-state')).toHaveTextContent('authenticated');
       expect(getByTestId('user-id')).toHaveTextContent('user-123');
@@ -314,11 +346,15 @@ describe('EnhancedAuthContext', () => {
         );
       };
 
-      const { getByTestId } = render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      let getByTestId: any;
+      act(() => {
+        const result = render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+        getByTestId = result.getByTestId;
+      });
 
       expect(getByTestId('auth-state')).toHaveTextContent('anonymous');
       expect(getByTestId('recommends-auth')).toHaveTextContent('true');
@@ -342,11 +378,15 @@ describe('EnhancedAuthContext', () => {
         );
       };
 
-      const { getByTestId } = render(
-        <EnhancedAuthProvider>
-          <TestComponent />
-        </EnhancedAuthProvider>,
-      );
+      let getByTestId: any;
+      act(() => {
+        const result = render(
+          <EnhancedAuthProvider>
+            <TestComponent />
+          </EnhancedAuthProvider>,
+        );
+        getByTestId = result.getByTestId;
+      });
 
       expect(getByTestId('intentionally-anonymous')).toHaveTextContent('true');
       expect(getByTestId('recommends-auth')).toHaveTextContent('false');
