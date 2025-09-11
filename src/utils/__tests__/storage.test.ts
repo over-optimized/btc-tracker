@@ -7,14 +7,8 @@ import {
   getTransactions,
   importTransactions,
   saveTransactions,
-  type StorageLoadResult,
 } from '../storage';
-import {
-  CURRENT_STORAGE_VERSION,
-  getStorageVersion,
-  STORAGE_VERSION_KEY,
-  type StorageVersion,
-} from '../dataMigration';
+import { CURRENT_STORAGE_VERSION, getStorageVersion, STORAGE_VERSION_KEY } from '../dataMigration';
 
 // Mock localStorage with real implementation
 const createMockLocalStorage = () => {

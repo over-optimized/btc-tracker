@@ -267,7 +267,7 @@ class BitcoinPriceAPI {
       forceRefresh = false,
       strategy = 'cache-first',
       ttl,
-      useSharedWorker: _useSharedWorker = true,
+      useSharedWorker: _useSharedWorker = true, // eslint-disable-line @typescript-eslint/no-unused-vars
     } = options;
 
     // Force refresh bypasses cache

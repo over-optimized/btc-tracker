@@ -1,10 +1,5 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import {
-  FeatureFlagContext,
-  FeatureFlagConfig,
-  FeatureFlagEnvironment,
-  FEATURE_RISK_LEVELS,
-} from '../types/FeatureFlags';
+import React, { useState, useEffect, ReactNode } from 'react';
+import { FeatureFlagContext, FeatureFlagConfig, FEATURE_RISK_LEVELS } from '../types/FeatureFlags';
 import {
   FeatureFlagContextProvider,
   getEnvironmentFlags,

@@ -11,7 +11,6 @@ import {
   StorageProviderInfo,
   StorageProviderConfig,
   TransactionQuery,
-  IStorageProvider,
 } from '../types/StorageProvider';
 import { Transaction } from '../types/Transaction';
 import { getTransactions, saveTransactions, clearTransactions } from './storage';
@@ -46,7 +45,7 @@ export class LocalStorageProvider extends BaseStorageProvider {
       try {
         localStorage.setItem('btc-tracker:test', 'test');
         localStorage.removeItem('btc-tracker:test');
-      } catch (error) {
+      } catch {
         return this.createResult(false, undefined, 'localStorage write test failed', 'initialize');
       }
 
@@ -60,7 +59,14 @@ export class LocalStorageProvider extends BaseStorageProvider {
   /**
    * Get localStorage status
    */
-  async getStatus(): Promise<StorageOperationResult<any>> {
+  async getStatus(): Promise<
+    StorageOperationResult<{
+      isHealthy: boolean;
+      isAuthenticated: boolean;
+      transactionCount: number;
+      lastCheck: Date;
+    }>
+  > {
     try {
       const { transactions } = getTransactions();
 
@@ -251,38 +257,117 @@ export class LocalStorageProvider extends BaseStorageProvider {
     );
   }
 
-  async importTransactions(): Promise<StorageOperationResult<any>> {
-    return this.createResult(false, undefined, 'Import not yet implemented', 'importTransactions');
+  async importTransactions(): Promise<
+    StorageOperationResult<{
+      imported: number;
+      duplicates: number;
+      errors: number;
+      errorDetails?: string[];
+    }>
+  > {
+    return this.createResult(
+      false,
+      { imported: 0, duplicates: 0, errors: 0 },
+      'Import not yet implemented',
+      'importTransactions',
+    );
   }
 
   async exportTransactions(): Promise<StorageOperationResult<string>> {
     return this.createResult(false, '', 'Export not yet implemented', 'exportTransactions');
   }
 
-  async syncWith(): Promise<StorageOperationResult<any>> {
-    return this.createResult(false, undefined, 'Sync not supported by localStorage', 'syncWith');
+  async syncWith(): Promise<
+    StorageOperationResult<{
+      synced: number;
+      conflicts: number;
+      lastSyncTime: Date;
+    }>
+  > {
+    return this.createResult(
+      false,
+      { synced: 0, conflicts: 0, lastSyncTime: new Date() },
+      'Sync not supported by localStorage',
+      'syncWith',
+    );
   }
 
-  async createBackup(): Promise<StorageOperationResult<any>> {
-    return this.createResult(false, undefined, 'Backup not yet implemented', 'createBackup');
+  async createBackup(): Promise<
+    StorageOperationResult<{
+      backupId: string;
+      timestamp: Date;
+      size: number;
+      transactionCount: number;
+    }>
+  > {
+    return this.createResult(
+      false,
+      { backupId: '', timestamp: new Date(), size: 0, transactionCount: 0 },
+      'Backup not yet implemented',
+      'createBackup',
+    );
   }
 
-  async restoreFromBackup(): Promise<StorageOperationResult<any>> {
-    return this.createResult(false, undefined, 'Restore not yet implemented', 'restoreFromBackup');
+  async restoreFromBackup(): Promise<
+    StorageOperationResult<{
+      restored: number;
+      timestamp: Date;
+    }>
+  > {
+    return this.createResult(
+      false,
+      { restored: 0, timestamp: new Date() },
+      'Restore not yet implemented',
+      'restoreFromBackup',
+    );
   }
 
-  async listBackups(): Promise<StorageOperationResult<any>> {
+  async listBackups(): Promise<
+    StorageOperationResult<
+      Array<{
+        id: string;
+        timestamp: Date;
+        size: number;
+        transactionCount: number;
+      }>
+    >
+  > {
     return this.createResult(false, [], 'List backups not yet implemented', 'listBackups');
   }
 
-  async getStats(): Promise<StorageOperationResult<any>> {
-    return this.createResult(false, undefined, 'Stats not yet implemented', 'getStats');
-  }
-
-  async performMaintenance(): Promise<StorageOperationResult<any>> {
+  async getStats(): Promise<
+    StorageOperationResult<{
+      totalTransactions: number;
+      totalSize: number;
+      oldestTransaction?: Date;
+      newestTransaction?: Date;
+      transactionsByExchange: Record<string, number>;
+      transactionsByType: Record<string, number>;
+    }>
+  > {
     return this.createResult(
       false,
-      undefined,
+      {
+        totalTransactions: 0,
+        totalSize: 0,
+        transactionsByExchange: {},
+        transactionsByType: {},
+      },
+      'Stats not yet implemented',
+      'getStats',
+    );
+  }
+
+  async performMaintenance(): Promise<
+    StorageOperationResult<{
+      operationsPerformed: string[];
+      sizeFreed: number;
+      errorsFixed: number;
+    }>
+  > {
+    return this.createResult(
+      false,
+      { operationsPerformed: [], sizeFreed: 0, errorsFixed: 0 },
       'Maintenance not yet implemented',
       'performMaintenance',
     );
