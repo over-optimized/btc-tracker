@@ -4,6 +4,12 @@ import { AutoStorageProvider } from '../utils/AutoStorageProvider';
 import { StorageProviderConfig } from '../types/StorageProvider';
 import { useOptionalAuth } from '../contexts/AuthContext';
 
+// Global singleton flags to prevent multiple concurrent executions across all hook instances
+let globalIsLoading = false;
+let globalInitializationAttempted = false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let hookInstanceCounter = 0;
+
 interface MergeResult {
   merged: Transaction[];
   duplicateCount: number;
@@ -27,8 +33,8 @@ export const useTransactionManager = (): TransactionManagerResult => {
   const [error, setError] = useState<string | null>(null);
   const [storageProvider, setStorageProvider] = useState<AutoStorageProvider | null>(null);
 
-  // Use ref to prevent re-initialization on auth context changes
-  const initializationAttempted = useRef(false);
+  // Track hook instances for potential debugging (increment counter)
+  ++hookInstanceCounter;
 
   // Get auth context to coordinate with authentication state
   const auth = useOptionalAuth();
@@ -64,97 +70,97 @@ export const useTransactionManager = (): TransactionManagerResult => {
   const authContextRef = useRef(stableAuthContext);
   authContextRef.current = stableAuthContext;
 
-  // Initialize storage provider and load transactions - one-time initialization
+  // Consolidated effect for storage initialization and auth state management
   useEffect(() => {
-    const initializeStorage = async () => {
-      try {
-        console.log('🔄 Transaction manager initializing (one-time)');
-
-        setLoading(true);
-        setError(null);
-
-        const provider = new AutoStorageProvider();
-        const config: StorageProviderConfig = {
-          enableAuth: true, // Allow authentication but don't require it
-          authContext: authContextRef.current, // Use current auth context from ref
-        };
-
-        const initResult = await provider.initialize(config);
-        if (!initResult.success) {
-          throw new Error(initResult.error || 'Failed to initialize storage');
-        }
-
-        setStorageProvider(provider);
-
-        // Load existing transactions
-        console.log('📚 Loading transactions from storage...');
-        const transactionsResult = await provider.getTransactions();
-        if (transactionsResult.success) {
-          console.log('✅ Loaded transactions:', transactionsResult.data?.length || 0);
-          setTransactions(transactionsResult.data || []);
-        } else {
-          console.warn('⚠️ Failed to load transactions:', transactionsResult.error);
-          setError(transactionsResult.error || 'Failed to load transactions');
-        }
-      } catch (err) {
-        console.error('💥 Storage initialization failed:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-
-        // Fallback to legacy localStorage loading
-        try {
-          const { getTransactions } = await import('../utils/storage');
-          const result = getTransactions();
-          setTransactions(result.transactions);
-        } catch {
-          setTransactions([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Only initialize once when auth loading is complete
-    if (!auth.loading && !initializationAttempted.current) {
-      initializationAttempted.current = true;
-      initializeStorage();
-    }
-  }, [auth.loading]); // Only depend on auth.loading for one-time initialization
-
-  // Handle auth state changes for provider updates and migration - separate from initialization
-  useEffect(() => {
-    const updateProviderForAuthChange = async () => {
-      // Only proceed if we have an initialized provider and auth is not loading
-      if (!storageProvider || auth.loading) {
+    const manageStorageAndTransactions = async () => {
+      // Prevent concurrent execution with global singleton flag
+      if (globalIsLoading) {
         return;
       }
 
-      console.log('🔄 Auth state changed, updating storage provider...');
-
-      // Update the storage provider with new auth context
-      const config: StorageProviderConfig = {
-        enableAuth: true,
-        authContext: authContextRef.current, // Use current auth context from ref
-      };
+      globalIsLoading = true;
 
       try {
-        await storageProvider.initialize(config);
-        // If successful, refresh transactions to reflect any provider changes
-        const transactionsResult = await storageProvider.getTransactions();
-        if (transactionsResult.success) {
-          console.log(
-            '✅ Provider updated, reloaded transactions:',
-            transactionsResult.data?.length || 0,
-          );
-          setTransactions(transactionsResult.data || []);
+        // Phase 1: Initialize provider if needed
+        let activeProvider = storageProvider;
+
+        if (!storageProvider && !auth.loading && !globalInitializationAttempted) {
+          console.log('🔄 Transaction manager initializing (first time)');
+          globalInitializationAttempted = true;
+          setLoading(true);
+          setError(null);
+
+          const provider = new AutoStorageProvider();
+          const config: StorageProviderConfig = {
+            enableAuth: true,
+            authContext: authContextRef.current,
+          };
+
+          const initResult = await provider.initialize(config);
+          if (!initResult.success) {
+            throw new Error(initResult.error || 'Failed to initialize storage');
+          }
+
+          setStorageProvider(provider);
+          activeProvider = provider; // Use the fresh provider, don't wait for state update
+        }
+
+        // Phase 2: Load/refresh transactions if we have a provider
+        if (activeProvider && !auth.loading) {
+          console.log('📚 Loading/refreshing transactions from storage...');
+
+          // Check if provider needs updating due to auth state change
+          const config: StorageProviderConfig = {
+            enableAuth: true,
+            authContext: authContextRef.current,
+          };
+
+          // Update provider with current auth context (this may trigger migration)
+          await activeProvider.initialize(config);
+
+          // Load transactions - this is the only place we fetch from API
+          const transactionsResult = await activeProvider.getTransactions();
+
+          if (transactionsResult.success) {
+            console.log('✅ Loaded transactions:', transactionsResult.data?.length || 0);
+            setTransactions(transactionsResult.data || []);
+          } else {
+            console.warn('⚠️ Failed to load transactions:', transactionsResult.error);
+            setError(transactionsResult.error || 'Failed to load transactions');
+          }
         }
       } catch (err) {
-        console.warn('⚠️ Provider update failed:', err);
-        // Keep existing transactions on provider update failure
+        console.error('💥 Storage operation failed:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+
+        // Fallback to legacy localStorage loading
+        if (!storageProvider) {
+          try {
+            const { getTransactions } = await import('../utils/storage');
+            const result = getTransactions();
+            setTransactions(result.transactions);
+          } catch {
+            setTransactions([]);
+          }
+        }
+      } finally {
+        setLoading(false);
+        globalIsLoading = false;
       }
     };
 
-    updateProviderForAuthChange();
-  }, [stableAuthContext, storageProvider, auth.loading]); // React to auth changes after initialization
+    // Only run when auth state is stable (not loading)
+    if (!auth.loading) {
+      manageStorageAndTransactions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    auth.loading,
+    // Only react to auth changes, not storageProvider changes to avoid circular dependency
+    stableAuthContext.isAuthenticated, // Only care about auth state, not full context
+    stableAuthContext.user?.id, // Only care about user ID changes
+    // Intentionally excluding stableAuthContext and storageProvider to prevent circular dependency
+  ]);
 
   const addTransaction = async (transaction: Transaction) => {
     if (!storageProvider) {
