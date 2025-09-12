@@ -182,7 +182,7 @@ export class AutoStorageProvider extends BaseStorageProvider {
       }
 
       // Don't update if we're just transitioning through loading states
-      if (currentAuthState.loading && this._lastAuthState.loading !== currentAuthState.loading) {
+      if (currentAuthState.loading && this._lastAuthState?.loading !== currentAuthState.loading) {
         console.log('⏳ Skipping update during auth loading state transition');
         return;
       }
@@ -422,7 +422,7 @@ export class AutoStorageProvider extends BaseStorageProvider {
       if (result.success && result.data) {
         // Cache successful results
         console.log('💾 Caching transaction data:', result.data.length, 'transactions');
-        this.transactionCache.set(cacheKey, result.data, this.cacheConfig);
+        this.transactionCache.set(cacheKey || 'default', result.data, this.cacheConfig);
       } else {
         console.warn('⚠️ Supabase fetch failed, attempting localStorage fallback:', result.error);
 
