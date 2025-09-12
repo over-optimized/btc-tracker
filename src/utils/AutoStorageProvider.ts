@@ -38,7 +38,15 @@ export class AutoStorageProvider extends BaseStorageProvider {
 
   // Provider caching to prevent repeated API calls
   private _providerInitialized = false;
-  private _lastAuthState: { isAuthenticated: boolean; userId?: string } | null = null;
+  private _lastAuthState: { isAuthenticated: boolean; userId?: string; loading?: boolean } | null =
+    null;
+
+  // Request deduplication to prevent concurrent calls
+  private _pendingTransactionRequests = new Map<
+    string,
+    Promise<StorageOperationResult<Transaction[]>>
+  >();
+  private _pendingInitialization: Promise<void> | null = null;
 
   // Cache configuration - conservative TTL for data integrity
   private readonly cacheConfig: CacheOptions = {
@@ -72,62 +80,78 @@ export class AutoStorageProvider extends BaseStorageProvider {
   }
 
   /**
-   * Initialize both providers and detect authentication state
+   * Initialize both providers and detect authentication state with deduplication
    */
   async initialize(config?: StorageProviderConfig): Promise<StorageOperationResult<void>> {
+    // Prevent concurrent initialization
+    if (this._pendingInitialization) {
+      console.log('⏳ Initialization already in progress, waiting...');
+      await this._pendingInitialization;
+      return this.createResult(true, undefined, undefined, 'initialize');
+    }
+
+    this._pendingInitialization = this._performInitialization(config);
+
     try {
-      this._config = config;
-
-      // Initialize localStorage provider (always available)
-      this.localProvider = new LocalStorageProvider();
-      const localResult = await this.localProvider.initialize(config);
-
-      if (!localResult.success) {
-        return this.createResult(
-          false,
-          undefined,
-          'Failed to initialize localStorage provider',
-          'initialize',
-        );
-      }
-
-      // Initialize Supabase provider if enabled
-      if (config?.enableAuth !== false && import.meta.env.VITE_ENABLE_SUPABASE === 'true') {
-        try {
-          this.supabaseProvider = new SupabaseStorageProvider();
-          const supabaseResult = await this.supabaseProvider.initialize(config);
-
-          if (!supabaseResult.success) {
-            console.warn(
-              '⚠️ Supabase provider initialization failed, gracefully falling back to localStorage only:',
-              supabaseResult.error,
-            );
-            // Clean up the failed provider
-            this.supabaseProvider = null;
-          } else {
-            console.log('✅ Supabase provider initialized successfully');
-          }
-        } catch (error) {
-          console.warn(
-            '💥 Supabase provider failed to initialize due to exception, using localStorage only:',
-            error instanceof Error ? error.message : 'Unknown error',
-          );
-          this.supabaseProvider = null;
-        }
-      } else {
-        console.log(
-          '📁 Supabase disabled or authentication disabled - using localStorage only mode',
-        );
-      }
-
-      // Determine current provider based on authentication state
-      await this.updateCurrentProvider();
-
-      this._isReady = true;
+      await this._pendingInitialization;
       return this.createResult(true, undefined, undefined, 'initialize');
     } catch (error) {
-      return this.handleError(error, 'initialize');
+      return this.createResult(
+        false,
+        undefined,
+        error instanceof Error ? error.message : 'Initialization failed',
+        'initialize',
+      );
+    } finally {
+      this._pendingInitialization = null;
     }
+  }
+
+  /**
+   * Perform the actual initialization
+   */
+  private async _performInitialization(config?: StorageProviderConfig): Promise<void> {
+    this._config = config;
+
+    // Initialize localStorage provider (always available)
+    this.localProvider = new LocalStorageProvider();
+    const localResult = await this.localProvider.initialize(config);
+
+    if (!localResult.success) {
+      throw new Error('Failed to initialize localStorage provider');
+    }
+
+    // Initialize Supabase provider if enabled
+    if (config?.enableAuth !== false && import.meta.env.VITE_ENABLE_SUPABASE === 'true') {
+      try {
+        this.supabaseProvider = new SupabaseStorageProvider();
+        const supabaseResult = await this.supabaseProvider.initialize(config);
+
+        if (!supabaseResult.success) {
+          console.warn(
+            '⚠️ Supabase provider initialization failed, gracefully falling back to localStorage only:',
+            supabaseResult.error,
+          );
+          // Clean up the failed provider
+          this.supabaseProvider = null;
+        } else {
+          console.log('✅ Supabase provider initialized successfully');
+        }
+      } catch (error) {
+        console.warn(
+          '💥 Supabase provider failed to initialize due to exception, using localStorage only:',
+          error instanceof Error ? error.message : 'Unknown error',
+        );
+        this.supabaseProvider = null;
+      }
+    } else {
+      console.log('📁 Supabase disabled or authentication disabled - using localStorage only mode');
+    }
+
+    // Determine current provider based on authentication state
+    await this.updateCurrentProvider();
+
+    this._isReady = true;
   }
 
   /**
@@ -149,10 +173,17 @@ export class AutoStorageProvider extends BaseStorageProvider {
       const authStateChanged =
         !this._lastAuthState ||
         this._lastAuthState.isAuthenticated !== currentAuthState.isAuthenticated ||
-        this._lastAuthState.userId !== currentAuthState.userId;
+        this._lastAuthState.userId !== currentAuthState.userId ||
+        this._lastAuthState.loading !== currentAuthState.loading;
 
       if (!authStateChanged) {
         console.log('✅ Provider already up-to-date, skipping expensive update');
+        return;
+      }
+
+      // Don't update if we're just transitioning through loading states
+      if (currentAuthState.loading && this._lastAuthState.loading !== currentAuthState.loading) {
+        console.log('⏳ Skipping update during auth loading state transition');
         return;
       }
     }
@@ -320,7 +351,7 @@ export class AutoStorageProvider extends BaseStorageProvider {
   }
 
   /**
-   * Delegate to current provider with intelligent caching
+   * Delegate to current provider with intelligent caching and request deduplication
    */
   async getTransactions(query?: TransactionQuery): Promise<StorageOperationResult<Transaction[]>> {
     // Provider should already be set during initialization - don't update on every call!
@@ -337,6 +368,13 @@ export class AutoStorageProvider extends BaseStorageProvider {
     }
 
     const cacheKey = this.getCacheKey(query);
+
+    // Check if there's already a pending request for this same query
+    if (this._pendingTransactionRequests.has(cacheKey)) {
+      console.log('⏳ Deduplicating concurrent request for:', cacheKey);
+      return this._pendingTransactionRequests.get(cacheKey)!;
+    }
+
     console.log('🔍 Checking cache for transactions:', cacheKey);
 
     // Try to get from cache first
@@ -358,9 +396,28 @@ export class AutoStorageProvider extends BaseStorageProvider {
       `(${this.cacheStats.hits} hits, ${this.cacheStats.misses} misses)`,
     );
 
+    // Create and store the pending request promise
+    const requestPromise = this._executeTransactionRequest(query, cacheKey);
+    this._pendingTransactionRequests.set(cacheKey, requestPromise);
+
+    try {
+      return await requestPromise;
+    } finally {
+      // Always clean up the pending request
+      this._pendingTransactionRequests.delete(cacheKey);
+    }
+  }
+
+  /**
+   * Execute the actual transaction request (separated for request deduplication)
+   */
+  private async _executeTransactionRequest(
+    query?: TransactionQuery,
+    cacheKey?: string,
+  ): Promise<StorageOperationResult<Transaction[]>> {
     try {
       // Fetch from Supabase
-      const result = await this.currentProvider.getTransactions(query);
+      const result = await this.currentProvider!.getTransactions(query);
 
       if (result.success && result.data) {
         // Cache successful results
