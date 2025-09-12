@@ -587,4 +587,95 @@ describe('TaxCalculator', () => {
       expect(suggestions).toEqual(['No remaining lots to optimize']);
     });
   });
+
+  describe('Withdrawal Detection', () => {
+    it('should correctly identify self-custody transactions', () => {
+      const selfCustodyTransaction: Transaction = {
+        id: 'tx-self-custody',
+        date: new Date('2024-01-15'),
+        exchange: 'Strike',
+        type: 'Purchase', // Type is purchase but marked as self-custody
+        usdAmount: 1000,
+        btcAmount: 0.02,
+        price: 50000,
+        isSelfCustody: true, // This should make it non-taxable
+      };
+
+      const taxCalculator = new TaxCalculator(defaultConfig);
+      const validation = taxCalculator.processTransactions([selfCustodyTransaction]);
+
+      expect(validation.isValid).toBe(true);
+      // Self-custody transactions may generate warnings, which is expected
+
+      // Self-custody transactions should not create lots
+      const report = taxCalculator.generateTaxReport();
+      expect(report.remainingLots).toHaveLength(0);
+    });
+
+    it('should correctly identify explicitly non-taxable transactions', () => {
+      const nonTaxableTransaction: Transaction = {
+        id: 'tx-non-taxable',
+        date: new Date('2024-01-15'),
+        exchange: 'Strike',
+        type: 'Purchase',
+        usdAmount: 1000,
+        btcAmount: 0.02,
+        price: 50000,
+        isTaxable: false, // Explicitly marked as non-taxable
+      };
+
+      const taxCalculator = new TaxCalculator(defaultConfig);
+      const validation = taxCalculator.processTransactions([nonTaxableTransaction]);
+
+      expect(validation.isValid).toBe(true);
+
+      // Non-taxable transactions should not create lots
+      const report = taxCalculator.generateTaxReport();
+      expect(report.remainingLots).toHaveLength(0);
+    });
+
+    it('should properly handle transfer type transactions', () => {
+      const transferTransaction: Transaction = {
+        id: 'tx-transfer',
+        date: new Date('2024-01-15'),
+        exchange: 'Strike',
+        type: 'Transfer',
+        usdAmount: 0, // Transfers typically have no USD amount
+        btcAmount: 0.02,
+        price: 50000,
+      };
+
+      const taxCalculator = new TaxCalculator(defaultConfig);
+      const validation = taxCalculator.processTransactions([transferTransaction]);
+
+      expect(validation.isValid).toBe(true);
+
+      // Transfer transactions should not create lots
+      const report = taxCalculator.generateTaxReport();
+      expect(report.remainingLots).toHaveLength(0);
+    });
+
+    it('should handle combination of flags correctly', () => {
+      const complexTransaction: Transaction = {
+        id: 'tx-complex',
+        date: new Date('2024-01-15'),
+        exchange: 'Strike',
+        type: 'Purchase',
+        usdAmount: 1000,
+        btcAmount: 0.02,
+        price: 50000,
+        isSelfCustody: true,
+        isTaxable: false, // Both flags set
+      };
+
+      const taxCalculator = new TaxCalculator(defaultConfig);
+      const validation = taxCalculator.processTransactions([complexTransaction]);
+
+      expect(validation.isValid).toBe(true);
+
+      // Should be treated as withdrawal (non-taxable)
+      const report = taxCalculator.generateTaxReport();
+      expect(report.remainingLots).toHaveLength(0);
+    });
+  });
 });

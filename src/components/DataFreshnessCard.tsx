@@ -1,8 +1,9 @@
 import React from 'react';
-import { AlertTriangle, Calendar, CheckCircle, Clock, Upload } from 'lucide-react';
+import { AlertTriangle, Calendar, CheckCircle, Clock, Upload, Loader2 } from 'lucide-react';
 import { Transaction } from '../types/Transaction';
 import { analyzeDataFreshness, detectTransactionGaps } from '../utils/dataFreshness';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuthWithHistory } from '../contexts/EnhancedAuthContext';
 
 interface DataFreshnessCardProps {
   transactions: Transaction[];
@@ -11,9 +12,59 @@ interface DataFreshnessCardProps {
 
 const DataFreshnessCard: React.FC<DataFreshnessCardProps> = ({ transactions, onImportClick }) => {
   const { theme } = useTheme();
+  const auth = useAuthWithHistory();
   const isDark = theme === 'dark';
+
+  // Handle loading state for both authenticated and unauthenticated users
+  const isLoading = !Array.isArray(transactions);
+
+  // Show loading state if transactions data isn't ready
+  if (isLoading) {
+    return (
+      <div
+        className={`rounded-lg shadow border-2 p-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <Loader2 className="text-blue-500 animate-spin" size={20} />
+            <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
+              Data Status
+            </span>
+          </div>
+        </div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Loading transaction data...</div>
+      </div>
+    );
+  }
+
   const freshness = analyzeDataFreshness(transactions);
   const gaps = detectTransactionGaps(transactions);
+
+  // Get personalized recommendation based on auth context
+  const getPersonalizedRecommendation = () => {
+    if (!freshness.isStale) return freshness.recommendation;
+
+    // Personalized recommendations based on authentication context
+    if (auth.isAuthenticated) {
+      return `Import recent transactions to keep your synced data current`;
+    }
+
+    if (auth.hasAuthenticatedBefore && !auth.isAuthenticated) {
+      return `Sign in to sync recent transactions, or import manually to update your local data`;
+    }
+
+    if (transactions.length > 10 && !auth.hasAuthenticatedBefore) {
+      return `You have ${transactions.length} transactions. Consider creating an account to backup your data before importing more`;
+    }
+
+    if (auth.isIntentionallyAnonymous) {
+      return `Import recent transactions to update your local portfolio data`;
+    }
+
+    return freshness.recommendation;
+  };
+
+  const personalizedRecommendation = getPersonalizedRecommendation();
 
   // Determine card styling based on staleness
   const getCardStyle = () => {
@@ -104,8 +155,8 @@ const DataFreshnessCard: React.FC<DataFreshnessCardProps> = ({ transactions, onI
 
       <div className={`text-sm font-medium mb-2 ${getTextColor()}`}>{freshness.message}</div>
 
-      {freshness.recommendation && (
-        <div className="text-xs text-theme-secondary mb-3">{freshness.recommendation}</div>
+      {personalizedRecommendation && (
+        <div className="text-xs text-theme-secondary mb-3">{personalizedRecommendation}</div>
       )}
 
       {freshness.lastTransactionDate && (

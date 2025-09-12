@@ -2,9 +2,6 @@
 // TODO: Replace 'any' types with proper CSV row interfaces for each exchange format
 // This file handles dynamic CSV data from multiple exchange formats
 
-import { Transaction } from '../types/Transaction';
-import { generateStableTransactionId, type TransactionData } from './generateTransactionId';
-
 const parseDate = (dateStr: string): Date => {
   if (!dateStr) return new Date();
 
@@ -24,7 +21,7 @@ interface RawTransactionData {
 }
 
 export const enhancedExchangeParsers = {
-  strike: (row: any, index: number): RawTransactionData | null => {
+  strike: (row: any, _index: number): RawTransactionData | null => {
     if (!row['Date & Time (UTC)'] || !row['Transaction Type']) return null;
 
     // Now we capture ALL transaction types, not just purchases
@@ -53,7 +50,7 @@ export const enhancedExchangeParsers = {
     };
   },
 
-  coinbase: (row: any, index: number): RawTransactionData | null => {
+  coinbase: (row: any, _index: number): RawTransactionData | null => {
     // Check if we have the basic required fields
     if (!row['Transaction Type'] && !row['Type']) return null;
 
@@ -100,7 +97,7 @@ export const enhancedExchangeParsers = {
     };
   },
 
-  kraken: (row: any, index: number): RawTransactionData | null => {
+  kraken: (row: any, _index: number): RawTransactionData | null => {
     // Check for various transaction types, not just trades
     if (!row['type'] && !row['Type']) return null;
 
@@ -138,7 +135,7 @@ export const enhancedExchangeParsers = {
     };
   },
 
-  generic: (row: any, index: number): RawTransactionData => {
+  generic: (row: any, _index: number): RawTransactionData => {
     // Generic fallback parser - accept any row with date info
     const date = parseDate(row.Date || row.date || row.Timestamp || row.timestamp);
     const usdAmount = parseFloat(

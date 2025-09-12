@@ -40,7 +40,9 @@ const UploadTransactions: React.FC<UploadTransactionsProps> = ({
     </div>
     {transactionsCount > 0 && (
       <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
-        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{transactionsCount} transactions loaded</span>
+        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+          {transactionsCount} transactions loaded
+        </span>
         <button
           onClick={clearData}
           className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-red-500 dark:bg-red-600 text-white rounded hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
@@ -52,4 +54,4 @@ const UploadTransactions: React.FC<UploadTransactionsProps> = ({
   </div>
 );
 
-export default UploadTransactions;
+export default React.memo(UploadTransactions);

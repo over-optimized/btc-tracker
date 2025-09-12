@@ -9,13 +9,11 @@ import {
   type StorageVersion,
 } from './dataMigration';
 import {
-  convertToLegacyTransaction,
   convertToOptimizedTransaction,
   type OptimizedTransaction,
-  isOptimizedTransaction,
   batchConvertToLegacy,
 } from '../types/OptimizedTransaction';
-import { generateStableTransactionId, type TransactionData } from './generateTransactionId';
+import { generateStableTransactionId } from './generateTransactionId';
 
 const STORAGE_KEY = 'btc-tracker:transactions';
 

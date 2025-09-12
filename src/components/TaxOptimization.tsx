@@ -64,7 +64,7 @@ const TaxOptimization: React.FC<TaxOptimizationProps> = ({
     try {
       const result = calculator.calculateHypotheticalDisposal(btcAmount, salePrice);
       setHypotheticalResult(result);
-    } catch (error) {
+    } catch {
       setHypotheticalResult(null);
     }
   };

@@ -13,6 +13,18 @@ export interface DataFreshnessInfo {
  * Analyze transaction data freshness for Strike users who make daily purchases
  */
 export function analyzeDataFreshness(transactions: Transaction[]): DataFreshnessInfo {
+  // Defensive programming: ensure transactions is a valid array
+  if (!Array.isArray(transactions)) {
+    console.warn('⚠️ analyzeDataFreshness: transactions is not an array:', typeof transactions);
+    return {
+      lastTransactionDate: null,
+      daysSinceLastTransaction: 0,
+      isStale: false,
+      staleness: 'empty',
+      message: 'Loading transaction data...',
+    };
+  }
+
   if (transactions.length === 0) {
     return {
       lastTransactionDate: null,
@@ -29,7 +41,7 @@ export function analyzeDataFreshness(transactions: Transaction[]): DataFreshness
   const lastTransaction = sortedTransactions[0];
   const now = new Date();
   const daysSinceLastTransaction = Math.floor(
-    (now.getTime() - lastTransaction.date.getTime()) / (1000 * 60 * 60 * 24)
+    (now.getTime() - lastTransaction.date.getTime()) / (1000 * 60 * 60 * 24),
   );
 
   // Determine staleness level
@@ -54,7 +66,8 @@ export function analyzeDataFreshness(transactions: Transaction[]): DataFreshness
   } else {
     staleness = 'very_stale';
     message = `Data is ${daysSinceLastTransaction} days old`;
-    recommendation = 'Your data is significantly outdated. Import recent Strike transactions for accurate tracking';
+    recommendation =
+      'Your data is significantly outdated. Import recent Strike transactions for accurate tracking';
     isStale = true;
   }
 
@@ -71,7 +84,10 @@ export function analyzeDataFreshness(transactions: Transaction[]): DataFreshness
 /**
  * Detect gaps in transaction history that might indicate missing imports
  */
-export function detectTransactionGaps(transactions: Transaction[], gapThresholdDays: number = 3): {
+export function detectTransactionGaps(
+  transactions: Transaction[],
+  gapThresholdDays: number = 3,
+): {
   gaps: Array<{
     startDate: Date;
     endDate: Date;
@@ -80,7 +96,8 @@ export function detectTransactionGaps(transactions: Transaction[], gapThresholdD
   }>;
   hasSignificantGaps: boolean;
 } {
-  if (transactions.length < 2) {
+  // Defensive programming: ensure transactions is a valid array
+  if (!Array.isArray(transactions) || transactions.length < 2) {
     return { gaps: [], hasSignificantGaps: false };
   }
 
@@ -92,7 +109,7 @@ export function detectTransactionGaps(transactions: Transaction[], gapThresholdD
     const prevDate = sorted[i - 1].date;
     const currentDate = sorted[i].date;
     const daysBetween = Math.floor(
-      (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24)
+      (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (daysBetween > gapThresholdDays) {
@@ -150,6 +167,9 @@ export function setImportReminderPreferences(preferences: {
  * Check if we should show an import reminder
  */
 export function shouldShowImportReminder(transactions: Transaction[]): boolean {
+  // Defensive programming: don't show reminders for invalid data
+  if (!Array.isArray(transactions)) return false;
+
   const preferences = getImportReminderPreferences();
   if (!preferences.enabled) return false;
 
@@ -159,7 +179,7 @@ export function shouldShowImportReminder(transactions: Transaction[]): boolean {
   // Only show if we haven't shown a reminder recently
   if (preferences.lastReminderShown) {
     const daysSinceLastReminder = Math.floor(
-      (Date.now() - preferences.lastReminderShown.getTime()) / (1000 * 60 * 60 * 24)
+      (Date.now() - preferences.lastReminderShown.getTime()) / (1000 * 60 * 60 * 24),
     );
     if (daysSinceLastReminder < 1) return false; // Don't spam daily
   }

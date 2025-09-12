@@ -13,33 +13,46 @@ An **open source** comprehensive web application for tracking your Bitcoin Dolla
 ## ✨ Key Features
 
 ### 🤖 **Intelligent Transaction Import**
+
 - **Mixed CSV Support**: Automatically detects and classifies purchases, withdrawals, sales, and transfers
 - **Smart Classification**: AI-powered transaction categorization with user confirmation for ambiguous cases
 - **Multi-Exchange Support**: Strike, Coinbase, Kraken, and generic CSV formats
 - **Bulk Actions**: One-click classification for common transaction patterns
 
 ### 🔐 **Self-Custody Tracking & Security**
+
 - **Milestone Alerts**: Smart recommendations when you hit common self-custody thresholds (0.01, 0.1, 1.0 BTC)
 - **Security Scoring**: Real-time assessment of exchange exposure and portfolio risk
 - **Withdrawal Tracking**: Record Bitcoin movements to self-custody as non-taxable events
 - **Exchange Balance Monitoring**: Track Bitcoin remaining on each exchange
 
 ### 💰 **Professional Tax Reporting**
+
 - **Multi-Method Calculations**: FIFO, LIFO, HIFO, and Specific Identification tax methods
 - **TurboTax Compatible**: Direct CSV export for seamless tax filing
 - **Tax Optimization**: Strategy recommendations and hypothetical disposal analysis
 - **Complete Audit Trail**: Lot-level tracking with holding period classification
 
 ### 📊 **Advanced Portfolio Analytics**
+
 - **Real-Time Dashboard**: Live Bitcoin pricing with portfolio value tracking
 - **Interactive Charts**: Portfolio growth, monthly investment analysis, and P&L trends
 - **Data Freshness Alerts**: Smart reminders when transaction data becomes stale
 - **Comprehensive History**: Paginated transaction management with detailed filtering
 
 ### 🛡️ **Privacy & Security**
+
 - **100% Client-Side**: All data stays in your browser - no server uploads
 - **Zero Tracking**: No analytics, cookies, or data collection
 - **Local Storage**: Your data never leaves your device
+- **Optional Cloud Sync**: Secure authentication with Supabase for data backup (completely optional)
+
+### 🔐 **Smart Authentication System**
+
+- **Context-Aware Authentication**: Intelligent messaging based on your usage patterns
+- **Authentication History**: Tracks user preferences to provide personalized experiences
+- **Multi-User Device Support**: Detects shared devices and provides appropriate options
+- **Space-Efficient Design**: Clean header integration optimized for mobile and desktop
 
 ## 🚀 Getting Started
 
@@ -67,12 +80,14 @@ Visit `http://localhost:5173` to start tracking your Bitcoin investments!
 ## 📱 How It Works
 
 ### Smart CSV Import Process
+
 1. **Upload** your exchange CSV file
 2. **Auto-Detection** identifies transaction types (purchases, withdrawals, sales)
 3. **Classification** prompts you to confirm ambiguous transactions
 4. **Integration** merges all data with proper tax treatment
 
-### Self-Custody Workflow  
+### Self-Custody Workflow
+
 1. **Milestone Alerts** notify you when you reach common thresholds (0.01 BTC, etc.)
 2. **Record Withdrawals** to track Bitcoin moved to personal wallets
 3. **Security Monitoring** shows your exchange exposure risk
@@ -80,12 +95,12 @@ Visit `http://localhost:5173` to start tracking your Bitcoin investments!
 
 ## 📄 Supported Exchanges
 
-| Exchange | CSV Export Location | Supported Transaction Types |
-|----------|-------------------|----------------------------|
-| **Strike** | Settings → Transaction History → Export | Purchases, Withdrawals, Sales |
-| **Coinbase** | Portfolio → Statements → Generate Report | Buys, Sends, Sells |
-| **Kraken** | History → Export Ledgers | Trades, Withdrawals |
-| **Others** | Custom CSV | Any format with Date, Amount, Type columns |
+| Exchange     | CSV Export Location                      | Supported Transaction Types                |
+| ------------ | ---------------------------------------- | ------------------------------------------ |
+| **Strike**   | Settings → Transaction History → Export  | Purchases, Withdrawals, Sales              |
+| **Coinbase** | Portfolio → Statements → Generate Report | Buys, Sends, Sells                         |
+| **Kraken**   | History → Export Ledgers                 | Trades, Withdrawals                        |
+| **Others**   | Custom CSV                               | Any format with Date, Amount, Type columns |
 
 > **📋 Mixed Transaction Support**: The app intelligently handles CSV files containing both purchases AND withdrawals/sales - just upload and confirm the transaction types when prompted!
 
@@ -94,8 +109,9 @@ Visit `http://localhost:5173` to start tracking your Bitcoin investments!
 Interested in contributing or running locally? Check out our comprehensive technical documentation:
 
 📖 **[CLAUDE.md](CLAUDE.md)** - Complete development guide including:
+
 - Architecture details and design decisions
-- Build, test, and lint instructions  
+- Build, test, and lint instructions
 - Component structure and code organization
 - Development standards and best practices
 
@@ -117,13 +133,15 @@ pnpm ci                 # Full: lint + coverage + build
 ```
 
 **Coverage Thresholds (Enforced)**:
+
 - Overall: 75% minimum
-- Custom hooks (`src/hooks/`): 85% minimum  
+- Custom hooks (`src/hooks/`): 85% minimum
 - Tax utilities (`src/utils/tax*`): 95% minimum
 
 ### 🤝 Contributing to Open Source
 
 **This is an open source project and contributions are welcome!** Whether you're:
+
 - A Bitcoin DCA investor with feature ideas
 - A developer who wants to improve cryptocurrency tools
 - A tax professional with compliance insights
@@ -145,9 +163,10 @@ pnpm ci                 # Full: lint + coverage + build
 7. **Submit**: Create pull request with clear description
 
 #### Types of Contributions Welcome
+
 - 🐛 **Bug fixes** and performance improvements
 - ✨ **New exchange support** (add your favorite exchange's CSV parser)
-- 📊 **Analytics features** and portfolio insights  
+- 📊 **Analytics features** and portfolio insights
 - 🧪 **Testing** improvements and coverage increases
 - 📚 **Documentation** improvements and translations
 - 🎨 **UI/UX** improvements and accessibility enhancements
@@ -167,8 +186,9 @@ For significant features or changes, update these files:
 **Development Status**: Q1 2025 features complete, implementing legal compliance for production deployment ⚖️
 
 Recent major additions:
+
 - ✅ **Intelligent Transaction Classification** - Mixed CSV file support
-- ✅ **Self-Custody Tracking** - Security scoring and milestone alerts  
+- ✅ **Self-Custody Tracking** - Security scoring and milestone alerts
 - ✅ **Professional Tax Reporting** - Multi-method calculations with TurboTax export
 - ✅ **Smart Import Reminders** - Data freshness monitoring for active traders
 - 🔄 **Legal Compliance System** - Feature flag implementation for production safety
@@ -184,17 +204,20 @@ Recent major additions:
 **⚠️ IMPORTANT LEGAL NOTICE**: This application is a **portfolio tracking and record-keeping tool only**. It does **NOT** provide financial, tax, legal, or investment advice.
 
 **✅ What This Tool Provides:**
+
 - Portfolio tracking and transaction management
 - Mathematical calculations for informational purposes only
 - Data export functionality
 
 **❌ What This Tool Does NOT Provide:**
+
 - Tax advice or professional tax preparation services
-- Legal guidance or regulatory interpretation  
+- Legal guidance or regulatory interpretation
 - Financial or investment advice
 - Professional consultation services
 
 **🏛️ Professional Consultation Required**: You are solely responsible for:
+
 - Consulting qualified tax professionals (CPA, Enrolled Agent) for tax preparation
 - Verifying all information with authoritative sources (IRS.gov)
 - Making your own financial and tax decisions
@@ -205,5 +228,5 @@ Recent major additions:
 ## 🙏 Credits
 
 - [CoinGecko API](https://coingecko.com) for real-time Bitcoin price data
-- [Recharts](https://recharts.org) for beautiful, responsive chart components  
+- [Recharts](https://recharts.org) for beautiful, responsive chart components
 - [Lucide](https://lucide.dev) for clean, consistent icons

@@ -42,35 +42,40 @@ export const SELF_CUSTODY_MILESTONES: SelfCustodyMilestone[] = [
     label: 'First Milestone',
     description: 'Getting familiar with self-custody',
     priority: 'low',
-    educationalContent: 'Consider practicing with a small amount first. Learn about hardware wallets and backup procedures.',
+    educationalContent:
+      'Consider practicing with a small amount first. Learn about hardware wallets and backup procedures.',
   },
   {
     threshold: 0.01,
     label: 'Standard Threshold',
     description: 'The most common recommendation for moving to self-custody',
     priority: 'medium',
-    educationalContent: '0.01 BTC is the widely accepted threshold. "Not your keys, not your Bitcoin." Time to take control.',
+    educationalContent:
+      '0.01 BTC is the widely accepted threshold. "Not your keys, not your Bitcoin." Time to take control.',
   },
   {
     threshold: 0.05,
     label: 'Significant Holdings',
     description: 'Substantial amount that should definitely be in self-custody',
     priority: 'high',
-    educationalContent: 'With this amount, exchange risk becomes significant. Consider a hardware wallet like Coldcard or Ledger.',
+    educationalContent:
+      'With this amount, exchange risk becomes significant. Consider a hardware wallet like Coldcard or Ledger.',
   },
   {
     threshold: 0.1,
     label: 'Major Holdings',
     description: 'Large amount requiring immediate self-custody',
     priority: 'critical',
-    educationalContent: 'This is a substantial holding. Keeping this on exchanges is high risk. Move to self-custody immediately.',
+    educationalContent:
+      'This is a substantial holding. Keeping this on exchanges is high risk. Move to self-custody immediately.',
   },
   {
     threshold: 1.0,
     label: 'Whole Coiner',
     description: 'Congratulations! You own a full Bitcoin',
     priority: 'critical',
-    educationalContent: 'As a whole coiner, security is paramount. Consider multi-sig or advanced cold storage solutions.',
+    educationalContent:
+      'As a whole coiner, security is paramount. Consider multi-sig or advanced cold storage solutions.',
   },
 ];
 
@@ -79,12 +84,21 @@ export const SELF_CUSTODY_MILESTONES: SelfCustodyMilestone[] = [
  */
 export function calculateExchangeBalances(
   transactions: Transaction[],
-  currentPrice?: number
+  currentPrice?: number,
 ): ExchangeBalance[] {
-  const balanceMap = new Map<string, {
-    btcAmount: number;
-    lastTransactionDate: Date;
-  }>();
+  // Defensive programming: ensure transactions is a valid array
+  if (!Array.isArray(transactions)) {
+    console.warn('calculateExchangeBalances: transactions is not an array:', typeof transactions);
+    return [];
+  }
+
+  const balanceMap = new Map<
+    string,
+    {
+      btcAmount: number;
+      lastTransactionDate: Date;
+    }
+  >();
 
   // Process all transactions
   transactions.forEach((tx) => {
@@ -121,7 +135,7 @@ export function calculateExchangeBalances(
     .map(([exchange, balance]) => {
       const usdValue = currentPrice ? balance.btcAmount * currentPrice : 0;
       const milestone = findApplicableMilestone(balance.btcAmount);
-      
+
       return {
         exchange,
         btcAmount: balance.btcAmount,
@@ -139,10 +153,10 @@ export function calculateExchangeBalances(
  */
 function findApplicableMilestone(btcAmount: number): SelfCustodyMilestone | null {
   // Find the highest milestone that applies
-  const applicable = SELF_CUSTODY_MILESTONES
-    .filter(m => btcAmount >= m.threshold)
-    .sort((a, b) => b.threshold - a.threshold);
-  
+  const applicable = SELF_CUSTODY_MILESTONES.filter((m) => btcAmount >= m.threshold).sort(
+    (a, b) => b.threshold - a.threshold,
+  );
+
   return applicable[0] || null;
 }
 
@@ -150,8 +164,14 @@ function findApplicableMilestone(btcAmount: number): SelfCustodyMilestone | null
  * Calculate total Bitcoin in self-custody
  */
 export function calculateSelfCustodyTotal(transactions: Transaction[]): number {
+  // Defensive programming: ensure transactions is a valid array
+  if (!Array.isArray(transactions)) {
+    console.warn('calculateSelfCustodyTotal: transactions is not an array:', typeof transactions);
+    return 0;
+  }
+
   return transactions
-    .filter(tx => tx.isSelfCustody && (tx.type === 'Withdrawal' || tx.type === 'Transfer'))
+    .filter((tx) => tx.isSelfCustody && (tx.type === 'Withdrawal' || tx.type === 'Transfer'))
     .reduce((total, tx) => total + tx.btcAmount, 0);
 }
 
@@ -159,7 +179,7 @@ export function calculateSelfCustodyTotal(transactions: Transaction[]): number {
  * Generate self-custody recommendations based on current balances
  */
 export function generateSelfCustodyRecommendations(
-  exchangeBalances: ExchangeBalance[]
+  exchangeBalances: ExchangeBalance[],
 ): SelfCustodyRecommendation[] {
   const recommendations: SelfCustodyRecommendation[] = [];
   const now = new Date();
@@ -168,7 +188,7 @@ export function generateSelfCustodyRecommendations(
     if (!balance.milestone) return;
 
     const daysAtMilestone = Math.floor(
-      (now.getTime() - balance.lastTransactionDate.getTime()) / (1000 * 60 * 60 * 24)
+      (now.getTime() - balance.lastTransactionDate.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     let urgency: 'info' | 'warning' | 'urgent';
@@ -208,11 +228,11 @@ export function generateSelfCustodyRecommendations(
     const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
     const aPriority = priorityOrder[a.milestone.priority];
     const bPriority = priorityOrder[b.milestone.priority];
-    
+
     if (aPriority !== bPriority) {
       return bPriority - aPriority;
     }
-    
+
     return b.currentAmount - a.currentAmount;
   });
 }
@@ -223,7 +243,7 @@ export function generateSelfCustodyRecommendations(
 function calculateSecurityScore(
   totalOnExchanges: number,
   totalInSelfCustody: number,
-  exchangeBalances: ExchangeBalance[]
+  exchangeBalances: ExchangeBalance[],
 ): number {
   if (totalOnExchanges === 0 && totalInSelfCustody === 0) return 100; // No Bitcoin = no risk
   if (totalOnExchanges === 0) return 100; // All in self-custody = perfect
@@ -232,7 +252,7 @@ function calculateSecurityScore(
   const exchangeRatio = totalOnExchanges / totalBitcoin;
 
   // Base score starts at 100 and decreases based on exchange exposure
-  let score = 100 - (exchangeRatio * 80); // Max 80 point penalty for all on exchanges
+  let score = 100 - exchangeRatio * 80; // Max 80 point penalty for all on exchanges
 
   // Additional penalties for large single-exchange concentrations
   exchangeBalances.forEach((balance) => {
@@ -256,14 +276,32 @@ function calculateSecurityScore(
  */
 export function analyzeSelfCustody(
   transactions: Transaction[],
-  currentPrice?: number
+  currentPrice?: number,
 ): SelfCustodyAnalysis {
+  // Defensive programming: ensure transactions is a valid array
+  if (!Array.isArray(transactions)) {
+    console.warn('analyzeSelfCustody: transactions is not an array:', typeof transactions);
+    // Return default analysis when data is not available
+    return {
+      totalOnExchanges: 0,
+      totalInSelfCustody: 0,
+      exchangeBalances: [],
+      recommendations: [],
+      securityScore: 100, // Default to safe score when no data
+      overallRisk: 'low',
+    };
+  }
+
   const exchangeBalances = calculateExchangeBalances(transactions, currentPrice);
   const totalInSelfCustody = calculateSelfCustodyTotal(transactions);
   const totalOnExchanges = exchangeBalances.reduce((sum, b) => sum + b.btcAmount, 0);
-  
+
   const recommendations = generateSelfCustodyRecommendations(exchangeBalances);
-  const securityScore = calculateSecurityScore(totalOnExchanges, totalInSelfCustody, exchangeBalances);
+  const securityScore = calculateSecurityScore(
+    totalOnExchanges,
+    totalInSelfCustody,
+    exchangeBalances,
+  );
 
   let overallRisk: 'low' | 'medium' | 'high' | 'critical';
   if (securityScore >= 80) overallRisk = 'low';

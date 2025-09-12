@@ -55,10 +55,10 @@ interface ImportFlowResult {
 }
 
 interface UseImportFlowProps {
-  onTransactionsMerged: (newTransactions: Transaction[]) => {
+  onTransactionsMerged: (newTransactions: Transaction[]) => Promise<{
     merged: Transaction[];
     duplicateCount: number;
-  };
+  }>;
 }
 
 export const useImportFlow = ({ onTransactionsMerged }: UseImportFlowProps): ImportFlowResult => {
@@ -128,7 +128,7 @@ export const useImportFlow = ({ onTransactionsMerged }: UseImportFlowProps): Imp
       if (result.success && result.importedCount > 0) {
         // Success - merge with existing transactions
         const newTransactions = (result as any).transactions || [];
-        const mergeResult = onTransactionsMerged(newTransactions);
+        const mergeResult = await onTransactionsMerged(newTransactions);
 
         // Set results for summary modal
         updateState({
@@ -227,7 +227,7 @@ export const useImportFlow = ({ onTransactionsMerged }: UseImportFlowProps): Imp
 
       if (success && transactions.length > 0) {
         // Merge classified transactions with existing ones
-        const mergeResult = onTransactionsMerged(transactions);
+        const mergeResult = await onTransactionsMerged(transactions);
 
         // Show success modal
         updateState({
