@@ -17,8 +17,9 @@
         document.documentElement.classList.add(theme);
       })();
     </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // Configure Tailwind BEFORE loading it
+      // Configure Tailwind AFTER loading it
       tailwind.config = {
         darkMode: 'class',
         theme: {
@@ -36,7 +37,6 @@
         }
       }
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       /* CSS Variables for theme support */
       :root {
